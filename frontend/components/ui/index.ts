@@ -1,6 +1,7 @@
 export { Badge, type BadgeVariant } from "./Badge";
 export { Button, type ButtonProps, type ButtonVariant } from "./Button";
 export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
+export { Drawer, type DrawerProps } from "./Drawer";
 export { EmptyState, type EmptyStateProps } from "./EmptyState";
 export { IconButton, type IconButtonProps } from "./IconButton";
 export { Input, type InputProps } from "./Input";

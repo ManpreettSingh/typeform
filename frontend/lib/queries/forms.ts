@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiDelete, apiGet, apiPatch, apiPost, getErrorMessage } from "@/lib/api";
+import { ApiError, apiDelete, apiGet, apiPatch, apiPost, getErrorMessage } from "@/lib/api";
 import type { Form, FormCreate, FormListItem, FormUpdate } from "@/lib/types";
 
 // ---- API ---------------------------------------------------------------
@@ -129,5 +129,16 @@ export function useSetPublished() {
       toast.success(form.status === "published" ? "Form published" : "Form unpublished");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+/** One form with its questions (results page). Always refetched when shown: the builder may have changed it. */
+export function useForm(id: number) {
+  return useQuery({
+    queryKey: formKeys.detail(id),
+    queryFn: () => formsApi.get(id),
+    staleTime: 0,
+    enabled: Number.isInteger(id),
+    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
   });
 }

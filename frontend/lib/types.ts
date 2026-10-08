@@ -180,6 +180,77 @@ export type PublicForm = {
 export type SubmissionIn = { answers: Record<string, AnswerValue> };
 export type SubmissionOut = { id: number };
 
+// ---- Results (creator) ------------------------------------------------
+
+export type ResponseStatus = "partial" | "completed";
+
+type ResponseBase = {
+  id: number;
+  status: ResponseStatus;
+  started_at: ISODateTime;
+  /** null while partial. */
+  submitted_at: ISODateTime | null;
+};
+
+/** Answers keyed by question id; unanswered questions are absent. */
+export type ResponseListItem = ResponseBase & { answers: Record<string, AnswerValue> };
+
+export type ResponsePage = { items: ResponseListItem[]; total: number; page: number; page_size: number };
+
+export type ResponseAnswer = {
+  question_id: number;
+  question_title: string;
+  question_type: QuestionType;
+  value: AnswerValue;
+};
+
+/** Answers in question order; unanswered questions are absent. */
+export type ResponseDetail = ResponseBase & { answers: ResponseAnswer[] };
+
+export type OptionCount = { option_id: string; label: string; count: number };
+
+type QuestionSummaryBase = {
+  question_id: number;
+  title: string;
+  /** Completed responses that answered this question. */
+  answered: number;
+};
+
+export type ChoiceSummary = QuestionSummaryBase & {
+  type: "multiple_choice" | "dropdown" | "yes_no";
+  /** In option order. Multi-select counts can sum to more than `answered`. */
+  counts: OptionCount[];
+};
+export type RatingSummary = QuestionSummaryBase & {
+  type: "rating";
+  max: number;
+  average: number | null;
+  /** "1".."max" → count. */
+  distribution: Record<string, number>;
+};
+export type NumberSummary = QuestionSummaryBase & {
+  type: "number";
+  min: number | null;
+  max: number | null;
+  average: number | null;
+};
+export type TextSummary = QuestionSummaryBase & {
+  type: "short_text" | "long_text" | "email";
+  /** Most recent first, at most 5. */
+  recent: string[];
+};
+export type QuestionSummary = ChoiceSummary | RatingSummary | NumberSummary | TextSummary;
+
+export type FormSummary = {
+  /** Every response, partial included. */
+  total_responses: number;
+  completed: number;
+  /** completed / total_responses (0–1); 0 when there are no responses. */
+  completion_rate: number;
+  /** In question order; stats cover completed responses only. */
+  questions: QuestionSummary[];
+};
+
 // ---- Errors ------------------------------------------------------------
 
 /** `{ detail: string }` or, for 422, `{ detail: { errors: { "<field or question id>": msg } } }`. */

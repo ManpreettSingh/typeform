@@ -1,6 +1,14 @@
-import { ComingNextPhase } from "@/components/ComingNextPhase";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { FormResults, ResultsSkeleton } from "@/components/results/FormResults";
 
-// Placeholder so dashboard links resolve; results land in Phase 6.
+export const metadata: Metadata = { title: "Results" };
+
 export default function FormResultsPage() {
-  return <ComingNextPhase title="Results" phase={6} />;
+  // The form id is URL data, so results stream in after the static shell.
+  return (
+    <Suspense fallback={<ResultsSkeleton />}>
+      <FormResults />
+    </Suspense>
+  );
 }

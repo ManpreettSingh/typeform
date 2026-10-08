@@ -1,8 +1,8 @@
 # PROGRESS
 
-**Current phase:** Phase 6 — Results & Analytics
+**Current phase:** Phase 7 — Polish, Bonuses & Placeholders
 **Last updated:** 2026-10-08
-**Next action:** Run `phases/PHASE_6.md`
+**Next action:** Run `phases/PHASE_7.md`
 
 ## Phase status
 | # | Phase | Status |
@@ -13,7 +13,7 @@
 | 3 | Builder I — Structure & Question Editing | ✅ Done |
 | 4 | Builder II — Drag-drop, Live Preview, Settings | ✅ Done |
 | 5 | Respondent Flow (public) | ✅ Done |
-| 6 | Results & Analytics | ⬜ |
+| 6 | Results & Analytics | ✅ Done |
 | 7 | Polish, Bonuses & Placeholders | ⬜ |
 | 8 | Seed, README, QA & Submission | ⬜ |
 
@@ -41,20 +41,20 @@
 - [x] Server validation
 - [x] Submit + thank-you
 ### Results
-- [ ] Responses table
-- [ ] Single response view
-- [ ] Summary stats per question
+- [x] Responses table
+- [x] Single response view
+- [x] Summary stats per question
 ### Experience
-- [ ] Toasts, modals, empty/loading/error states (dashboard, builder, public form ✅; results pending)
+- [ ] Toasts, modals, empty/loading/error states (dashboard, builder, public form, results ✅; Phase 7 polish pending)
 - [ ] "Coming soon" placeholders (Logic/Integrations/Collaborate ✅; Payment/File upload types pending)
 ### Bonus
 - [ ] Branching / logic jumps
 - [x] Custom themes (colors + font; applied to builder preview and public page)
-- [ ] CSV export
-- [ ] Partial responses / completion rate
+- [x] CSV export
+- [ ] Partial responses / completion rate (results UI + stats handle `partial` rows; respondent flow doesn't create them yet)
 - [ ] Dark mode
 ### Submission
-- [ ] Seed data (2+ published forms, responses)
+- [ ] Seed data (2+ published forms, responses) — demo form now has 8 completed + 2 partial responses; second form pending
 - [ ] README (setup, stack, architecture, schema, assumptions)
 
 ## Session log
@@ -66,6 +66,7 @@
 | 2026-10-08 | 3 | Builder at `/forms/[id]/edit`: Zustand `store/builderStore.ts` + `store/autosave.ts` (per-key debounced, ordered saves; rollback to last server copy + toast on failure); top bar (back, inline title, Draft/Published badge, Create/Results/Share tabs, save indicator, Publish/Unpublish → Share modal); left list (numbers, type chips, required marker, hover delete, "Add question" type picker inserting after the selected question); right settings (title, description, required, choices editor w/ Enter-to-add/Backspace-to-remove, allow multiple, rating steps+shape, number min/max, text placeholder/max length); static centre preview; empty/loading/not-found/error states; delete confirm only when the form has responses. New primitives: Textarea, Select, Button `dangerGhost` | 33-check browser run (isolated ports + throwaway DB) incl. persistence after refresh and forced-500 rollback; dashboard suite re-run 29/29. Preview number alignment fix not re-screenshotted |
 | 2026-10-08 | 4 | dnd-kit sortable question list (handle, keyboard, overlay, SR announcements) → optimistic reorder + `PUT …/order`, rollback to server order on failure; shared respondent components in `components/respondent/` (QuestionShell, one answer component per type, QuestionRenderer `mode=preview|live`, ThankYouScreen, RespondentTheme, RespondentFlow with transitions, progress bar, Enter/↑↓/letter/Y-N/number shortcuts, auto-advance, client validation via `lib/validation.ts`); builder canvas uses them live; full-screen Preview overlay (local, Restart); Settings tab: Theme (3 colors + font, saved) and Thank-you screen (saved), Logic/Integrations/Collaborate "Coming soon". Store: `updateForm` for title/theme/thank_you | 33-check Phase 4 browser run + Phase 3 (33) and Phase 2 (29) suites re-run green on isolated ports. Optional "+ insert between" not done |
 | 2026-10-08 | 5 | Backend: `GET /public/forms/{slug}` (published only, no internal fields), `POST …/responses` (validates all answers, 422 keyed by question id incl. unknown ids, one transaction, status completed); `services/validation.py` mirrors `lib/validation.ts` (same messages); `services/submissions.py`; 41 new pytest tests (73 total). Frontend: `/f/[slug]` with loading / not-available / load-error+retry states, form title as page title, theme on full viewport (`h-dvh`); flow rebuilt on a reducer (`flowState.ts`): optional welcome screen, shake on rejected Enter, `n of N`, Esc leaves a text field, focus moves to each new question, last question never auto-submits and ↓ is disabled there, double-submit guard, server 422 jumps to the first offending question, network/5xx → persistent toast with Retry; `toSubmission()` drops empty answers, trims text | 43-check Phase 5 browser run (isolated ports, throwaway DB: keyboard-only fill of all 8 types, persisted values checked in SQLite, API bypass → 422, mocked 422 + network failure, reduced motion, 390px). Phase 4 / 3 (33) / 2 (29) suites re-run green. Dashboard/builder suites need a fresh DB per run |
+| 2026-10-08 | 6 | Backend: `GET /forms/{id}/responses` (paginated, status filter, newest first), `GET …/responses/{rid}` (answers with question titles, in order), `DELETE …/responses/{rid}`, `GET /forms/{id}/summary` via `services/stats.py` (choice/dropdown/yes-no counts, rating average + distribution, number min/avg/max, latest 5 text answers), bonus `GET …/responses/export.csv` (`services/export.py`, readable values, BOM, formula-injection guard); seed adds 10 demo responses (8 completed, 2 partial) only to a seeded form that has none; 14 new pytest tests (87 total) incl. summary checked against the raw seed data. Frontend `/forms/[id]/results`: header (Create / Results / Share, View form), Summary | Responses tabs, stat tiles (responses, completion rate, in progress), per-question cards with single-hue horizontal bars (counts + %), rating average, number figures, recent text; responses table (one column per question, truncated, sticky date, keyboard-openable rows, pagination, Export CSV); `Drawer` primitive with full response (formatted per type, newer/older, delete with confirm); empty state with Share / Publish & share; `lib/answerFormat.ts` mirrors the CSV formatting | 38-check Phase 6 browser run (isolated ports, fresh seeded DB): tiles/averages/counts compared with SQL over the DB, new public submission appears, drawer formatting for all 8 types, delete, CSV download, pagination (25), empty/draft states, builder ↔ results tabs, 390px. Phase 5 (43), 4 (33), 3 (33), 2 (29, seeded-card check updated for the new demo responses) re-run green |
 
 ## Decisions & assumptions (feeds README)
 - Default creator, no auth.
@@ -88,6 +89,12 @@
 - **Last question never auto-submits** (choice/yes-no/rating auto-advance is off there) and the ↓ arrow is disabled on it — submitting always takes OK/Enter.
 - **Submit errors**: 422 with known question ids → jump back to the first one with the message; 404 (unpublished meanwhile) or 422 for questions the page doesn't know (form edited meanwhile) → toast asking to reload; network/5xx → toast with Retry (answers kept).
 - **Public form is fetched once per visit** (no refetch on focus/reconnect) so questions can't change mid-fill.
+- **Results stats cover completed responses only** (like `response_count`); totals/completion rate count partial ones too. Choice answers naming options removed since aren't counted in the summary; the table/drawer/CSV show them as “(removed choice)”.
+- **Answer formatting lives in two mirrored places**: `lib/answerFormat.ts` (UI) and `services/export.py` (CSV). Multi-select joins with “, ” in the UI and “; ” in CSV (commas are common in labels).
+- **The response drawer uses the row already loaded in the table** (no extra request); `GET …/responses/{rid}` exists for API completeness and is covered by tests.
+- **Results data refetches on window focus** (staleTime 0) so new submissions show when the creator comes back to the tab; there's no live push.
+- **CSV export is a plain link to the API** (no fetch), so the browser handles the download with the server's filename.
+- **Seeded responses are only added to a seeded form with zero responses**, so re-running `npm run seed` never mixes demo rows into real data.
 - **Respondent components are shared** by the builder canvas (`mode="preview"`: no autofocus/shortcuts/auto-advance), the full-screen preview and (Phase 5) the public page (`mode="live"`). Themes apply via `--resp-*` CSS variables set by `RespondentTheme`; button text color is picked for contrast.
 - **Theme fonts**: Inter (downloaded) plus system stacks (System UI, Georgia, Courier) — no extra font downloads.
 - **Auto-advance** after picking a single choice / yes-no / rating (400 ms), like Typeform. Multi-select waits for OK/Enter.
@@ -102,7 +109,9 @@
 ## Known issues
 - `pytest` prints a Starlette deprecation warning (TestClient on `httpx`; suggests `httpx2`). Harmless; revisit if it becomes an error.
 - `app/dev/ui` is a temporary primitives showcase — remove in Phase 8. (Health home page replaced by redirect to `/forms`.)
-- `/forms/[id]/results` is a "coming soon" stub until Phase 6.
+- Below `md` the results header hides the Create / Results / Share tabs (same as the builder); the back arrow and “View form” remain.
+- The drawer's newer/older buttons only move within the current table page.
+- No status filter in the responses table UI (the API supports `?status=`).
 - "Already submitted" detection (optional in Phase 5) not done: the same browser can submit again.
 - No way to set the form description (welcome screen) from the builder yet.
 - Turbopack production rebuilds report "Compiled" in ~1s from cache; changes did land (checked in the built chunks), but if a build looks stale, clear `frontend/.next/cache/turbopack`.

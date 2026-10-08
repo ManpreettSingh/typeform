@@ -34,21 +34,24 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 ## Results (creator)
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/forms/{id}/responses?page&page_size&status` | rows with answers keyed by question |
-| GET | `/forms/{id}/responses/{rid}` | full response with question titles |
-| DELETE | `/forms/{id}/responses/{rid}` | optional |
-| GET | `/forms/{id}/summary` | per-question stats + totals + completion rate |
-| GET | `/forms/{id}/responses/export.csv` | bonus |
+| GET | `/forms/{id}/responses?page&page_size&status` | `{items, total, page, page_size}`; page ≥1, page_size 1–100 (default 20), status `completed` or `partial`; newest first (submitted_at, else started_at); item `{id, status, started_at, submitted_at, answers:{"<qid>": value}}` (unanswered absent) |
+| GET | `/forms/{id}/responses/{rid}` | `{id, status, started_at, submitted_at, answers:[{question_id, question_title, question_type, value}]}` in question order; 404 if the response belongs to another form |
+| DELETE | `/forms/{id}/responses/{rid}` | 204 |
+| GET | `/forms/{id}/summary` | per-question stats (completed responses only) + totals + completion rate (0 when no responses) |
+| GET | `/forms/{id}/responses/export.csv` | bonus: UTF-8 with BOM, attachment `<title>-responses.csv`; one row per response (all statuses), answers human-readable (choice labels joined with `; `, `Yes`/`No`, rating `4/5`); cells starting with `= + - @` are prefixed with `'` |
 
 ## Validation rules (server authoritative)
 - required → non-empty · email → RFC-lite regex · number → numeric, within min/max · rating → int 1..max · yes_no → bool · choice/dropdown → option id(s) must exist · text → max_length · unknown question ids rejected.
 
 ## Summary shape
 ```json
-{ "total_responses": 12, "completed": 10, "completion_rate": 0.83,
+{ "total_responses": 12, "completed": 10, "completion_rate": 0.8333,
   "questions": [
-   {"question_id":1,"type":"multiple_choice","answered":10,"counts":[{"option_id":"a","label":"Yes","count":6}]},
-   {"question_id":2,"type":"rating","answered":10,"average":4.2,"distribution":{"1":0,"2":1,"3":1,"4":3,"5":5}},
-   {"question_id":3,"type":"short_text","answered":9,"recent":["..."]}
+   {"question_id":1,"type":"multiple_choice","title":"…","answered":10,"counts":[{"option_id":"a","label":"Yes","count":6}]},
+   {"question_id":2,"type":"rating","title":"…","answered":10,"max":5,"average":4.2,"distribution":{"1":0,"2":1,"3":1,"4":3,"5":5}},
+   {"question_id":3,"type":"number","title":"…","answered":8,"min":1,"max":40,"average":12.5},
+   {"question_id":4,"type":"short_text","title":"…","answered":9,"recent":["…"]}
   ]}
 ```
+- `counts` (multiple_choice, dropdown, yes_no — yes/no use option ids `yes`/`no`) are in option order; multi-select counts can sum past `answered`; answers naming since-removed options are not counted.
+- `recent` (short_text, long_text, email): latest 5, most recent first. `average` is rounded to 2 decimals; `null` (and `min`/`max` null) when nothing was answered.
