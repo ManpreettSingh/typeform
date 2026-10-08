@@ -18,6 +18,10 @@ export type MenuItem = {
   icon?: ReactNode;
   danger?: boolean;
   disabled?: boolean;
+  /** Extra content at the end of the row, e.g. a check mark. */
+  hint?: ReactNode;
+  /** Small second line under the label, e.g. "Coming soon". */
+  description?: string;
   /** Draws a divider above this item. */
   separatorBefore?: boolean;
 };
@@ -131,7 +135,11 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
                   )}
                 >
                   {item.icon}
-                  {item.label}
+                  <span className="flex flex-1 flex-col">
+                    {item.label}
+                    {item.description && <span className="text-xs text-text-muted">{item.description}</span>}
+                  </span>
+                  {item.hint}
                 </button>
               </div>
             ))}

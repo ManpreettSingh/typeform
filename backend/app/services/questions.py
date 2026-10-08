@@ -1,9 +1,12 @@
+from typing import Any
+
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.errors import BadRequestError, FieldValidationError, NotFoundError, errors_from_pydantic
 from app.models import Form, Question, QuestionType
 from app.models.base import utcnow
+from app.schemas.logic import Logic, rule_errors
 from app.schemas.properties import default_properties, validate_properties
 from app.schemas.question import QuestionCreate, QuestionUpdate
 
@@ -20,6 +23,33 @@ def _validated_properties(qtype: QuestionType, data: dict) -> dict:
         return validate_properties(qtype, data)
     except ValidationError as exc:
         raise FieldValidationError(errors_from_pydantic(exc, prefix="properties")) from exc
+
+
+def _validated_logic(question: Question, data: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Checks rules against the question's type and its form; no rules is stored as null."""
+    if data is None:
+        return None
+    try:
+        logic = Logic.model_validate(data)
+    except ValidationError as exc:
+        raise FieldValidationError(errors_from_pydantic(exc, prefix="logic")) from exc
+
+    errors = rule_errors(QuestionType(question.type), logic)
+    # Any other question of the form; jumps that aren't forward are skipped at fill time (services/logic.py).
+    targets = {q.id for q in question.form.questions} - {question.id}
+    for i, rule in enumerate(logic.rules):
+        if rule.to != "end" and rule.to not in targets:
+            errors.setdefault(f"logic.rules.{i}.to", "Choose another question of this form")
+    if errors:
+        raise FieldValidationError(errors)
+    return logic.model_dump() if logic.rules else None
+
+
+def without_jumps_to(logic: dict[str, Any] | None, question_ids: set[int]) -> dict[str, Any] | None:
+    if not logic:
+        return logic
+    rules = [rule for rule in logic.get("rules", []) if rule["to"] not in question_ids]
+    return {"rules": rules} if rules else None
 
 
 def _renumber(db: Session, ordered: list[Question]) -> None:
@@ -75,15 +105,19 @@ def update_question(db: Session, question: Question, data: QuestionUpdate) -> Qu
         value = getattr(data, field)
         if field == "properties":
             value = _validated_properties(QuestionType(question.type), value)
+        elif field == "logic":
+            value = _validated_logic(question, value)
         setattr(question, field, value)
     _commit_question_change(db, question.form)
     return question
 
 
 def delete_question(db: Session, question: Question) -> None:
-    """Deletes the question (its answers cascade in the DB) and closes the gap in positions."""
+    """Deletes the question (its answers cascade in the DB), drops jumps to it and closes the gap in positions."""
     form = question.form
     remaining = [q for q in form.questions if q.id != question.id]
+    for q in remaining:
+        q.logic = without_jumps_to(q.logic, {question.id})
     db.delete(question)
     db.flush()
     _renumber(db, remaining)

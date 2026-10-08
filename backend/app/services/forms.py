@@ -92,6 +92,17 @@ def delete_form(db: Session, form: Form) -> None:
 def duplicate_form(db: Session, form: Form) -> Form:
     """Copies the form and its questions (not responses) as a new draft with a fresh slug."""
     title = f"{form.title} (copy)"
+    copies = {
+        q.id: Question(
+            type=q.type,
+            title=q.title,
+            description=q.description,
+            required=q.required,
+            position=q.position,
+            properties=copy.deepcopy(q.properties),
+        )
+        for q in form.questions
+    }
     clone = Form(
         slug=generate_unique_slug(db),
         title=title[:200],
@@ -99,22 +110,24 @@ def duplicate_form(db: Session, form: Form) -> Form:
         status=FormStatus.DRAFT,
         theme=copy.deepcopy(form.theme),
         thank_you=copy.deepcopy(form.thank_you),
-        questions=[
-            Question(
-                type=q.type,
-                title=q.title,
-                description=q.description,
-                required=q.required,
-                position=q.position,
-                properties=copy.deepcopy(q.properties),
-                logic=copy.deepcopy(q.logic),
-            )
-            for q in form.questions
-        ],
+        questions=list(copies.values()),
     )
     db.add(clone)
+    # Jump targets are question ids: point them at the copies once those have ids.
+    db.flush()
+    for original in form.questions:
+        copies[original.id].logic = _remap_logic(original.logic, {old: new.id for old, new in copies.items()})
     db.commit()
     return clone
+
+
+def _remap_logic(logic: dict | None, ids: dict[int, int]) -> dict | None:
+    if not logic:
+        return None
+    rules = [{**rule, "to": ids.get(rule["to"], rule["to"])} for rule in logic.get("rules", [])]
+    # Targets outside the form can't exist (deletes drop them), but never copy a dangling one.
+    rules = [rule for rule in rules if rule["to"] == "end" or rule["to"] in ids.values()]
+    return {"rules": rules} if rules else None
 
 
 def publish_form(db: Session, form: Form) -> Form:

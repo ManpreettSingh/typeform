@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import { GitBranch, Palette, PartyPopper, Plug, Users, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui";
+import { LogicOverview } from "../logic/LogicOverview";
 import { ComingSoonSection } from "./ComingSoonSection";
 import { ThankYouSettings } from "./ThankYouSettings";
 import { ThemeSettings } from "./ThemeSettings";
@@ -13,16 +14,12 @@ type SectionId = "theme" | "thank-you" | "logic" | "integrations" | "collaborate
 const SECTIONS: { id: SectionId; label: string; icon: LucideIcon; comingSoon?: boolean }[] = [
   { id: "theme", label: "Theme", icon: Palette },
   { id: "thank-you", label: "Thank-you screen", icon: PartyPopper },
-  { id: "logic", label: "Logic", icon: GitBranch, comingSoon: true },
+  { id: "logic", label: "Logic", icon: GitBranch },
   { id: "integrations", label: "Integrations", icon: Plug, comingSoon: true },
   { id: "collaborate", label: "Collaborate", icon: Users, comingSoon: true },
 ];
 
-const COMING_SOON: Record<"logic" | "integrations" | "collaborate", { title: string; description: string }> = {
-  logic: {
-    title: "Logic jumps",
-    description: "Send respondents to different questions based on their answers.",
-  },
+const COMING_SOON: Record<"integrations" | "collaborate", { title: string; description: string }> = {
   integrations: {
     title: "Integrations",
     description: "Send responses to Google Sheets, Slack, webhooks and more.",
@@ -33,7 +30,8 @@ const COMING_SOON: Record<"logic" | "integrations" | "collaborate", { title: str
   },
 };
 
-export function FormSettingsView() {
+/** `onEditQuestion` opens a question in the Create view (from the Logic overview). */
+export function FormSettingsView({ onEditQuestion }: { onEditQuestion: (id: number) => void }) {
   const [section, setSection] = useState<SectionId>("theme");
 
   return (
@@ -64,7 +62,8 @@ export function FormSettingsView() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         {section === "theme" && <ThemeSettings />}
         {section === "thank-you" && <ThankYouSettings />}
-        {(section === "logic" || section === "integrations" || section === "collaborate") && (
+        {section === "logic" && <LogicOverview onEditQuestion={onEditQuestion} />}
+        {(section === "integrations" || section === "collaborate") && (
           <ComingSoonSection {...COMING_SOON[section]} />
         )}
       </div>

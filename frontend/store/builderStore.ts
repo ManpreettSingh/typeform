@@ -54,6 +54,15 @@ const questionKey = (id: number) => `q:${id}`;
 
 const renumber = (questions: Question[]) => questions.map((q, i) => (q.position === i ? q : { ...q, position: i }));
 
+function withoutJumpsTo(question: Question, id: number): Question {
+  const rules = question.logic?.rules.filter((rule) => rule.to !== id);
+  if (!rules || rules.length === question.logic?.rules.length) return question;
+  return { ...question, logic: rules.length ? { rules } : null };
+}
+
+const withLogicOf = (question: Question, saved: Question | undefined): Question =>
+  saved ? { ...question, logic: saved.logic } : question;
+
 const toMeta = ({ id, slug, title, status, response_count, theme, thank_you }: Form): BuilderForm => ({
   id,
   slug,
@@ -228,7 +237,8 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
       const index = questions.findIndex((q) => q.id === id);
       if (index === -1) return;
       const removed = questions[index];
-      const remaining = renumber(questions.filter((q) => q.id !== id));
+      // The server also drops other questions' jumps to it; mirror that so the logic panel stays accurate.
+      const remaining = renumber(questions.filter((q) => q.id !== id).map((q) => withoutJumpsTo(q, id)));
 
       saver.cancel(questionKey(id));
       set({
@@ -241,14 +251,17 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
           await saver.flush(questionKey(id)); // let an in-flight edit finish first
           await questionsApi.remove(id);
           set((s) => {
-            const savedQuestions = { ...s.savedQuestions };
-            delete savedQuestions[id];
+            const savedQuestions: Record<number, Question> = {};
+            for (const [key, q] of Object.entries(s.savedQuestions)) {
+              if (Number(key) !== id) savedQuestions[Number(key)] = withoutJumpsTo(q, id);
+            }
             return { savedQuestions };
           });
           toast.success("Question deleted");
         } catch (error) {
           set((s) => {
-            const next = [...s.questions];
+            // Put the question and the jumps to it back (the server kept both).
+            const next = s.questions.map((q) => withLogicOf(q, s.savedQuestions[q.id]));
             next.splice(index, 0, s.savedQuestions[id] ?? removed);
             return { questions: renumber(next) };
           });

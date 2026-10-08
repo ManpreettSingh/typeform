@@ -6,11 +6,12 @@ so a server-side rejection reads the same as a client-side one.
 
 import math
 import re
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from app.core.errors import FieldValidationError
 from app.models import Question, QuestionType
+from app.services.logic import next_index
 
 # RFC-lite: something@something.tld, no spaces.
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -126,26 +127,37 @@ def validate_answer(question: Question, value: Any) -> Any:
     return VALIDATORS[QuestionType(question.type)](value, question.properties)
 
 
-def validate_answers(questions: Iterable[Question], answers: dict[str, Any]) -> dict[int, Any]:
-    """Checks a whole submission and returns `{question_id: value}` for the non-empty answers.
+def validate_answers(
+    questions: Sequence[Question], answers: dict[str, Any], *, partial: bool = False
+) -> dict[int, Any]:
+    """Checks a submission and returns `{question_id: value}` for the non-empty answers.
+
+    Follows the respondent's path through the form (branching, services/logic.py): only questions on
+    it are checked, and answers to questions the path skips are dropped. With `partial`, required
+    questions may be left empty (progress saved mid-form).
 
     Raises FieldValidationError keyed by question id (as a string) for every problem at once.
     Empty optional answers are dropped, not stored.
     """
-    by_key = {str(q.id): q for q in questions}
-    errors = {key: UNKNOWN_QUESTION_MESSAGE for key in answers if key not in by_key}
+    known = {str(q.id) for q in questions}
+    errors = {key: UNKNOWN_QUESTION_MESSAGE for key in answers if key not in known}
     cleaned: dict[int, Any] = {}
 
-    for key, question in by_key.items():
+    index = 0 if questions else None
+    while index is not None:
+        question = questions[index]
+        key = str(question.id)
         value = answers.get(key)
         if is_empty(value):
-            if question.required:
+            if question.required and not partial:
                 errors[key] = REQUIRED_MESSAGE
-            continue
-        try:
-            cleaned[question.id] = validate_answer(question, value)
-        except AnswerError as exc:
-            errors[key] = str(exc)
+        else:
+            try:
+                cleaned[question.id] = validate_answer(question, value)
+            except AnswerError as exc:
+                # An invalid answer can't pick a branch; the path continues as if it were unanswered.
+                errors[key] = str(exc)
+        index = next_index(questions, index, cleaned)
 
     if errors:
         raise FieldValidationError(errors)

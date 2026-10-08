@@ -29,6 +29,8 @@ class QuestionUpdate(PatchModel):
     required: bool | None = None
     # Replaces the whole object; validated against the question's type.
     properties: dict[str, Any] | None = None
+    # Branching rules (schemas/logic.py); replaces the whole object, null or no rules = none.
+    logic: dict[str, Any] | None = None
 
 
 class QuestionOut(BaseModel):
@@ -42,6 +44,7 @@ class QuestionOut(BaseModel):
     required: bool
     position: int
     properties: dict[str, Any]
+    logic: dict[str, Any] | None
 
 
 class QuestionOrder(StrictModel):

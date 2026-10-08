@@ -6,6 +6,7 @@ import { Button, EmptyState, Textarea, Toggle } from "@/components/ui";
 import { QUESTION_TYPE_META } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { LogicSettings } from "./logic/LogicSettings";
 import { QuestionTypeChip } from "./QuestionTypeChip";
 import { ChoiceSettings } from "./settings/ChoiceSettings";
 import { NumberSettings } from "./settings/NumberSettings";
@@ -86,6 +87,8 @@ function Fields({
         <h3 className="text-sm font-semibold text-text">Settings</h3>
         <TypeSettings question={question} />
       </section>
+
+      <LogicSettings question={question} />
 
       <div className="border-t border-border pt-4">
         <Button variant="dangerGhost" size="sm" leftIcon={<Trash2 className="size-4" aria-hidden />} onClick={() => onDelete(question)}>

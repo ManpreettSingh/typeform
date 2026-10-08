@@ -2,26 +2,22 @@
 
 import { AlertTriangle, FileQuestion, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
 import { Button, EmptyState } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { publicApi, usePublicForm } from "@/lib/queries/public";
-import type { Answers } from "@/lib/types";
-import { toSubmission } from "@/lib/validation";
+import { usePublicForm } from "@/lib/queries/public";
+import type { PublicQuestion } from "@/lib/types";
 import { RespondentFlow } from "./RespondentFlow";
 import { RespondentTheme } from "./RespondentTheme";
+import { usePartialResponse } from "./usePartialResponse";
+
+const NO_QUESTIONS: PublicQuestion[] = [];
 
 /** The public `/f/{slug}` page: loads a published form and runs the respondent flow. */
 export function PublicFormView() {
   const { slug } = useParams<{ slug: string }>();
   const { data: form, error, isPending, refetch, isRefetching } = usePublicForm(slug);
 
-  const submit = useCallback(
-    async (answers: Answers) => {
-      if (form) await publicApi.submit(slug, toSubmission(form.questions, answers));
-    },
-    [form, slug],
-  );
+  const { saveProgress, complete } = usePartialResponse(slug, form?.questions ?? NO_QUESTIONS);
 
   if (isPending) return <PublicFormLoading />;
 
@@ -59,7 +55,8 @@ export function PublicFormView() {
           questions={form.questions}
           thankYou={form.thank_you}
           welcome={description ? { title: form.title, description } : null}
-          onComplete={submit}
+          onComplete={complete}
+          onProgress={saveProgress}
         />
       </main>
     </RespondentTheme>

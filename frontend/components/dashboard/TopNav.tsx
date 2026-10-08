@@ -1,5 +1,6 @@
 import { MessageSquareText } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CreateFormButton } from "./CreateFormButton";
 
 export function TopNav() {
@@ -16,6 +17,7 @@ export function TopNav() {
       </Link>
       <div className="flex items-center gap-3">
         <CreateFormButton size="sm" />
+        <ThemeToggle />
         {/* No auth: everything belongs to a single default creator. */}
         <span
           title="Default creator"

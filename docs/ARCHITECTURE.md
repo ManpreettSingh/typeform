@@ -51,4 +51,4 @@
 8. Deleting a question that has answers: cascade-delete its answers (documented assumption).
 
 ## Data flow (respondent)
-`GET /api/public/forms/{slug}` → client renders flow → (optional partial `POST /responses` start + `PATCH` progress) → final `POST /api/public/forms/{slug}/responses` → server validates → 201 → thank-you screen.
+`GET /api/public/forms/{slug}` → client renders flow (branching via `lib/logic.ts`) → first move forward: `POST …/responses/start` (partial) → each move: `PATCH /api/public/responses/{rid}` with the answers so far → last question: same `PATCH` with `complete: true` → server validates the respondent's path → thank-you screen. If no partial response could be started, the final submit falls back to `POST /api/public/forms/{slug}/responses`.

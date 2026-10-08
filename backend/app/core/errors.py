@@ -26,6 +26,10 @@ class BadRequestError(AppError):
     status_code = 400
 
 
+class ConflictError(AppError):
+    status_code = 409
+
+
 class FieldValidationError(Exception):
     """422 with `{"detail": {"errors": {"<field or question id>": "msg"}}}`."""
 

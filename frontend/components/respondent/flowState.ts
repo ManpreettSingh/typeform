@@ -6,6 +6,8 @@ export type FlowStep = "welcome" | "question" | "done";
 export type FlowState = {
   step: FlowStep;
   index: number;
+  /** Questions visited before the current one (branching means "back" isn't always index - 1). */
+  history: number[];
   /** 1 = forward, -1 = back; drives the slide direction. */
   direction: 1 | -1;
   answers: Answers;
@@ -19,9 +21,11 @@ export type FlowState = {
 export type FlowAction =
   | { type: "start" }
   | { type: "answer"; id: number; value: AnswerValue | undefined }
+  /** Forward to `index`; the current question goes on the history. */
   | { type: "go"; index: number }
-  /** Show errors; with `index`, also jump to that question (e.g. a server 422). */
-  | { type: "reject"; errors: Record<number, string>; index?: number }
+  | { type: "back" }
+  /** Show errors; with `index` (+ the path leading to it), also jump to that question (e.g. a server 422). */
+  | { type: "reject"; errors: Record<number, string>; index?: number; history?: number[] }
   | { type: "submit" }
   | { type: "submitFailed" }
   | { type: "finish" };
@@ -30,6 +34,7 @@ export function initialFlowState(hasWelcome: boolean): FlowState {
   return {
     step: hasWelcome ? "welcome" : "question",
     index: 0,
+    history: [],
     direction: 1,
     answers: {},
     errors: {},
@@ -38,26 +43,31 @@ export function initialFlowState(hasWelcome: boolean): FlowState {
   };
 }
 
-const moveTo = (state: FlowState, index: number): Pick<FlowState, "index" | "direction"> => ({
+const moveTo = (state: FlowState, index: number, history: number[]): Pick<FlowState, "index" | "direction" | "history"> => ({
   index,
+  history,
   direction: index >= state.index ? 1 : -1,
 });
 
 export function flowReducer(state: FlowState, action: FlowAction): FlowState {
   switch (action.type) {
     case "start":
-      return { ...state, step: "question", index: 0, direction: 1 };
+      return { ...state, step: "question", index: 0, history: [], direction: 1 };
     case "answer": {
       const errors = { ...state.errors };
       delete errors[action.id];
       return { ...state, answers: { ...state.answers, [action.id]: action.value }, errors };
     }
     case "go":
-      return { ...state, ...moveTo(state, action.index) };
+      return { ...state, ...moveTo(state, action.index, [...state.history, state.index]) };
+    case "back": {
+      if (!state.history.length) return state;
+      return { ...state, ...moveTo(state, state.history[state.history.length - 1], state.history.slice(0, -1)) };
+    }
     case "reject":
       return {
         ...state,
-        ...(action.index !== undefined && moveTo(state, action.index)),
+        ...(action.index !== undefined && moveTo(state, action.index, action.history ?? state.history)),
         errors: { ...state.errors, ...action.errors },
         attempt: state.attempt + 1,
         submitting: false,

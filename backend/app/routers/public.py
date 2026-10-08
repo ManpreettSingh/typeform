@@ -4,7 +4,14 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.schemas.public import PublicForm, SubmissionIn, SubmissionOut
+from app.schemas.public import (
+    PartialStartOut,
+    PartialUpdateIn,
+    PartialUpdateOut,
+    PublicForm,
+    SubmissionIn,
+    SubmissionOut,
+)
 from app.services import submissions as submission_service
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -21,3 +28,17 @@ def get_public_form(slug: str, db: DB):
 def submit_response(slug: str, data: SubmissionIn, db: DB):
     form = submission_service.get_published_form(db, slug)
     return submission_service.create_submission(db, form, data.answers)
+
+
+@router.post(
+    "/forms/{slug}/responses/start", response_model=PartialStartOut, status_code=status.HTTP_201_CREATED
+)
+def start_response(slug: str, db: DB):
+    response = submission_service.start_response(db, submission_service.get_published_form(db, slug))
+    return PartialStartOut(response_id=response.id, token=response.meta["token"])
+
+
+@router.patch("/responses/{response_id}", response_model=PartialUpdateOut)
+def save_progress(response_id: int, data: PartialUpdateIn, db: DB):
+    response = submission_service.get_open_response(db, response_id, data.token)
+    return submission_service.save_progress(db, response, data.answers, data.complete)

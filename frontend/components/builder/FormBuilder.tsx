@@ -1,10 +1,11 @@
 "use client";
 
+import { clsx } from "clsx";
 import { AlertTriangle, ArrowLeft, FileQuestion } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Button, ConfirmDialog, EmptyState, Skeleton } from "@/components/ui";
+import { Button, ConfirmDialog, EmptyState, Skeleton, Tabs } from "@/components/ui";
 import { pluralize } from "@/lib/format";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
@@ -14,6 +15,8 @@ import { PreviewOverlay } from "./PreviewOverlay";
 import { QuestionList } from "./QuestionList";
 import { QuestionPreview } from "./QuestionPreview";
 import { QuestionSettings } from "./QuestionSettings";
+
+type MobilePane = "list" | "edit";
 
 export function FormBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -73,10 +76,21 @@ export function FormBuilder() {
 
 function BuilderLayout() {
   const deleteQuestion = useBuilderStore((s) => s.deleteQuestion);
+  const select = useBuilderStore((s) => s.select);
   const responseCount = useBuilderStore((s) => s.form?.response_count ?? 0);
   const [confirming, setConfirming] = useState<Question | null>(null);
   const [view, setView] = useState<BuilderView>("create");
   const [previewing, setPreviewing] = useState(false);
+  const title = useBuilderStore((s) => s.form?.title);
+  // Below md the panes don't fit side by side: one at a time, switched from a bar under the top bar.
+  const [pane, setPane] = useState<MobilePane>("list");
+  const selectedId = useBuilderStore((s) => s.selectedId);
+  const [lastSelectedId, setLastSelectedId] = useState(selectedId);
+  if (selectedId !== lastSelectedId) {
+    // Picking (or adding) a question on a phone opens its settings.
+    setLastSelectedId(selectedId);
+    if (selectedId !== null) setPane("edit");
+  }
 
   // Next's <Activity> keeps this mounted while hidden; don't return to an open preview or dialog.
   useLayoutEffect(
@@ -93,14 +107,38 @@ function BuilderLayout() {
 
   return (
     <div className="flex h-dvh flex-col">
+      <title>{`${title?.trim() || "Untitled form"} · Edit · Forms`}</title>
       <BuilderTopBar view={view} onViewChange={setView} onPreview={() => setPreviewing(true)} />
+      <Tabs<MobilePane | "settings">
+        aria-label="Builder panes"
+        className="shrink-0 border-b border-border px-2 py-1.5 md:hidden"
+        items={[
+          { value: "list", label: "Questions" },
+          { value: "edit", label: "Edit question" },
+          { value: "settings", label: "Settings" },
+        ]}
+        value={view === "settings" ? "settings" : pane}
+        onChange={(value) => {
+          if (value === "settings") return setView("settings");
+          setView("create");
+          setPane(value);
+        }}
+      />
       {view === "settings" ? (
-        <FormSettingsView />
+        <FormSettingsView
+          onEditQuestion={(id) => {
+            select(id);
+            setView("create");
+          }}
+        />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <aside
             aria-label="Questions"
-            className="max-h-[40vh] shrink-0 overflow-y-auto border-b border-border md:max-h-none md:w-64 md:border-r md:border-b-0 lg:w-72"
+            className={clsx(
+              "min-h-0 flex-1 overflow-y-auto md:w-64 md:flex-none md:border-r md:border-border lg:w-72",
+              pane !== "list" && "hidden md:block",
+            )}
           >
             <QuestionList onDelete={requestDelete} />
           </aside>
@@ -109,7 +147,10 @@ function BuilderLayout() {
           </section>
           <aside
             aria-label="Question settings"
-            className="min-h-0 flex-1 overflow-y-auto md:w-80 md:flex-none md:border-l md:border-border lg:w-80"
+            className={clsx(
+              "min-h-0 flex-1 overflow-y-auto md:w-80 md:flex-none md:border-l md:border-border",
+              pane !== "edit" && "hidden md:block",
+            )}
           >
             <QuestionSettings onDelete={requestDelete} />
           </aside>
@@ -141,13 +182,13 @@ export function BuilderSkeleton() {
         <Skeleton className="h-5 w-48" />
       </div>
       <div className="flex flex-1">
-        <div className="flex w-72 flex-col gap-3 border-r border-border p-4">
+        <div className="flex flex-1 flex-col gap-3 p-4 md:w-72 md:flex-none md:border-r md:border-border">
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} className="h-10" />
           ))}
         </div>
         <div className="hidden flex-1 bg-bg-subtle lg:block" />
-        <div className="flex w-80 flex-col gap-4 border-l border-border p-5">
+        <div className="hidden w-80 flex-col gap-4 border-l border-border p-5 md:flex">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-16" />
           <Skeleton className="h-10" />

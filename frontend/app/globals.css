@@ -6,6 +6,12 @@
  * (bg-bg, text-text-muted, border-border, bg-primary, rounded-card, ...), never raw values.
  */
 :root {
+  color-scheme: light;
+
+  /* Fixed ink/paper for form-themed (respondent) content: unaffected by dark mode. */
+  --ink: #262627;
+  --paper: #ffffff;
+
   --bg: #ffffff;
   --bg-subtle: #f5f5f5;
   --bg-hover: #ebebeb;
@@ -47,11 +53,60 @@
   --qt-yesno-fg: #a3304f;
 
   /* Respondent screens. Defaults only: RespondentTheme overrides these per form theme. */
-  --resp-bg: var(--bg);
-  --resp-text: var(--text);
-  --resp-accent: var(--accent);
-  --resp-accent-fg: var(--primary-fg);
+  --resp-bg: var(--paper);
+  --resp-text: var(--ink);
+  --resp-accent: #0445af;
+  --resp-accent-fg: var(--paper);
   --resp-font: var(--font-inter), system-ui, sans-serif;
+  /* Validation message on respondent screens; fixed like ink/paper. */
+  --resp-error: #d93025;
+  --resp-error-soft: #fdecea;
+}
+
+/*
+ * Dark mode for the creator UI (dashboard, builder, results): the same tokens, swapped.
+ * <html data-theme> is set before first paint by the script in app/layout.tsx (lib/colorScheme.ts).
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #18181a;
+  --bg-subtle: #222225;
+  --bg-hover: #2e2e32;
+  --text: #ededee;
+  --text-muted: #a3a3a8;
+  --border: #323236;
+  --border-strong: #4b4b51;
+  --primary: #ededee;
+  --primary-hover: #d2d2d5;
+  --primary-fg: #18181a;
+  --accent: #7aa7f5;
+  --accent-soft: #1f2d48;
+  --danger: #f2716a;
+  --danger-hover: #f59590;
+  --danger-soft: #3b1f1d;
+  --success: #5ccb94;
+  --success-soft: #173323;
+  --overlay: rgb(0 0 0 / 0.6);
+
+  --thumb-1: #2e2944;
+  --thumb-2: #213429;
+  --thumb-3: #3b2b22;
+  --thumb-4: #222f47;
+  --thumb-5: #3a2630;
+  --thumb-6: #35311f;
+  --thumb-fg: #ededee;
+
+  --qt-text: #1f2d48;
+  --qt-text-fg: #a3c1f7;
+  --qt-choice: #2e2547;
+  --qt-choice-fg: #c7b0f7;
+  --qt-contact: #173323;
+  --qt-contact-fg: #84d6aa;
+  --qt-number: #3d2b1c;
+  --qt-number-fg: #f3b688;
+  --qt-yesno: #3d202b;
+  --qt-yesno-fg: #f3a1bb;
 }
 
 @theme inline {
@@ -94,6 +149,8 @@
   --color-resp-text: var(--resp-text);
   --color-resp-accent: var(--resp-accent);
   --color-resp-accent-fg: var(--resp-accent-fg);
+  --color-resp-error: var(--resp-error);
+  --color-resp-error-soft: var(--resp-error-soft);
   --font-resp: var(--resp-font);
 
   --font-sans: var(--font-inter), system-ui, sans-serif;

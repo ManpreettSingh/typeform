@@ -29,7 +29,7 @@ def test_get_public_form(client, make_form, add_question):
     body = res.json()
     assert set(body) == {"slug", "title", "description", "theme", "thank_you", "questions"}
     assert [q["id"] for q in body["questions"]] == [qs[k]["id"] for k in ("name", "email", "rating", "choice")]
-    assert set(body["questions"][0]) == {"id", "type", "title", "description", "required", "properties"}
+    assert set(body["questions"][0]) == {"id", "type", "title", "description", "required", "properties", "logic"}
 
 
 def test_draft_and_missing_forms_are_404(client, make_form, add_question):

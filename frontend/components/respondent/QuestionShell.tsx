@@ -63,7 +63,7 @@ export function QuestionShell({
               <p
                 key={errorKey}
                 role="alert"
-                className="inline-flex animate-shake items-center gap-2 rounded-input bg-danger-soft px-3 py-1.5 text-sm text-danger"
+                className="inline-flex animate-shake items-center gap-2 rounded-input bg-resp-error-soft px-3 py-1.5 text-sm text-resp-error"
               >
                 <AlertTriangle className="size-4" aria-hidden />
                 {error}

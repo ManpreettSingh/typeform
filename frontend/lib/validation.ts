@@ -1,4 +1,5 @@
 // Client-side answer validation. Mirrors the server rules in docs/API_SPEC.md; the server stays authoritative.
+import { visitedPath } from "@/lib/logic";
 import type { AnswerValue, Answers, PublicQuestion, SubmissionIn } from "@/lib/types";
 
 // RFC-lite: something@something.tld, no spaces.
@@ -49,10 +50,13 @@ export function validateAnswer(question: PublicQuestion, value: AnswerValue | un
   }
 }
 
-/** Request body for a submission: empty answers dropped, text trimmed, numbers as numbers. */
+/**
+ * Request body for a submission: only questions on the respondent's path (branching), empty answers dropped,
+ * text trimmed, numbers as numbers.
+ */
 export function toSubmission(questions: PublicQuestion[], answers: Answers): SubmissionIn {
   const out: SubmissionIn["answers"] = {};
-  for (const question of questions) {
+  for (const question of visitedPath(questions, answers).map((i) => questions[i])) {
     const value = answers[question.id];
     if (value === undefined || isEmptyAnswer(value)) continue;
     if (question.type === "number") out[question.id] = Number(value);

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, type React
 import { toast } from "sonner";
 import { ApiError, getErrorMessage } from "@/lib/api";
 import type { Answers, PublicQuestion, ThankYou } from "@/lib/types";
+import { canEndAfter, nextIndex, visitedPath } from "@/lib/logic";
 import { isEmptyAnswer, validateAnswer } from "@/lib/validation";
 import { flowReducer, initialFlowState } from "./flowState";
 import { QuestionRenderer } from "./QuestionRenderer";
@@ -23,6 +24,8 @@ type Props = {
    * to send the respondent back to the offending question. Omit for a local, non-persisting run.
    */
   onComplete?: (answers: Answers) => Promise<void>;
+  /** Called with all answers each time the respondent moves forward to another question (partial responses). */
+  onProgress?: (answers: Answers) => void;
 };
 
 const EASE_OUT_CUBIC = [0.33, 1, 0.68, 1] as const;
@@ -35,7 +38,7 @@ const isTextEntry = (target: EventTarget | null): target is HTMLElement =>
     (target.tagName === "INPUT" && (target as HTMLInputElement).type !== "button"));
 
 /** One-question-at-a-time respondent flow with progress, keyboard navigation and welcome/thank-you screens. */
-export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Props) {
+export function RespondentFlow({ questions, thankYou, welcome, onComplete, onProgress }: Props) {
   const [state, dispatch] = useReducer(flowReducer, Boolean(welcome), initialFlowState);
   // Handlers read the latest state from here: auto-advance timers and toast actions outlive the render that made them.
   const stateRef = useRef(state);
@@ -53,18 +56,24 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
   const current = questions[state.index];
   // No questions (an empty preview) or a stale index: nothing left to ask.
   const step = state.step === "question" && !current ? "done" : state.step;
-  const answered = questions.filter((q) => !isEmptyAnswer(state.answers[q.id])).length;
-  const isLast = state.index === questions.length - 1;
+  // Branching: the path ahead depends on the answers so far, so progress and "n of N" follow it.
+  const path = visitedPath(questions, state.answers);
+  const answered = path.filter((i) => !isEmptyAnswer(state.answers[questions[i].id])).length;
+  const position = state.history.length + 1;
+  const total = Math.max(path.length, position);
+  const isLast = Boolean(current) && nextIndex(questions, state.index, state.answers) === null;
 
   const submit = useCallback(async () => {
     const { answers } = stateRef.current;
     if (submittingRef.current) return;
 
     // Each question was checked on the way here, but answers can be cleared after going back.
-    const invalid = questions.findIndex((q) => validateAnswer(q, answers[q.id]));
+    const path = visitedPath(questions, answers);
+    const invalid = path.findIndex((i) => validateAnswer(questions[i], answers[questions[i].id]));
     if (invalid !== -1) {
-      const q = questions[invalid];
-      return dispatch({ type: "reject", errors: { [q.id]: validateAnswer(q, answers[q.id])! }, index: invalid });
+      const q = questions[path[invalid]];
+      const errors = { [q.id]: validateAnswer(q, answers[q.id])! };
+      return dispatch({ type: "reject", errors, index: path[invalid], history: path.slice(0, invalid) });
     }
     if (!onComplete) return dispatch({ type: "finish" });
 
@@ -85,8 +94,9 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
       if (error instanceof ApiError && error.status === 422) {
         const errors: Record<number, string> = {};
         for (const q of questions) if (error.fieldErrors[q.id]) errors[q.id] = error.fieldErrors[q.id];
-        const first = questions.findIndex((q) => q.id in errors);
-        if (first !== -1) return dispatch({ type: "reject", errors, index: first });
+        const path = visitedPath(questions, stateRef.current.answers);
+        const first = path.findIndex((i) => questions[i].id in errors);
+        if (first !== -1) return dispatch({ type: "reject", errors, index: path[first], history: path.slice(0, first) });
       }
       dispatch({ type: "submitFailed" });
 
@@ -120,19 +130,21 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
 
     const error = validateAnswer(question, s.answers[question.id]);
     if (error) return dispatch({ type: "reject", errors: { [question.id]: error } });
-    if (s.index < questions.length - 1) return dispatch({ type: "go", index: s.index + 1 });
-    void submit();
-  }, [questions, submit]);
+    const next = nextIndex(questions, s.index, s.answers);
+    if (next === null) return void submit();
+    onProgress?.(s.answers);
+    dispatch({ type: "go", index: next });
+  }, [onProgress, questions, submit]);
 
   // ↓ only moves between questions; submitting takes an explicit OK / Enter on the last one.
   const goDown = useCallback(() => {
     const s = stateRef.current;
-    if (s.step !== "question" || s.index < questions.length - 1) goNext();
-  }, [goNext, questions.length]);
+    if (s.step !== "question" || (questions[s.index] && nextIndex(questions, s.index, s.answers) !== null)) goNext();
+  }, [goNext, questions]);
 
   const goPrev = useCallback(() => {
     const s = stateRef.current;
-    if (s.step === "question" && s.index > 0 && !s.submitting) dispatch({ type: "go", index: s.index - 1 });
+    if (s.step === "question" && s.history.length > 0 && !s.submitting) dispatch({ type: "back" });
   }, []);
 
   useEffect(() => {
@@ -183,6 +195,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
         errorKey={state.attempt}
         mode="live"
         isLast={isLast}
+        canEnd={canEndAfter(questions, state.index)}
         submitting={state.submitting}
       />
     );
@@ -195,15 +208,15 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
           role="progressbar"
           aria-label="Progress"
           aria-valuemin={0}
-          aria-valuemax={questions.length}
+          aria-valuemax={total}
           aria-valuenow={answered}
-          aria-valuetext={`${answered} of ${questions.length} answered`}
+          aria-valuetext={`${answered} of ${total} answered`}
           className="h-1 w-full shrink-0 bg-resp-accent/20"
         >
           <motion.div
             className="h-full bg-resp-accent"
             initial={false}
-            animate={{ width: `${(answered / questions.length) * 100}%` }}
+            animate={{ width: `${(answered / total) * 100}%` }}
             transition={{ duration: reduceMotion ? 0 : 0.3 }}
           />
         </div>
@@ -220,10 +233,10 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
       {step === "question" && (
         <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-end gap-3 sm:inset-x-6 sm:bottom-6">
           <span aria-hidden className="rounded-input bg-resp-bg/80 px-2 py-1 text-xs opacity-70 sm:text-sm">
-            {state.index + 1} of {questions.length}
+            {position} of {total}
           </span>
           <div className="pointer-events-auto flex overflow-hidden rounded-input">
-            <NavButton label="Previous question" disabled={state.index === 0 || state.submitting} onClick={goPrev}>
+            <NavButton label="Previous question" disabled={state.history.length === 0 || state.submitting} onClick={goPrev}>
               <ChevronUp className="size-5" aria-hidden />
             </NavButton>
             <NavButton label="Next question" disabled={isLast || state.submitting} onClick={goDown}>

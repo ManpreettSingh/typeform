@@ -19,7 +19,13 @@ export type QuestionRendererProps = {
   /** Changes on every rejected attempt so the error message shakes again. */
   errorKey?: number;
   mode: RenderMode;
+  /** The form ends after this question with the current answer: OK reads "Submit". */
   isLast?: boolean;
+  /**
+   * Some answer to this question could end the form (branching). Auto-advance is then off, so a pick never
+   * submits by surprise. Defaults to `isLast`.
+   */
+  canEnd?: boolean;
   submitting?: boolean;
 };
 
@@ -34,11 +40,12 @@ export function QuestionRenderer({
   errorKey,
   mode,
   isLast,
+  canEnd = isLast,
   submitting,
 }: QuestionRendererProps) {
   const titleId = useId();
   const live = mode === "live";
-  const common = { onSubmit, live, autoAdvance: live && !isLast, labelledBy: titleId };
+  const common = { onSubmit, live, autoAdvance: live && !isLast && !canEnd, labelledBy: titleId };
 
   // Each branch narrows `question` and casts the shared value/onChange to that type's answer shape.
   const answer = (() => {

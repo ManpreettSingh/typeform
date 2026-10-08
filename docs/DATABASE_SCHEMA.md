@@ -28,7 +28,7 @@ forms 1 ──< responses 1 ──< answers >── 1 questions
 | required | BOOLEAN default 0 | |
 | position | INTEGER NOT NULL | 0-based, contiguous; UNIQUE(form_id, position). SQLite can't defer UNIQUE, so renumbering moves rows to a free range above max(position) then to final slots, in one transaction |
 | properties | JSON | per-type config (below) |
-| logic | JSON NULL | bonus: branching rules |
+| logic | JSON NULL | bonus: branching rules `{"rules":[{"op","value","to": <question id> \| "end"}]}` (API_SPEC.md "Branching"); null = always the next question. Jump targets are remapped on duplicate and removed when the target is deleted |
 
 ### `properties` by type
 - `multiple_choice`: `{options:[{id,label}], allow_multiple:false, allow_other:false}` (1–50 options, unique ids)
@@ -48,7 +48,7 @@ Defaults on create (no `properties` sent): choice/dropdown get 2 options ("Choic
 | status | TEXT | `partial` \| `completed` |
 | started_at | DATETIME | |
 | submitted_at | DATETIME NULL | set when completed |
-| meta | JSON NULL | user agent etc. (optional) |
+| meta | JSON NULL | `{"token": "..."}` for responses started via `/responses/start` (needed to save progress); never returned by the API |
 
 ## answers
 | column | type | notes |

@@ -1,13 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ApiError, apiGet, apiPost } from "@/lib/api";
-import type { PublicForm, SubmissionIn, SubmissionOut } from "@/lib/types";
+import { ApiError, apiGet, apiPatch, apiPost } from "@/lib/api";
+import type {
+  PartialStartOut,
+  PartialUpdateIn,
+  PartialUpdateOut,
+  PublicForm,
+  SubmissionIn,
+  SubmissionOut,
+} from "@/lib/types";
 
 export const publicApi = {
   getForm: (slug: string) => apiGet<PublicForm>(`/public/forms/${encodeURIComponent(slug)}`),
   submit: (slug: string, data: SubmissionIn) =>
     apiPost<SubmissionOut>(`/public/forms/${encodeURIComponent(slug)}/responses`, data),
+  start: (slug: string) =>
+    apiPost<PartialStartOut>(`/public/forms/${encodeURIComponent(slug)}/responses/start`),
+  saveProgress: (responseId: number, data: PartialUpdateIn) =>
+    apiPatch<PartialUpdateOut>(`/public/responses/${responseId}`, data),
 };
 
 export const publicKeys = {

@@ -9,6 +9,14 @@ A functional clone of Typeform: form builder, shareable public link, one-questio
 - **Backend:** FastAPI, Pydantic v2, SQLAlchemy 2
 - **Database:** SQLite (`backend/app.db`)
 
+## Bonus features
+- **Branching / logic jumps** — per question, “if the answer is X → jump to question Y / end the form” (Logic section of a question’s settings; overview under Settings → Logic). Jumps only go forward, so forms can’t loop; progress, “n of N”, back navigation and server validation all follow the respondent’s path.
+- **Partial responses + completion rate** — a response is started on the respondent’s first move forward and saved on every step; the results page shows completed vs in-progress responses and the completion rate.
+- **Custom themes** — background, text and button colors plus font, applied to the builder preview and the public form.
+- **Dark mode** — Light / Dark / System switch for the dashboard, builder and results (forms keep their own theme).
+- **CSV export** of all responses.
+- **Coming-soon placeholders** — Integrations and Collaborate settings, Payment and File upload question types (shown, disabled).
+
 ## Prerequisites
 - Python 3.11+
 - Node.js 20+

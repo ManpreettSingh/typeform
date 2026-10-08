@@ -16,7 +16,8 @@ export function SaveIndicator() {
   return (
     <span role="status" aria-live="polite" className={`inline-flex items-center gap-1.5 text-xs ${tone}`}>
       {icon}
-      {label}
+      {/* Icon only on phones; the text stays available to screen readers. */}
+      <span className="max-sm:sr-only">{label}</span>
     </span>
   );
 }

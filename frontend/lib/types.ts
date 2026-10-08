@@ -50,6 +50,17 @@ export type QuestionPropertiesMap = {
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
 
+// ---- Branching (schemas/logic.py) ---------------------------------------
+
+export type LogicOp = "is" | "is_not" | "contains" | "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+/** Option id (choice/dropdown), boolean (yes/no), number (number/rating) or text. */
+export type LogicValue = string | number | boolean;
+/** A question id of the same form, or "end" to finish the form. */
+export type LogicTarget = number | "end";
+export type LogicRule = { op: LogicOp; value: LogicValue; to: LogicTarget };
+/** Checked in order once the question is answered; first match wins, otherwise the next question. */
+export type Logic = { rules: LogicRule[] };
+
 // ---- Questions ---------------------------------------------------------
 
 type QuestionFields = {
@@ -57,6 +68,8 @@ type QuestionFields = {
   title: string;
   description: string | null;
   required: boolean;
+  /** Branching rules; null when the question always goes to the next one. */
+  logic: Logic | null;
 };
 
 /** A question as respondents see it (public API). Discriminated on `type`, so `properties` narrows. */
@@ -92,6 +105,8 @@ export type QuestionUpdate = {
   description?: string | null;
   required?: boolean;
   properties?: QuestionPropertiesMap[QuestionType];
+  /** Replaces all rules; null (or no rules) removes them. */
+  logic?: Logic | null;
 };
 
 export type QuestionOrder = { ordered_ids: number[] };
@@ -179,6 +194,12 @@ export type PublicForm = {
 /** Keys are question ids. Empty optional answers are omitted. */
 export type SubmissionIn = { answers: Record<string, AnswerValue> };
 export type SubmissionOut = { id: number };
+
+/** Bonus partial responses: `POST …/responses/start`, then `PATCH /public/responses/{id}`. */
+export type PartialStartOut = { response_id: number; token: string };
+/** `answers` replaces what's stored; `complete` = final submission (full validation). */
+export type PartialUpdateIn = SubmissionIn & { token: string; complete?: boolean };
+export type PartialUpdateOut = { id: number; status: ResponseStatus };
 
 // ---- Results (creator) ------------------------------------------------
 

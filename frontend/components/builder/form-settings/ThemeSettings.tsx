@@ -27,6 +27,7 @@ const SAMPLE_QUESTION: Question = {
   description: "This is how your questions will look.",
   required: true,
   position: 0,
+  logic: null,
   properties: {
     options: [
       { id: "a", label: "A friend" },

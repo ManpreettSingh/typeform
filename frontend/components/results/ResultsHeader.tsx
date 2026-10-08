@@ -3,6 +3,7 @@
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge, Tabs } from "@/components/ui";
 import { publicFormPath } from "@/lib/share";
 import type { Form } from "@/lib/types";
@@ -42,7 +43,7 @@ export function ResultsHeader({ form, onShare }: { form: Form; onShare: () => vo
 
       <Tabs<Tab> aria-label="Form sections" items={TABS} value="results" onChange={onTab} className="hidden md:flex" />
 
-      <div className="flex shrink-0 items-center justify-end md:flex-1">
+      <div className="flex shrink-0 items-center justify-end gap-2 md:flex-1">
         {published && (
           <a
             href={publicFormPath(form.slug)}
@@ -54,6 +55,7 @@ export function ResultsHeader({ form, onShare }: { form: Form; onShare: () => vo
             <span className="hidden sm:inline">View form</span>
           </a>
         )}
+        <ThemeToggle />
       </div>
     </header>
   );

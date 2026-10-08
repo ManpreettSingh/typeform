@@ -19,17 +19,17 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/forms/{id}/questions` | `{type, title?, description?, required?, properties?, position?}` appended at end (or inserted at `position`, clamped); omitted `properties` → type defaults |
-| PATCH | `/questions/{qid}` | partial update (title, description, required, properties); `type` is immutable; properties validated against type |
-| DELETE | `/questions/{qid}` | renumber positions |
+| PATCH | `/questions/{qid}` | partial update (title, description, required, properties, logic); `type` is immutable; properties validated against type; `logic` validated per type (see Branching) and replaced whole (null or no rules → null) |
+| DELETE | `/questions/{qid}` | renumber positions; other questions' jumps to it are removed |
 | PUT | `/forms/{id}/questions/order` | `{ordered_ids:[...]}` single transaction; must list every question exactly once (else 400); returns ordered questions |
 
 ## Public (no auth)
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/public/forms/{slug}` | only if published (else 404); returns slug, title, description, theme, thank_you, ordered questions `{id,type,title,description,required,properties}` (no internal fields) |
-| POST | `/public/forms/{slug}/responses` | `{answers:{ "<qid>": value }}` → validates all (unknown ids rejected, empty optional answers dropped) → 201 `{id}`; 422 `{detail:{errors:{"<qid>": msg}}}` |
-| POST | `/public/forms/{slug}/responses/start` | bonus: create partial, returns `{response_id}` |
-| PATCH | `/public/responses/{rid}` | bonus: upsert partial answers; `{answers, complete?}` |
+| GET | `/public/forms/{slug}` | only if published (else 404); returns slug, title, description, theme, thank_you, ordered questions `{id,type,title,description,required,properties,logic}` (no form id / position) |
+| POST | `/public/forms/{slug}/responses` | `{answers:{ "<qid>": value }}` → validates the respondent's path (unknown ids rejected, empty optional answers and answers to skipped questions dropped) → 201 `{id}`; 422 `{detail:{errors:{"<qid>": msg}}}` |
+| POST | `/public/forms/{slug}/responses/start` | bonus: creates an empty `partial` response → 201 `{response_id, token}`; 404 unless published |
+| PATCH | `/public/responses/{rid}` | bonus: `{token, answers, complete?}` replaces the stored answers (each validated, required not enforced, off-path dropped); `complete: true` validates like a full submission and marks it completed → 200 `{id, status}`. 404 for a wrong token / unknown id / unpublished form; 409 once completed |
 
 ## Results (creator)
 | Method | Path | Notes |
@@ -39,6 +39,18 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 | DELETE | `/forms/{id}/responses/{rid}` | 204 |
 | GET | `/forms/{id}/summary` | per-question stats (completed responses only) + totals + completion rate (0 when no responses) |
 | GET | `/forms/{id}/responses/export.csv` | bonus: UTF-8 with BOM, attachment `<title>-responses.csv`; one row per response (all statuses), answers human-readable (choice labels joined with `; `, `Yes`/`No`, rating `4/5`); cells starting with `= + - @` are prefixed with `'` |
+
+## Branching (`questions.logic`)
+`{"rules": [{"op", "value", "to"}]}` — checked in order after the question is answered; the first matching rule decides where to go (`to`: a question id of the same form, or `"end"`), otherwise the next question. Max 20 rules.
+
+| Question type | ops | value |
+|---|---|---|
+| multiple_choice, dropdown | `is`, `is_not` (multi-select: includes / doesn't include) | option id |
+| yes_no | `is` | `true` / `false` |
+| number, rating | `eq`, `neq`, `lt`, `lte`, `gt`, `gte` | number |
+| short_text, long_text, email | `is`, `is_not`, `contains` (trimmed, case-insensitive) | non-empty text (≤ 500) |
+
+422 keys: `logic.rules.<i>.op|value|to`. Unanswered questions match no rule. Only **forward** jumps are followed: a target that is missing or not after the question (e.g. after a reorder) is skipped, so paths can't loop. `services/logic.py` and `frontend/lib/logic.ts` implement the same resolver; submissions are validated along the resulting path.
 
 ## Validation rules (server authoritative)
 - required → non-empty · email → RFC-lite regex · number → numeric, within min/max · rating → int 1..max · yes_no → bool · choice/dropdown → option id(s) must exist · text → max_length · unknown question ids rejected.

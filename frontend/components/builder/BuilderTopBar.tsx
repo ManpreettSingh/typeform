@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import { ShareFormModal } from "@/components/dashboard/ShareFormModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge, Button, ConfirmDialog, Tabs } from "@/components/ui";
 import { useSetPublished } from "@/lib/queries/forms";
 import { useBuilderStore } from "@/store/builderStore";
@@ -84,12 +85,15 @@ export function BuilderTopBar({ view, onViewChange, onPreview }: Props) {
             "[field-sizing:content] hover:border-border focus:border-accent focus:ring-2 focus:ring-accent-soft focus:outline-none"
           }
         />
-        <Badge variant={published ? "success" : "neutral"}>{published ? "Published" : "Draft"}</Badge>
+        {/* Phones show the status through the Publish / Unpublish button instead. */}
+        <Badge variant={published ? "success" : "neutral"} className="max-sm:hidden">
+          {published ? "Published" : "Draft"}
+        </Badge>
       </div>
 
       <Tabs<Tab> aria-label="Form sections" items={TABS} value={view} onChange={onTab} className="hidden md:flex" />
 
-      <div className="flex flex-1 items-center justify-end gap-3">
+      <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3 md:flex-1">
         <SaveIndicator />
         <Button
           size="sm"
@@ -109,6 +113,7 @@ export function BuilderTopBar({ view, onViewChange, onPreview }: Props) {
         >
           {published ? "Unpublish" : "Publish"}
         </Button>
+        <ThemeToggle />
       </div>
 
       <ShareFormModal form={dialog === "share" ? form : null} onClose={() => setDialog(null)} />

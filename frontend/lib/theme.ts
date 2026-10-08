@@ -47,8 +47,11 @@ export function themeStyle(theme: Theme): CSSProperties {
     "--resp-bg": safe(theme.background, DEFAULT_THEME.background),
     "--resp-text": safe(theme.text_color, DEFAULT_THEME.text_color),
     "--resp-accent": button,
-    // Keep button labels readable on light button colors.
-    "--resp-accent-fg": luminance(button) > 0.5 ? "var(--text)" : "var(--primary-fg)",
+    // Keep button labels readable on light button colors. --ink/--paper don't change with the app's dark mode:
+    // a form looks the same whatever theme the creator's UI is in.
+    "--resp-accent-fg": luminance(button) > 0.5 ? "var(--ink)" : "var(--paper)",
     "--resp-font": fontStack(theme.font),
+    // Native controls (scrollbars, the dropdown's list) follow the form's background, not the app theme.
+    colorScheme: luminance(safe(theme.background, DEFAULT_THEME.background)) > 0.4 ? "light" : "dark",
   } as CSSProperties;
 }

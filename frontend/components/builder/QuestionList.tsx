@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { clsx } from "clsx";
-import { GripVertical, ListPlus, Trash2 } from "lucide-react";
+import { GitBranch, GripVertical, ListPlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { EmptyState, IconButton } from "@/components/ui";
 import type { Question } from "@/lib/types";
@@ -171,6 +171,11 @@ function QuestionRow({ question, number, selected }: { question: Question; numbe
       {question.required && (
         <span className="shrink-0 text-text-muted" aria-label="Required">
           *
+        </span>
+      )}
+      {question.logic && (
+        <span className="ml-auto shrink-0 text-text-muted" title="Has logic jumps">
+          <GitBranch className="size-3.5" aria-label="Has logic jumps" />
         </span>
       )}
     </span>
