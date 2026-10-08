@@ -5,6 +5,7 @@ one query fetches every completed answer for the form, which is plenty for this 
 """
 
 from collections import defaultdict
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import func, select
@@ -18,10 +19,10 @@ from app.schemas.response import (
     OptionCount,
     QuestionSummary,
     RatingSummary,
+    TextAnswer,
     TextSummary,
 )
 
-RECENT_LIMIT = 5
 YES_NO_OPTIONS = [("yes", "Yes"), ("no", "No")]
 
 
@@ -82,13 +83,13 @@ def _number(question: Question, values: list[Any]) -> NumberSummary:
     )
 
 
-def _text(question: Question, values: list[Any]) -> TextSummary:
+def _text(question: Question, values: list[Any], times: list[datetime]) -> TextSummary:
     return TextSummary(
         question_id=question.id,
         type=QuestionType(question.type),
         title=question.title,
         answered=len(values),
-        recent=[str(v) for v in values[:RECENT_LIMIT]],
+        answers=[TextAnswer(value=str(v), submitted_at=t) for v, t in zip(values, times, strict=True)],
     )
 
 
@@ -98,14 +99,16 @@ _SUMMARIZERS = {
     QuestionType.YES_NO: _choice,
     QuestionType.RATING: _rating,
     QuestionType.NUMBER: _number,
-    QuestionType.SHORT_TEXT: _text,
-    QuestionType.LONG_TEXT: _text,
-    QuestionType.EMAIL: _text,
 }
 
 
-def summarize_question(question: Question, values: list[Any]) -> QuestionSummary:
-    """`values` are this question's stored answers, most recent first."""
+_TEXT_TYPES = {QuestionType.SHORT_TEXT, QuestionType.LONG_TEXT, QuestionType.EMAIL}
+
+
+def summarize_question(question: Question, values: list[Any], times: list[datetime]) -> QuestionSummary:
+    """`values` are this question's stored answers, most recent first; `times` their submission times."""
+    if QuestionType(question.type) in _TEXT_TYPES:
+        return _text(question, values, times)
     return _SUMMARIZERS[QuestionType(question.type)](question, values)
 
 
@@ -119,18 +122,33 @@ def summarize_form(db: Session, form: Form) -> FormSummary:
     completed = counts.get(ResponseStatus.COMPLETED, 0)
 
     rows = db.execute(
-        select(Answer.question_id, Answer.value)
+        select(Answer.question_id, Answer.value, Response.submitted_at)
         .join(Response, Answer.response_id == Response.id)
         .where(Response.form_id == form.id, Response.status == ResponseStatus.COMPLETED)
         .order_by(Response.submitted_at.desc(), Response.id.desc())
     ).all()
     values: dict[int, list[Any]] = defaultdict(list)
-    for question_id, value in rows:
+    times: dict[int, list[datetime]] = defaultdict(list)
+    for question_id, value, submitted_at in rows:
         values[question_id].append(value)
+        times[question_id].append(submitted_at)
 
     return FormSummary(
         total_responses=total,
         completed=completed,
         completion_rate=round(completed / total, 4) if total else 0.0,
-        questions=[summarize_question(q, values[q.id]) for q in form.questions],
+        views=form.views,
+        average_seconds=_average_seconds(db, form),
+        questions=[summarize_question(q, values[q.id], times[q.id]) for q in form.questions],
     )
+
+
+def _average_seconds(db: Session, form: Form) -> float | None:
+    """Typeform's "Time to complete". One-shot submissions (no partial start) have no duration and are left out."""
+    spans = db.execute(
+        select(Response.started_at, Response.submitted_at).where(
+            Response.form_id == form.id, Response.status == ResponseStatus.COMPLETED
+        )
+    ).all()
+    seconds = [(end - start).total_seconds() for start, end in spans if end is not None and end > start]
+    return round(sum(seconds) / len(seconds), 1) if seconds else None

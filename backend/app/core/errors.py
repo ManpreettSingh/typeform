@@ -30,6 +30,14 @@ class ConflictError(AppError):
     status_code = 409
 
 
+class BadGatewayError(AppError):
+    status_code = 502
+
+
+class ServiceUnavailableError(AppError):
+    status_code = 503
+
+
 class FieldValidationError(Exception):
     """422 with `{"detail": {"errors": {"<field or question id>": "msg"}}}`."""
 

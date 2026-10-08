@@ -24,6 +24,12 @@ def get_public_form(slug: str, db: DB):
     return submission_service.get_published_form(db, slug)
 
 
+@router.post("/forms/{slug}/views", status_code=status.HTTP_204_NO_CONTENT)
+def record_view(slug: str, db: DB) -> None:
+    """Called once per visit by the public page; feeds Results → Form performance → Views."""
+    submission_service.record_view(db, submission_service.get_published_form(db, slug))
+
+
 @router.post("/forms/{slug}/responses", response_model=SubmissionOut, status_code=status.HTTP_201_CREATED)
 def submit_response(slug: str, data: SubmissionIn, db: DB):
     form = submission_service.get_published_form(db, slug)

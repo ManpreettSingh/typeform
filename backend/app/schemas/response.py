@@ -79,10 +79,15 @@ class NumberSummary(_QuestionSummaryBase):
     average: float | None
 
 
+class TextAnswer(BaseModel):
+    value: str
+    submitted_at: datetime
+
+
 class TextSummary(_QuestionSummaryBase):
     type: Literal[QuestionType.SHORT_TEXT, QuestionType.LONG_TEXT, QuestionType.EMAIL]
-    # Most recent first.
-    recent: list[str]
+    # Every answer, most recent first (Typeform lists them all, with a search box).
+    answers: list[TextAnswer]
 
 
 QuestionSummary = Annotated[
@@ -97,5 +102,9 @@ class FormSummary(BaseModel):
     completed: int
     # completed / total_responses; 0 when there are no responses.
     completion_rate: float
+    # Form performance: times the public form was opened ("Views"; starts = total_responses).
+    views: int
+    # Average seconds from start to submission over completed responses that were timed; null if none.
+    average_seconds: float | None
     # In question order; stats cover completed responses only.
     questions: list[QuestionSummary]

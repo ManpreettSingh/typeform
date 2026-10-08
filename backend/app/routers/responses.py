@@ -18,6 +18,7 @@ from app.services import export as export_service
 from app.services import forms as form_service
 from app.services import responses as response_service
 from app.services import stats as stats_service
+from app.services import test_responses as test_response_service
 
 router = APIRouter(prefix="/forms/{form_id}", tags=["results"])
 
@@ -47,6 +48,13 @@ def export_responses(form_id: int, db: DB):
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}-responses.csv"'},
     )
+
+
+@router.post("/responses/test", response_model=ResponseDetail, status_code=status.HTTP_201_CREATED)
+def generate_test_response(form_id: int, db: DB):
+    """Typeform's "Generate test response". Works on drafts too, so creators can try Results first."""
+    form = form_service.get_form(db, form_id)
+    return response_service.to_detail(form, test_response_service.create_test_response(db, form))
 
 
 @router.get("/responses/{response_id}", response_model=ResponseDetail)

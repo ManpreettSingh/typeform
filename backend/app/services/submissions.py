@@ -1,7 +1,7 @@
 import secrets
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
@@ -16,6 +16,12 @@ def get_published_form(db: Session, slug: str) -> Form:
     if form is None:
         raise NotFoundError("Form not found")
     return form
+
+
+def record_view(db: Session, form: Form) -> None:
+    # Atomic increment: concurrent visits don't overwrite each other.
+    db.execute(update(Form).where(Form.id == form.id).values(views=Form.views + 1))
+    db.commit()
 
 
 def create_submission(db: Session, form: Form, answers: dict[str, Any]) -> Response:

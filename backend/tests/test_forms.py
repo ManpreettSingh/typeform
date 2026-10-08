@@ -17,7 +17,7 @@ def test_create_form_defaults(client):
     res = client.post("/api/forms")
     assert res.status_code == 201
     form = res.json()
-    assert form["title"] == "Untitled form"
+    assert form["title"] == "New form"
     assert form["status"] == "draft"
     assert form["questions"] == []
     assert form["response_count"] == 0

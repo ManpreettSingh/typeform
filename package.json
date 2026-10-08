@@ -4,7 +4,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "concurrently -k -n api,web -c blue,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "node scripts/py.mjs -m uvicorn app.main:app --reload --port 8000",
+    "dev:backend": "node scripts/py.mjs -m uvicorn app.main:app --reload --timeout-graceful-shutdown 1 --port 8000",
     "dev:frontend": "npm --prefix frontend run dev",
     "seed": "node scripts/py.mjs -m app.seed",
     "test:backend": "node scripts/py.mjs -m pytest -q",

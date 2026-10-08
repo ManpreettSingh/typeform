@@ -43,7 +43,8 @@ def test_summary_matches_seeded_raw_data(client, db, demo):
 
     question, name = by_type["short_text"]
     assert name["answered"] == completed
-    assert name["recent"] == _completed_values(rows, question["id"])[:5]
+    assert [a["value"] for a in name["answers"]] == _completed_values(rows, question["id"])
+    assert all(a["submitted_at"] for a in name["answers"])
 
     question, nps = by_type["rating"]
     scores = _completed_values(rows, question["id"])
@@ -212,3 +213,77 @@ def test_csv_escapes_formulas(client, make_form, add_question):
     text = client.get(f"/api/forms/{form['id']}/responses/export.csv").content.decode("utf-8")
     assert "'=cmd" in text.splitlines()[0]
     assert "'=HYPERLINK(1)" in text.splitlines()[1]
+
+
+# ---- Form performance ---------------------------------------------------------
+
+
+def test_performance_views_starts_and_time(client, make_form, add_question):
+    form = make_form()
+    question = add_question(form["id"], "short_text", required=True)
+    client.post(f"/api/forms/{form['id']}/publish")
+    slug = form["slug"]
+
+    for _ in range(3):
+        assert client.post(f"/api/public/forms/{slug}/views").status_code == 204
+    started = client.post(f"/api/public/forms/{slug}/responses/start").json()
+    client.post(f"/api/public/forms/{slug}/responses/start")  # abandoned
+    done = client.patch(
+        f"/api/public/responses/{started['response_id']}",
+        json={"token": started["token"], "answers": {question["id"]: "Ana"}, "complete": True},
+    )
+    assert done.status_code == 200, done.text
+
+    summary = client.get(f"/api/forms/{form['id']}/summary").json()
+    assert (summary["views"], summary["total_responses"], summary["completed"]) == (3, 2, 1)
+    assert summary["completion_rate"] == 0.5
+    assert summary["average_seconds"] is not None and summary["average_seconds"] >= 0
+
+
+def test_one_shot_submissions_have_no_time_to_complete(client, make_form, add_question):
+    form = make_form()
+    add_question(form["id"], "short_text")
+    client.post(f"/api/forms/{form['id']}/publish")
+    client.post(f"/api/public/forms/{form['slug']}/responses", json={"answers": {}})
+    summary = client.get(f"/api/forms/{form['id']}/summary").json()
+    assert summary["views"] == 0
+    assert summary["average_seconds"] is None
+
+
+def test_views_need_a_published_form(client, make_form):
+    form = make_form()
+    assert client.post(f"/api/public/forms/{form['slug']}/views").status_code == 404
+    assert client.post("/api/public/forms/nope/views").status_code == 404
+
+
+# ---- Generate test response ---------------------------------------------------
+
+
+def test_generate_test_response_follows_types_and_branching(client, db, demo):
+    before = client.get(f"/api/forms/{demo['id']}/summary").json()
+    for _ in range(15):
+        res = client.post(f"/api/forms/{demo['id']}/responses/test")
+        assert res.status_code == 201, res.text
+        detail = res.json()
+        assert detail["status"] == "completed"
+        answered = {a["question_id"]: a["value"] for a in detail["answers"]}
+        frustrated_id, follow_up_id = (q["id"] for q in demo["questions"] if q["type"] in ("yes_no", "long_text"))
+        if answered.get(frustrated_id) is False:
+            assert follow_up_id not in answered
+    after = client.get(f"/api/forms/{demo['id']}/summary").json()
+    assert after["completed"] == before["completed"] + 15
+    assert after["average_seconds"] is not None
+    rows = db.query(Response).filter(Response.form_id == demo["id"]).all()
+    assert sum(r.meta == {"test": True} for r in rows) == 15
+
+
+def test_generate_test_response_on_draft_and_empty_form(client, make_form, add_question):
+    form = make_form()
+    assert client.post(f"/api/forms/{form['id']}/responses/test").status_code == 400
+    add_question(form["id"], "number", properties={"min": 1.2, "max": 1.8})
+    add_question(form["id"], "email", required=True)
+    res = client.post(f"/api/forms/{form['id']}/responses/test")
+    assert res.status_code == 201, res.text
+    number = res.json()["answers"][0]["value"]
+    assert 1.2 <= number <= 1.8
+    assert client.post("/api/forms/999/responses/test").status_code == 404

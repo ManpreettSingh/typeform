@@ -25,7 +25,8 @@ class ThankYou(StrictModel):
 
 
 class FormCreate(StrictModel):
-    title: Title = "Untitled form"
+    # Typeform names new forms "New form" until the creator renames them.
+    title: Title = "New form"
 
 
 class FormUpdate(PatchModel):

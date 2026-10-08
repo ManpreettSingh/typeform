@@ -22,7 +22,7 @@ class Form(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     # unique=True creates the forms(slug) index.
     slug: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
-    title: Mapped[str] = mapped_column(String(200), nullable=False, default="Untitled form")
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="New form")
     description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default=FormStatus.DRAFT)
     theme: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
@@ -30,6 +30,8 @@ class Form(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=utcnow, onupdate=utcnow)
     published_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # Times the public form was opened (Results → Form performance → Views).
+    views: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     # passive_deletes: let SQLite's ON DELETE CASCADE do the work instead of loading children.
     questions: Mapped[list[Question]] = relationship(
