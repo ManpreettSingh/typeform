@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ApiError, apiDelete, apiGet, apiPatch, apiPost, getErrorMessage } from "@/lib/api";
-import type { Form, FormCreate, FormListItem, FormUpdate } from "@/lib/types";
+import type { AiPrompt, Form, FormCreate, FormListItem, FormUpdate } from "@/lib/types";
 
 // ---- API ---------------------------------------------------------------
 
@@ -16,6 +16,14 @@ export const formsApi = {
   duplicate: (id: number) => apiPost<Form>(`/forms/${id}/duplicate`),
   publish: (id: number) => apiPost<Form>(`/forms/${id}/publish`),
   unpublish: (id: number) => apiPost<Form>(`/forms/${id}/unpublish`),
+};
+
+/** Typeform AI (Gemini on the server). */
+export const aiApi = {
+  /** A new form drafted from the prompt. */
+  createForm: (prompt: string) => apiPost<Form>("/ai/forms", { prompt } satisfies AiPrompt),
+  /** Adds drafted questions to an existing form (and names it if it's still "New form"). */
+  addQuestions: (id: number, prompt: string) => apiPost<Form>(`/ai/forms/${id}/questions`, { prompt } satisfies AiPrompt),
 };
 
 export const formKeys = {
@@ -76,6 +84,20 @@ export function useCreateForm() {
     mutationFn: formsApi.create,
     onSuccess: (form) => storeForm(qc, form),
     onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+/** AI errors (no key, rate limit…) are shown where the prompt was typed, so no toast here. */
+export function useCreateFormWithAi() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: aiApi.createForm, onSuccess: (form) => storeForm(qc, form) });
+}
+
+export function useAddAiQuestions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, prompt }: { id: number; prompt: string }) => aiApi.addQuestions(id, prompt),
+    onSuccess: (form) => storeForm(qc, form),
   });
 }
 

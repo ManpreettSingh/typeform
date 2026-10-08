@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { API_URL, apiDelete, apiGet, getErrorMessage } from "@/lib/api";
+import { API_URL, apiDelete, apiGet, apiPost, getErrorMessage } from "@/lib/api";
 import type { FormSummary, ResponseDetail, ResponsePage } from "@/lib/types";
 import { formKeys } from "./forms";
 
@@ -15,6 +15,7 @@ export const resultsApi = {
   response: (formId: number, responseId: number) =>
     apiGet<ResponseDetail>(`/forms/${formId}/responses/${responseId}`),
   remove: (formId: number, responseId: number) => apiDelete(`/forms/${formId}/responses/${responseId}`),
+  generateTest: (formId: number) => apiPost<ResponseDetail>(`/forms/${formId}/responses/test`),
 };
 
 /** Plain link (not fetch) so the browser downloads the file with the server's filename. */
@@ -51,6 +52,20 @@ export function useDeleteResponse(formId: number) {
       toast.success("Response deleted");
       void qc.invalidateQueries({ queryKey: resultsKeys.all(formId) });
       // Dashboard response counts.
+      void qc.invalidateQueries({ queryKey: formKeys.all });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+/** Typeform's "Generate test response": a completed response with random answers. */
+export function useGenerateTestResponse(formId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => resultsApi.generateTest(formId),
+    onSuccess: () => {
+      toast.success("Test response added");
+      void qc.invalidateQueries({ queryKey: resultsKeys.all(formId) });
       void qc.invalidateQueries({ queryKey: formKeys.all });
     },
     onError: (error) => toast.error(getErrorMessage(error)),

@@ -49,7 +49,7 @@ export function Tabs<T extends string>({ items, value, onChange, className, ...a
             onClick={() => onChange(item.value)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={clsx(
-              "relative h-9 px-3 text-sm font-medium transition-colors duration-150",
+              "relative h-9 px-3 text-sm font-medium transition-colors",
               "focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50",
               selected ? "text-text" : "text-text-soft hover:text-text",
             )}

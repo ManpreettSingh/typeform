@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-describedby={describedBy}
           className={clsx(
             "h-9 w-full rounded-field border bg-field text-sm text-text placeholder:text-text-muted",
-            "transition-colors duration-150 focus:outline-none focus:ring-2",
+            "transition-colors focus:outline-none focus:ring-2",
             leftIcon ? "pr-3 pl-9" : "px-3",
             error
               ? "border-danger focus:ring-danger-soft"

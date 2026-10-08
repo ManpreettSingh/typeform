@@ -20,7 +20,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       title={label}
       className={clsx(
         "inline-flex items-center justify-center rounded-input text-text-muted",
-        "transition-colors duration-150 hover:bg-bg-subtle hover:text-text",
+        "transition-colors hover:bg-bg-subtle hover:text-text",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         "disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "size-7" : "size-9",

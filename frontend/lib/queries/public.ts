@@ -15,6 +15,8 @@ export const publicApi = {
   getForm: (slug: string) => apiGet<PublicForm>(`/public/forms/${encodeURIComponent(slug)}`),
   submit: (slug: string, data: SubmissionIn) =>
     apiPost<SubmissionOut>(`/public/forms/${encodeURIComponent(slug)}/responses`, data),
+  /** Counts a visit for Results → Form performance → Views. */
+  recordView: (slug: string) => apiPost<void>(`/public/forms/${encodeURIComponent(slug)}/views`),
   start: (slug: string) =>
     apiPost<PartialStartOut>(`/public/forms/${encodeURIComponent(slug)}/responses/start`),
   saveProgress: (responseId: number, data: PartialUpdateIn) =>

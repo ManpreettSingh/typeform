@@ -176,6 +176,9 @@ export type Form = FormBase & {
 
 export type FormCreate = { title?: string };
 
+/** Typeform AI: a request in plain words ("Create with AI", "Chat to create", "Ask Typeform AI"). */
+export type AiPrompt = { prompt: string };
+
 export type FormUpdate = {
   title?: string;
   description?: string | null;
@@ -261,10 +264,11 @@ export type NumberSummary = QuestionSummaryBase & {
   max: number | null;
   average: number | null;
 };
+export type TextAnswer = { value: string; submitted_at: ISODateTime };
 export type TextSummary = QuestionSummaryBase & {
   type: "short_text" | "long_text" | "email";
-  /** Most recent first, at most 5. */
-  recent: string[];
+  /** Every answer, most recent first. */
+  answers: TextAnswer[];
 };
 export type QuestionSummary = ChoiceSummary | RatingSummary | NumberSummary | TextSummary;
 
@@ -274,6 +278,10 @@ export type FormSummary = {
   completed: number;
   /** completed / total_responses (0–1); 0 when there are no responses. */
   completion_rate: number;
+  /** Form performance: times the public form was opened. Starts = total_responses, submissions = completed. */
+  views: number;
+  /** Average fill time of timed completed responses, in seconds; null when there are none. */
+  average_seconds: number | null;
   /** In question order; stats cover completed responses only. */
   questions: QuestionSummary[];
 };

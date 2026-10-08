@@ -31,7 +31,7 @@ export function FormRow({ form, actions }: { form: FormListItem; actions: FormCa
       className={clsx(
         ROW_GRID,
         "group relative h-12 rounded-row border border-border-strong bg-bg pr-1 pl-2 text-sm text-text-muted",
-        "transition-shadow duration-150 hover:shadow-row has-[a[data-row-link]:focus-visible]:ring-2 has-[a[data-row-link]:focus-visible]:ring-accent",
+        "transition-shadow hover:shadow-row has-[a[data-row-link]:focus-visible]:ring-2 has-[a[data-row-link]:focus-visible]:ring-accent",
       )}
     >
       <div className="flex min-w-0 items-center gap-3">

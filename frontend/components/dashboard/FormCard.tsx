@@ -17,7 +17,7 @@ export function FormCard({ form, actions }: { form: FormListItem; actions: FormC
     <article
       className={clsx(
         "group relative flex flex-col overflow-hidden rounded-row border border-border-strong bg-bg",
-        "transition-shadow duration-150 hover:shadow-row has-[a[data-card-link]:focus-visible]:ring-2 has-[a[data-card-link]:focus-visible]:ring-accent",
+        "transition-shadow hover:shadow-row has-[a[data-card-link]:focus-visible]:ring-2 has-[a[data-card-link]:focus-visible]:ring-accent",
       )}
     >
       <FormThemeThumb

@@ -26,7 +26,7 @@ export function Toggle({ checked, onChange, label, disabled, id }: ToggleProps) 
         onClick={() => onChange(!checked)}
         className={clsx(
           // Typeform's small switch: light track + dark knob when off, dark track + white knob when on.
-          "relative inline-flex h-4 w-7 shrink-0 items-center rounded-pill transition-colors duration-150",
+          "relative inline-flex h-4 w-7 shrink-0 items-center rounded-pill transition-colors",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
           "disabled:cursor-not-allowed disabled:opacity-50",
           checked ? "bg-text-muted" : "bg-bg-hover",

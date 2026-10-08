@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "dangerGhost";
-export type ButtonSize = "sm" | "md";
+export type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -21,8 +21,10 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-sm gap-1.5",
-  md: "h-9 px-4 text-sm gap-2",
+  sm: "h-8 px-3 text-sm gap-1.5 rounded-input",
+  md: "h-9 px-4 text-sm gap-2 rounded-input",
+  // Typeform's full-page actions (error pages): 44px, 16px text, rounder.
+  lg: "h-11 px-4 text-base gap-2 rounded-card",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -35,8 +37,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={disabled || loading}
       className={clsx(
-        "inline-flex items-center justify-center rounded-input font-medium whitespace-nowrap",
-        "transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "inline-flex items-center justify-center font-medium whitespace-nowrap",
+        "transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         "disabled:cursor-not-allowed disabled:opacity-50",
         variants[variant],
         sizes[size],

@@ -116,20 +116,21 @@ function NumberBody({ summary }: { summary: NumberSummary }) {
 }
 
 function TextBody({ summary, onShowResponses }: { summary: TextSummary; onShowResponses: () => void }) {
+  const recent = summary.answers.slice(0, 5);
   return (
     <>
       <ul className="flex flex-col gap-2">
-        {summary.recent.map((text, i) => (
+        {recent.map((answer, i) => (
           <li
             key={i}
             className="rounded-input bg-bg-subtle px-3 py-2 text-sm break-words whitespace-pre-line text-text"
           >
-            {text}
+            {answer.value}
           </li>
         ))}
       </ul>
       <p className="mt-3 text-xs text-text-muted">
-        {summary.answered > summary.recent.length ? `Latest ${summary.recent.length} of ${summary.answered}. ` : ""}
+        {summary.answered > recent.length ? `Latest ${recent.length} of ${summary.answered}. ` : ""}
         <button type="button" onClick={onShowResponses} className="font-medium text-accent hover:underline">
           See all responses
         </button>

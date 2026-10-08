@@ -41,7 +41,7 @@
   --badge-bg: #f6fafd;      /* "Soon" / "Beta" */
   --badge-line: #bdddf9;
   --badge-text: #01487f;
-  --overlay: rgb(42 34 43 / 0.7);
+  --overlay: rgb(70 62 72 / 0.7);
 
   /* Form icons in the workspace (Typeform's colored squares), picked deterministically per form */
   --thumb-1: #bdddf9;
@@ -187,11 +187,18 @@
   --color-resp-error-soft: var(--resp-error-soft);
   --font-resp: var(--resp-font);
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  /* Typeform's admin uses the platform UI font (Segoe UI on Windows, SF on Mac); respondent screens keep
+     the form theme's font (--font-resp, Inter by default). */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
 
-  --radius-input: 6px;  /* buttons, nav pills, small controls */
+  /* Typeform animates hover/press colors over 200ms with the plain ease curve. */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: ease;
+
+  --radius-input: 8px;  /* buttons, nav pills, small controls (measured on admin.typeform.com) */
   --radius-field: 8px;  /* inputs, selects, segmented controls */
-  --radius-row: 10px;   /* form list rows */
+  --radius-row: 12px;   /* form list rows */
   --radius-card: 12px;  /* panels, cards, app frame */
   --radius-modal: 16px;
   --radius-pill: 999px;
@@ -200,7 +207,8 @@
 
   --shadow-row: 0 1px 4px rgb(42 34 43 / 0.06);
   --shadow-popover: 0 4px 16px rgb(42 34 43 / 0.12), 0 1px 3px rgb(42 34 43 / 0.08);
-  --shadow-modal: 0 16px 48px rgb(42 34 43 / 0.2);
+  /* Typeform's dialogs sit on the overlay with a soft 3px ring instead of a drop shadow. */
+  --shadow-modal: 0 0 0 3px rgb(84 80 88 / 0.09);
   --shadow-toast: 0 4px 16px rgb(42 34 43 / 0.08);
 
   --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);

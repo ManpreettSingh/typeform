@@ -40,7 +40,7 @@ function SelectInner<T extends string | number>(
           }}
           className={clsx(
             "h-9 w-full appearance-none rounded-field border border-border-strong bg-field pr-9 pl-3 text-sm text-text",
-            "transition-colors duration-150 focus:border-text-muted focus:ring-2 focus:ring-accent-soft focus:outline-none",
+            "transition-colors focus:border-text-muted focus:ring-2 focus:ring-accent-soft focus:outline-none",
             "disabled:cursor-not-allowed disabled:bg-bg-subtle",
             className,
           )}
