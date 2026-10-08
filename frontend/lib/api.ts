@@ -69,3 +69,10 @@ export const apiPost = <T>(path: string, json?: unknown) => api<T>(path, { metho
 export const apiPatch = <T>(path: string, json: unknown) => api<T>(path, { method: "PATCH", json });
 export const apiPut = <T>(path: string, json: unknown) => api<T>(path, { method: "PUT", json });
 export const apiDelete = <T = void>(path: string) => api<T>(path, { method: "DELETE" });
+
+/** Human-readable message for toasts; prefers the first field-level validation message. */
+export function getErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) return "Something went wrong. Please try again.";
+  const [firstFieldError] = Object.values(error.fieldErrors);
+  return firstFieldError ?? error.message;
+}

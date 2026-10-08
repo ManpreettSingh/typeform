@@ -32,6 +32,9 @@ export function CreateFormButton({ size = "md" }: { size?: ButtonProps["size"] }
       { title: title.trim() || undefined },
       {
         onSuccess: (form) => {
+          // Close before navigating so the dialog isn't left mid-exit inside the hidden dashboard.
+          setOpen(false);
+          setTitle("");
           toast.success("Form created");
           router.push(`/forms/${form.id}/edit`);
         },

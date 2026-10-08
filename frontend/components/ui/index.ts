@@ -6,6 +6,8 @@ export { IconButton, type IconButtonProps } from "./IconButton";
 export { Input, type InputProps } from "./Input";
 export { Menu, type MenuItem, type MenuProps, type MenuTriggerProps } from "./Menu";
 export { Modal, type ModalProps } from "./Modal";
+export { Select, type SelectOption, type SelectProps } from "./Select";
 export { Skeleton } from "./Skeleton";
 export { Tabs, type TabItem, type TabsProps } from "./Tabs";
+export { Textarea, type TextareaProps } from "./Textarea";
 export { Toggle, type ToggleProps } from "./Toggle";

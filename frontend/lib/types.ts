@@ -52,20 +52,26 @@ export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
 
 // ---- Questions ---------------------------------------------------------
 
-type QuestionBase = {
+type QuestionFields = {
   id: number;
-  form_id: number;
   title: string;
   description: string | null;
   required: boolean;
+};
+
+/** A question as respondents see it (public API). Discriminated on `type`, so `properties` narrows. */
+export type PublicQuestion = {
+  [T in QuestionType]: QuestionFields & { type: T; properties: QuestionPropertiesMap[T] };
+}[QuestionType];
+
+export type PublicQuestionOf<T extends QuestionType> = Extract<PublicQuestion, { type: T }>;
+
+/** A question as the creator API returns it. */
+export type Question = PublicQuestion & {
+  form_id: number;
   /** 0-based, contiguous within a form. */
   position: number;
 };
-
-/** Discriminated on `type`, so `properties` narrows automatically. */
-export type Question = {
-  [T in QuestionType]: QuestionBase & { type: T; properties: QuestionPropertiesMap[T] };
-}[QuestionType];
 
 export type QuestionOf<T extends QuestionType> = Extract<Question, { type: T }>;
 
@@ -89,6 +95,25 @@ export type QuestionUpdate = {
 };
 
 export type QuestionOrder = { ordered_ids: number[] };
+
+// ---- Answers (DATABASE_SCHEMA.md "value formats") ----------------------
+
+export type AnswerValueMap = {
+  short_text: string;
+  long_text: string;
+  email: string;
+  /** number while typing may be an unparsable string; validation rejects it. */
+  number: number | string;
+  rating: number;
+  yes_no: boolean;
+  /** option id, or option ids when allow_multiple */
+  multiple_choice: string | string[];
+  /** option id */
+  dropdown: string;
+};
+export type AnswerValue = AnswerValueMap[QuestionType];
+/** Answers keyed by question id. */
+export type Answers = Record<number, AnswerValue | undefined>;
 
 // ---- Forms -------------------------------------------------------------
 
@@ -136,6 +161,24 @@ export type FormUpdate = {
   theme?: Theme;
   thank_you?: ThankYou;
 };
+
+// ---- Public (respondent) ----------------------------------------------
+
+/** `GET /public/forms/{slug}`: published forms only, no internal fields. */
+export type PublicForm = {
+  slug: string;
+  title: string;
+  /** Shown as the welcome-screen subtitle; no description → no welcome screen. */
+  description: string | null;
+  theme: Theme;
+  thank_you: ThankYou;
+  /** Ordered by position. */
+  questions: PublicQuestion[];
+};
+
+/** Keys are question ids. Empty optional answers are omitted. */
+export type SubmissionIn = { answers: Record<string, AnswerValue> };
+export type SubmissionOut = { id: number };
 
 // ---- Errors ------------------------------------------------------------
 

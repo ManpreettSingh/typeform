@@ -33,6 +33,25 @@
   --thumb-5: #f8e1ea;
   --thumb-6: #f3eed5;
   --thumb-fg: #262627;
+
+  /* Question-type chips (builder list, type picker) */
+  --qt-text: #dbe7fb;
+  --qt-text-fg: #1f4fa3;
+  --qt-choice: #ece3fb;
+  --qt-choice-fg: #5b3aa8;
+  --qt-contact: #dcf1e5;
+  --qt-contact-fg: #1f7a4d;
+  --qt-number: #fde7d6;
+  --qt-number-fg: #a8521f;
+  --qt-yesno: #fbe2ea;
+  --qt-yesno-fg: #a3304f;
+
+  /* Respondent screens. Defaults only: RespondentTheme overrides these per form theme. */
+  --resp-bg: var(--bg);
+  --resp-text: var(--text);
+  --resp-accent: var(--accent);
+  --resp-accent-fg: var(--primary-fg);
+  --resp-font: var(--font-inter), system-ui, sans-serif;
 }
 
 @theme inline {
@@ -61,6 +80,21 @@
   --color-thumb-5: var(--thumb-5);
   --color-thumb-6: var(--thumb-6);
   --color-thumb-fg: var(--thumb-fg);
+  --color-qt-text: var(--qt-text);
+  --color-qt-text-fg: var(--qt-text-fg);
+  --color-qt-choice: var(--qt-choice);
+  --color-qt-choice-fg: var(--qt-choice-fg);
+  --color-qt-contact: var(--qt-contact);
+  --color-qt-contact-fg: var(--qt-contact-fg);
+  --color-qt-number: var(--qt-number);
+  --color-qt-number-fg: var(--qt-number-fg);
+  --color-qt-yesno: var(--qt-yesno);
+  --color-qt-yesno-fg: var(--qt-yesno-fg);
+  --color-resp-bg: var(--resp-bg);
+  --color-resp-text: var(--resp-text);
+  --color-resp-accent: var(--resp-accent);
+  --color-resp-accent-fg: var(--resp-accent-fg);
+  --font-resp: var(--resp-font);
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
 
@@ -72,6 +106,22 @@
   --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.2);
 
   --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+
+  --animate-shake: shake 0.4s var(--ease-out-cubic);
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-6px);
+    }
+    40%,
+    80% {
+      transform: translateX(6px);
+    }
+  }
 
   --animate-shimmer: shimmer 1.4s ease-in-out infinite;
   @keyframes shimmer {

@@ -1,6 +1,14 @@
-import { ComingNextPhase } from "@/components/ComingNextPhase";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { BuilderSkeleton, FormBuilder } from "@/components/builder/FormBuilder";
 
-// Placeholder so dashboard links resolve; the builder lands in Phase 3.
+export const metadata: Metadata = { title: "Edit form" };
+
 export default function EditFormPage() {
-  return <ComingNextPhase title="Form builder" phase={3} />;
+  // The form id is URL data, so the builder streams in after the static shell.
+  return (
+    <Suspense fallback={<BuilderSkeleton />}>
+      <FormBuilder />
+    </Suspense>
+  );
 }

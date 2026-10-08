@@ -3,14 +3,15 @@
 import { Copy, ExternalLink } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { Button, Input, Modal } from "@/components/ui";
-import type { FormListItem } from "@/lib/types";
 import { publicFormPath, publicFormUrl } from "@/lib/share";
 import { useCopyLink } from "./useCopyLink";
 import { useLastDefined } from "./useLastDefined";
 
 const noopSubscribe = () => () => {};
 
-type Props = { form: FormListItem | null; onClose: () => void };
+export type ShareableForm = { slug: string; title: string };
+
+type Props = { form: ShareableForm | null; onClose: () => void };
 
 export function ShareFormModal({ form: current, onClose }: Props) {
   const form = useLastDefined(current);

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ApiError, apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost, getErrorMessage } from "@/lib/api";
 import type { Form, FormCreate, FormListItem, FormUpdate } from "@/lib/types";
 
 // ---- API ---------------------------------------------------------------
@@ -41,10 +41,6 @@ export function toListItem(form: Form): FormListItem {
   };
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : "Something went wrong. Please try again.";
-}
-
 /** Writes a fresh server copy of a form into both the list and detail caches. */
 function storeForm(qc: QueryClient, form: Form) {
   qc.setQueryData(formKeys.detail(form.id), form);
@@ -66,7 +62,8 @@ async function patchList(qc: QueryClient, update: (list: FormListItem[]) => Form
 // ---- Hooks -------------------------------------------------------------
 
 export function useForms() {
-  return useQuery({ queryKey: formKeys.list(), queryFn: formsApi.list });
+  // staleTime 0: the builder edits forms too, so refresh whenever the dashboard is shown.
+  return useQuery({ queryKey: formKeys.list(), queryFn: formsApi.list, staleTime: 0 });
 }
 
 export function useCreateForm() {
@@ -74,7 +71,7 @@ export function useCreateForm() {
   return useMutation({
     mutationFn: formsApi.create,
     onSuccess: (form) => storeForm(qc, form),
-    onError: (error) => toast.error(errorMessage(error)),
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -89,7 +86,7 @@ export function useRenameForm() {
     },
     onError: (error, _vars, rollback) => {
       rollback?.();
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     },
   });
 }
@@ -105,7 +102,7 @@ export function useDeleteForm() {
     },
     onError: (error, _form, rollback) => {
       rollback?.();
-      toast.error(errorMessage(error));
+      toast.error(getErrorMessage(error));
     },
   });
 }
@@ -118,7 +115,7 @@ export function useDuplicateForm() {
       storeForm(qc, clone);
       toast.success(`Created “${clone.title}”`);
     },
-    onError: (error) => toast.error(errorMessage(error)),
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
@@ -131,6 +128,6 @@ export function useSetPublished() {
       storeForm(qc, form);
       toast.success(form.status === "published" ? "Form published" : "Form unpublished");
     },
-    onError: (error) => toast.error(errorMessage(error)),
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
