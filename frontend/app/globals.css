@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — the single place to tune the Typeform look (see docs/DESIGN_SYSTEM.md).
+ * Components must use the Tailwind utilities generated from @theme below
+ * (bg-bg, text-text-muted, border-border, bg-primary, rounded-card, ...), never raw values.
+ */
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f5f5f5;
+  --bg-hover: #ebebeb;
+  --text: #262627;
+  --text-muted: #6b6b6c;
+  --border: #e5e5e5;
+  --border-strong: #c2c2c2;
+  --primary: #262627;
+  --primary-hover: #3d3d3e;
+  --primary-fg: #ffffff;
+  --accent: #0445af;
+  --accent-soft: #e6ecf7;
+  --danger: #d93025;
+  --danger-hover: #b3261e;
+  --danger-soft: #fdecea;
+  --success: #1f7a4d;
+  --success-soft: #e3f4ea;
+  --overlay: rgb(38 38 39 / 0.45);
+
+  /* Dashboard card thumbnails, picked deterministically per form */
+  --thumb-1: #e8e2f8;
+  --thumb-2: #dcefe6;
+  --thumb-3: #fde6d8;
+  --thumb-4: #dce8f8;
+  --thumb-5: #f8e1ea;
+  --thumb-6: #f3eed5;
+  --thumb-fg: #262627;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-hover: var(--bg-hover);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-overlay: var(--overlay);
+  --color-thumb-1: var(--thumb-1);
+  --color-thumb-2: var(--thumb-2);
+  --color-thumb-3: var(--thumb-3);
+  --color-thumb-4: var(--thumb-4);
+  --color-thumb-5: var(--thumb-5);
+  --color-thumb-6: var(--thumb-6);
+  --color-thumb-fg: var(--thumb-fg);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  --radius-input: 4px;
+  --radius-card: 8px;
+  --radius-pill: 999px;
+
+  --shadow-popover: 0 4px 16px rgb(0 0 0 / 0.12), 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.2);
+
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
