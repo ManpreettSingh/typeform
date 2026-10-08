@@ -29,8 +29,8 @@ type Props = {
 
 export function FormsToolbar({ query, onQueryChange, sort, onSortChange }: Props) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="sm:w-72">
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1 sm:w-72 sm:flex-none">
         <Input
           type="search"
           aria-label="Search forms"

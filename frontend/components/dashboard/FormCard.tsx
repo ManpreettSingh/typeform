@@ -70,33 +70,35 @@ export function FormCard({ form, actions }: { form: FormListItem; actions: FormC
         "hover:shadow-popover has-[a[data-card-link]:focus-visible]:ring-2 has-[a[data-card-link]:focus-visible]:ring-accent"
       }
     >
-      <div
-        aria-hidden
-        className={`flex aspect-[16/9] items-end rounded-t-card p-4 ${THUMBNAILS[form.id % THUMBNAILS.length]}`}
-      >
-        <span className="line-clamp-2 text-lg leading-snug font-medium text-thumb-fg">{form.title}</span>
+      <div className={`flex aspect-[16/9] items-end rounded-t-card p-4 ${THUMBNAILS[form.id % THUMBNAILS.length]}`}>
+        <h3 className="line-clamp-2 text-lg leading-snug font-medium break-words text-thumb-fg">
+          {/* Stretched link: the whole card opens the builder; controls below sit above it (z-10). */}
+          <Link data-card-link href={editHref} className="after:absolute after:inset-0 focus:outline-none">
+            {form.title}
+          </Link>
+        </h3>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="min-w-0 truncate text-sm font-semibold text-text">
-            {/* Stretched link: the whole card opens the builder; controls below sit above it (z-10). */}
-            <Link data-card-link href={editHref} className="after:absolute after:inset-0 focus:outline-none">
-              {form.title}
-            </Link>
-          </h3>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 text-xs text-text-muted">
+            <Badge variant={published ? "success" : "neutral"}>{published ? "Published" : "Draft"}</Badge>
+            <span className="truncate">
+              {form.response_count === 0 ? "No responses" : pluralize(form.response_count, "response")}
+            </span>
+          </div>
           <Menu
-            className="relative z-10 -mt-1 -mr-2"
+            className="relative z-10 -mr-2"
             items={items}
             trigger={(props) => (
-              <IconButton {...props} size="sm" label={`Actions for ${form.title}`} icon={<MoreHorizontal className="size-4" />} />
+              <IconButton
+                {...props}
+                size="sm"
+                label={`Actions for ${form.title}`}
+                icon={<MoreHorizontal className="size-4" />}
+              />
             )}
           />
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-text-muted">
-          <Badge variant={published ? "success" : "neutral"}>{published ? "Published" : "Draft"}</Badge>
-          <span>{form.response_count === 0 ? "No responses" : pluralize(form.response_count, "response")}</span>
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-xs text-text-muted">
