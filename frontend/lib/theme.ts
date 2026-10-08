@@ -3,9 +3,9 @@ import type { Theme } from "@/lib/types";
 
 // Mirrors the backend default theme (schemas/form.py) so the UI can offer "Reset to default".
 export const DEFAULT_THEME: Theme = {
-  background: "#FFFFFF",
-  text_color: "#262627",
-  button_color: "#0445AF",
+  background: "#FAFAFA",
+  text_color: "#2A222B",
+  button_color: "#2A222B",
   font: "Inter",
 };
 

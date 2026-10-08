@@ -1,6 +1,6 @@
 # Design System
 
-> Values below are close approximations of Typeform's look. Before Phase 2, open real Typeform (dashboard, builder, a public form) side by side and adjust tokens in ONE place: `frontend/app/globals.css` / `tailwind.config.ts`. Don't hardcode colors in components.
+> **Superseded (2026-10-09):** the current values are measured from real Typeform screens and live in the brand kit, `docs/design/brand-kit/` (`tokens.css` is the source of truth, mirrored in `frontend/app/globals.css`; open `index.html` for the visual book). The tables below are the original Phase 0 approximations, kept for history. Don't hardcode colors in components.
 
 ## Tokens (initial)
 | Token | Value |

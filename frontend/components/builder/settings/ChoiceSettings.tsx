@@ -2,10 +2,11 @@
 
 import { Plus, X } from "lucide-react";
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { Button, IconButton, Toggle } from "@/components/ui";
+import { Button, IconButton } from "@/components/ui";
 import { newOptionId, optionLetter } from "@/lib/questionTypes";
 import type { ChoiceOption, QuestionOf } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { SwitchRow } from "../panel/PanelCard";
 
 // Mirrors backend limits (schemas/properties.py).
 const MIN_OPTIONS = 1;
@@ -14,7 +15,27 @@ const LABEL_MAX = 500;
 
 type ChoiceQuestion = QuestionOf<"multiple_choice"> | QuestionOf<"dropdown">;
 
+/**
+ * Multiple choice: options are edited on the canvas, so the panel only has "Multiple selection".
+ * Dropdown: the (possibly long) option list is edited here.
+ */
 export function ChoiceSettings({ question }: { question: ChoiceQuestion }) {
+  if (question.type === "multiple_choice") return <MultipleChoiceSettings question={question} />;
+  return <DropdownChoices question={question} />;
+}
+
+function MultipleChoiceSettings({ question }: { question: QuestionOf<"multiple_choice"> }) {
+  const updateQuestion = useBuilderStore((s) => s.updateQuestion);
+  return (
+    <SwitchRow
+      label="Multiple selection"
+      checked={question.properties.allow_multiple}
+      onChange={(allow_multiple) => updateQuestion(question.id, { properties: { ...question.properties, allow_multiple } }, 0)}
+    />
+  );
+}
+
+function DropdownChoices({ question }: { question: ChoiceQuestion }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
   const { options } = question.properties;
   const max = MAX_OPTIONS[question.type];
@@ -57,12 +78,12 @@ export function ChoiceSettings({ question }: { question: ChoiceQuestion }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 py-2">
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium text-text">Choices</legend>
+        <legend className="mb-2 text-sm text-text-muted">Choices</legend>
         {options.map((option, i) => (
           <div key={option.id} className="flex items-center gap-2">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-input border border-accent/40 bg-accent-soft text-xs font-semibold text-accent">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-input border border-border-strong bg-field text-xs font-semibold text-text-soft">
               {optionLetter(i)}
             </span>
             <input
@@ -76,7 +97,7 @@ export function ChoiceSettings({ question }: { question: ChoiceQuestion }) {
               maxLength={LABEL_MAX}
               onChange={(e) => setOptions(options.map((o) => (o.id === option.id ? { ...o, label: e.target.value } : o)))}
               onKeyDown={(e) => onKeyDown(e, i)}
-              className="h-9 min-w-0 flex-1 rounded-input border border-border-strong bg-bg px-3 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent-soft focus:outline-none"
+              className="h-8 min-w-0 flex-1 rounded-field border border-border-strong bg-field px-2.5 text-sm text-text placeholder:text-text-muted focus:border-text-muted focus:outline-none"
             />
             <IconButton
               size="sm"
@@ -100,15 +121,6 @@ export function ChoiceSettings({ question }: { question: ChoiceQuestion }) {
         <p className="text-xs text-text-muted">Press Enter to add another choice.</p>
       </fieldset>
 
-      {question.type === "multiple_choice" && (
-        <Toggle
-          label="Allow multiple selection"
-          checked={question.properties.allow_multiple}
-          onChange={(allow_multiple) =>
-            updateQuestion(question.id, { properties: { ...question.properties, allow_multiple } }, 0)
-          }
-        />
-      )}
     </div>
   );
 }

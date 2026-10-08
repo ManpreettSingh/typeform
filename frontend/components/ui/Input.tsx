@@ -39,12 +39,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={clsx(
-            "h-10 w-full rounded-input border bg-bg text-sm text-text placeholder:text-text-muted",
+            "h-9 w-full rounded-field border bg-field text-sm text-text placeholder:text-text-muted",
             "transition-colors duration-150 focus:outline-none focus:ring-2",
             leftIcon ? "pr-3 pl-9" : "px-3",
             error
               ? "border-danger focus:ring-danger-soft"
-              : "border-border-strong focus:border-accent focus:ring-accent-soft",
+              : "border-border-strong focus:border-text-muted focus:ring-accent-soft",
             "disabled:cursor-not-allowed disabled:bg-bg-subtle",
             className,
           )}

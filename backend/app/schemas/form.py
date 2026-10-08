@@ -10,9 +10,10 @@ FORM_DESCRIPTION_MAX = 2000
 
 
 class Theme(StrictModel):
-    background: HexColor = "#FFFFFF"
-    text_color: HexColor = "#262627"
-    button_color: HexColor = "#0445AF"
+    # Typeform's current default: monochrome (light canvas, ink text and buttons).
+    background: HexColor = "#FAFAFA"
+    text_color: HexColor = "#2A222B"
+    button_color: HexColor = "#2A222B"
     font: str = Field(default="Inter", min_length=1, max_length=64)
 
 
@@ -51,6 +52,10 @@ class _FormBase(BaseModel):
 
 class FormListItem(_FormBase):
     question_count: int
+    # Drawn as the form's icon / card thumbnail in the workspace, in the form's own colors.
+    theme: Theme
+    # Every response, partial included (response_count is completed only): completion = response_count / this.
+    response_total: int
 
 
 class FormOut(_FormBase):

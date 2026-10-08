@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react";
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
 export type MenuItem = {
   label: string;
   onSelect: () => void;
@@ -104,13 +106,13 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
             id={menuId}
             role="menu"
             className={clsx(
-              "absolute z-40 mt-1 min-w-48 rounded-card border border-border bg-bg py-1 shadow-popover",
-              align === "end" ? "right-0" : "left-0",
+              "absolute z-40 mt-1 min-w-48 rounded-field border border-border-strong bg-bg p-1 shadow-popover",
+              align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left",
             )}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.12 }}
+            // Grows from its trigger corner: 180ms in, ~75% of that out (motion review, round 4).
+            initial={{ opacity: 0, transform: "scale(0.95)" }}
+            animate={{ opacity: 1, transform: "scale(1)", transition: { duration: 0.18, ease: EASE_OUT } }}
+            exit={{ opacity: 0, transform: "scale(0.95)", transition: { duration: 0.135, ease: EASE_OUT } }}
           >
             {items.map((item, i) => (
               <div key={item.label}>
@@ -129,7 +131,7 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
                   }}
                   className={clsx(
                     "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
-                    "hover:bg-bg-subtle focus:bg-bg-subtle focus:outline-none",
+                    "rounded-input hover:bg-bg-hover focus:bg-bg-hover focus:outline-none",
                     "disabled:cursor-not-allowed disabled:opacity-50",
                     item.danger ? "text-danger" : "text-text",
                   )}

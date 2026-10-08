@@ -20,3 +20,6 @@ __pycache__/
 # SQLite database (recreated + seeded locally)
 backend/app.db
 backend/*.db-journal
+
+# moodforge preview cache (approved mockups are copied to docs/design/)
+.superpowers/

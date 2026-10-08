@@ -1,22 +1,37 @@
 "use client";
 
 import { clsx } from "clsx";
-import { AlertTriangle, ArrowLeft, FileQuestion } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  FileQuestion,
+  Flag,
+  Monitor,
+  PanelRight,
+  Palette,
+  Play,
+  Plus,
+  Smartphone,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Button, ConfirmDialog, EmptyState, Skeleton, Tabs } from "@/components/ui";
+import { Button, ConfirmDialog, EmptyState, IconButton, Skeleton, Tabs } from "@/components/ui";
 import { pluralize } from "@/lib/format";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { AddContentModal } from "./AddContentModal";
 import { BuilderTopBar, type BuilderView } from "./BuilderTopBar";
-import { FormSettingsView } from "./form-settings/FormSettingsView";
+import { BuilderCanvas, type CanvasDevice } from "./canvas/BuilderCanvas";
+import { ComingSoonSection } from "./form-settings/ComingSoonSection";
+import { ThankYouSettings } from "./form-settings/ThankYouSettings";
+import { ThemeSettings } from "./form-settings/ThemeSettings";
+import { LogicOverview } from "./logic/LogicOverview";
 import { PreviewOverlay } from "./PreviewOverlay";
 import { QuestionList } from "./QuestionList";
-import { QuestionPreview } from "./QuestionPreview";
-import { QuestionSettings } from "./QuestionSettings";
+import { QuestionSettings, WelcomeSettings } from "./QuestionSettings";
 
-type MobilePane = "list" | "edit";
+type MobilePane = "pages" | "canvas" | "settings";
 
 export function FormBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -78,18 +93,25 @@ function BuilderLayout() {
   const deleteQuestion = useBuilderStore((s) => s.deleteQuestion);
   const select = useBuilderStore((s) => s.select);
   const responseCount = useBuilderStore((s) => s.form?.response_count ?? 0);
-  const [confirming, setConfirming] = useState<Question | null>(null);
-  const [view, setView] = useState<BuilderView>("create");
-  const [previewing, setPreviewing] = useState(false);
   const title = useBuilderStore((s) => s.form?.title);
-  // Below md the panes don't fit side by side: one at a time, switched from a bar under the top bar.
-  const [pane, setPane] = useState<MobilePane>("list");
+  const screen = useBuilderStore((s) => s.screen);
   const selectedId = useBuilderStore((s) => s.selectedId);
-  const [lastSelectedId, setLastSelectedId] = useState(selectedId);
-  if (selectedId !== lastSelectedId) {
-    // Picking (or adding) a question on a phone opens its settings.
-    setLastSelectedId(selectedId);
-    if (selectedId !== null) setPane("edit");
+  const hasQuestions = useBuilderStore((s) => s.questions.length > 0);
+  const [confirming, setConfirming] = useState<Question | null>(null);
+  const [view, setView] = useState<BuilderView>("content");
+  const [previewing, setPreviewing] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [design, setDesign] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [device, setDevice] = useState<CanvasDevice>("desktop");
+  // Below lg the three columns don't fit: one at a time, switched from a bar under the top bar.
+  const [pane, setPane] = useState<MobilePane>("pages");
+  const [lastPick, setLastPick] = useState(`${screen}:${selectedId}`);
+  if (`${screen}:${selectedId}` !== lastPick) {
+    // Picking (or adding) something on a small screen shows it on the canvas.
+    setLastPick(`${screen}:${selectedId}`);
+    setPane("canvas");
+    setDesign(false);
   }
 
   // Next's <Activity> keeps this mounted while hidden; don't return to an open preview or dialog.
@@ -97,6 +119,7 @@ function BuilderLayout() {
     () => () => {
       setPreviewing(false);
       setConfirming(null);
+      setAdding(false);
     },
     [],
   );
@@ -105,58 +128,131 @@ function BuilderLayout() {
   const requestDelete = (question: Question) =>
     responseCount > 0 ? setConfirming(question) : void deleteQuestion(question.id);
 
+  let panel: React.ReactNode;
+  if (design) panel = <ThemeSettings />;
+  else if (screen === "welcome") panel = <WelcomeSettings />;
+  else if (screen === "ending") panel = <ThankYouSettings />;
+  else panel = <QuestionSettings onDelete={requestDelete} />;
+
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col bg-bg">
       <title>{`${title?.trim() || "Untitled form"} · Edit · Forms`}</title>
-      <BuilderTopBar view={view} onViewChange={setView} onPreview={() => setPreviewing(true)} />
-      <Tabs<MobilePane | "settings">
-        aria-label="Builder panes"
-        className="shrink-0 border-b border-border px-2 py-1.5 md:hidden"
-        items={[
-          { value: "list", label: "Questions" },
-          { value: "edit", label: "Edit question" },
-          { value: "settings", label: "Settings" },
-        ]}
-        value={view === "settings" ? "settings" : pane}
-        onChange={(value) => {
-          if (value === "settings") return setView("settings");
-          setView("create");
-          setPane(value);
-        }}
-      />
-      {view === "settings" ? (
-        <FormSettingsView
-          onEditQuestion={(id) => {
-            select(id);
-            setView("create");
-          }}
+      <BuilderTopBar view={view} onViewChange={setView} />
+      {view === "content" && (
+        <Tabs<MobilePane>
+          aria-label="Builder panes"
+          className="shrink-0 border-b border-border px-2 py-1.5 lg:hidden"
+          items={[
+            { value: "pages", label: "Pages" },
+            { value: "canvas", label: "Canvas" },
+            { value: "settings", label: "Settings" },
+          ]}
+          value={pane}
+          onChange={setPane}
         />
-      ) : (
-        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-          <aside
-            aria-label="Questions"
+      )}
+
+      {view === "content" ? (
+        <div className="flex min-h-0 flex-1 gap-4 px-3 pt-1 pb-3">
+          <div
             className={clsx(
-              "min-h-0 flex-1 overflow-y-auto md:w-64 md:flex-none md:border-r md:border-border lg:w-72",
-              pane !== "list" && "hidden md:block",
+              "min-h-0 w-full flex-col gap-4 lg:flex lg:w-64 lg:shrink-0",
+              pane === "pages" ? "flex" : "hidden",
             )}
           >
-            <QuestionList onDelete={requestDelete} />
-          </aside>
-          <section aria-label="Preview" className="hidden min-w-0 flex-1 bg-bg-subtle lg:flex">
-            <QuestionPreview />
+            <aside aria-label="Pages" className="min-h-0 flex-1 overflow-y-auto rounded-card bg-bg-subtle">
+              <QuestionList onDelete={requestDelete} onAddContent={() => setAdding(true)} />
+            </aside>
+            <EndingsCard />
+          </div>
+
+          <section
+            aria-label="Canvas"
+            className={clsx("min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex", pane === "canvas" ? "flex" : "hidden")}
+          >
+            <div className="flex h-12 shrink-0 items-center gap-1.5 rounded-card bg-bg-subtle px-2">
+              <Button size="sm" leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setAdding(true)}>
+                Add content
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-pressed={design}
+                className={design ? "bg-bg-hover text-text" : undefined}
+                leftIcon={<Palette className="size-4" aria-hidden />}
+                onClick={() => {
+                  setDesign((d) => !d);
+                  setPanelOpen(true);
+                  setPane("settings");
+                }}
+              >
+                Design
+              </Button>
+              <span aria-hidden className="mx-1 h-5 w-px bg-border-strong" />
+              <IconButton
+                label={device === "mobile" ? "Desktop view" : "Mobile view"}
+                aria-pressed={device === "mobile"}
+                icon={device === "mobile" ? <Monitor className="size-4" /> : <Smartphone className="size-4" />}
+                onClick={() => setDevice((d) => (d === "mobile" ? "desktop" : "mobile"))}
+              />
+              <IconButton
+                label="Preview"
+                title={hasQuestions ? "Try the form as a respondent" : "Add a question to preview"}
+                icon={<Play className="size-4" />}
+                disabled={!hasQuestions}
+                onClick={() => setPreviewing(true)}
+              />
+              <span className="flex-1" />
+              <IconButton
+                label={panelOpen ? "Hide settings panel" : "Show settings panel"}
+                aria-pressed={panelOpen}
+                icon={<PanelRight className="size-4" />}
+                onClick={() => setPanelOpen((open) => !open)}
+                className="max-lg:hidden"
+              />
+            </div>
+            <BuilderCanvas device={device} />
           </section>
-          <aside
-            aria-label="Question settings"
-            className={clsx(
-              "min-h-0 flex-1 overflow-y-auto md:w-80 md:flex-none md:border-l md:border-border",
-              pane !== "edit" && "hidden md:block",
-            )}
-          >
-            <QuestionSettings onDelete={requestDelete} />
-          </aside>
+
+          {(panelOpen || pane === "settings") && (
+            <aside
+              aria-label={design ? "Design" : "Question settings"}
+              className={clsx(
+                "min-h-0 w-full flex-col gap-3 overflow-y-auto lg:flex lg:w-64 lg:shrink-0",
+                pane === "settings" ? "flex" : "hidden",
+                !panelOpen && "lg:hidden",
+              )}
+            >
+              {panel}
+            </aside>
+          )}
+        </div>
+      ) : (
+        <div className="mx-3 mb-3 min-h-0 flex-1 overflow-y-auto rounded-card bg-bg-subtle">
+          {view === "workflow" ? (
+            <LogicOverview
+              onEditQuestion={(id) => {
+                select(id);
+                setView("content");
+              }}
+            />
+          ) : (
+            <div className="flex flex-col">
+              <ComingSoonSection
+                title="Integrations"
+                description="Send responses to Google Sheets, Slack, webhooks and more."
+              />
+              <ComingSoonSection
+                title="Collaborate"
+                description="Invite teammates to build and review forms with you."
+              />
+            </div>
+          )}
         </div>
       )}
+
       {previewing && <PreviewOverlay onClose={() => setPreviewing(false)} />}
+      <AddContentModal open={adding} onClose={() => setAdding(false)} />
 
       <ConfirmDialog
         open={confirming !== null}
@@ -171,6 +267,41 @@ function BuilderLayout() {
         destructive
       />
     </div>
+  );
+}
+
+/** Typeform's "Endings" card under the pages: here, the one thank-you screen. */
+function EndingsCard() {
+  const screen = useBuilderStore((s) => s.screen);
+  const showScreen = useBuilderStore((s) => s.showScreen);
+  const ending = useBuilderStore((s) => s.form?.thank_you.title);
+  return (
+    <section aria-label="Endings" className="shrink-0 rounded-card bg-bg-subtle p-3">
+      <div className="flex items-center justify-between px-2 pb-2">
+        <h2 className="text-sm font-semibold text-text">Endings</h2>
+        <IconButton
+          size="sm"
+          label="Add ending (coming soon)"
+          icon={<Plus className="size-4" />}
+          disabled
+          className="border border-border-strong bg-field"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => showScreen("ending")}
+        aria-current={screen === "ending" ? "true" : undefined}
+        className={clsx(
+          "flex w-full items-center gap-2.5 rounded-field p-2 text-left text-sm text-text-soft focus-visible:outline-2 focus-visible:outline-accent",
+          screen === "ending" ? "bg-bg-hover" : "hover:bg-bg-hover/60",
+        )}
+      >
+        <span className="flex h-6 items-center rounded-input bg-qt-screen px-1.5 text-qt-fg">
+          <Flag className="size-3.5" aria-hidden />
+        </span>
+        <span className="truncate">{ending || "Thank-you screen"}</span>
+      </button>
+    </section>
   );
 }
 

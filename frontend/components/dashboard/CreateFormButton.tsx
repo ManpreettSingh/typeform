@@ -10,7 +10,7 @@ import { useCreateForm } from "@/lib/queries/forms";
 const TITLE_MAX = 200;
 
 /** "Create form" button + title modal; on success opens the builder. */
-export function CreateFormButton({ size = "md" }: { size?: ButtonProps["size"] }) {
+export function CreateFormButton({ size = "md", className }: { size?: ButtonProps["size"]; className?: string }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const formId = useId();
@@ -44,7 +44,7 @@ export function CreateFormButton({ size = "md" }: { size?: ButtonProps["size"] }
 
   return (
     <>
-      <Button size={size} leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setOpen(true)}>
+      <Button size={size} className={className} leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setOpen(true)}>
         Create form
       </Button>
       <Modal

@@ -1,8 +1,10 @@
 "use client";
 
+import { useId } from "react";
 import { Select } from "@/components/ui";
 import { RATING_MAX_RANGE, type QuestionOf, type RatingShape } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { SettingRow } from "../panel/PanelCard";
 
 const STEPS = Array.from({ length: RATING_MAX_RANGE.max - RATING_MAX_RANGE.min + 1 }, (_, i) => {
   const value = RATING_MAX_RANGE.min + i;
@@ -18,21 +20,31 @@ const SHAPES: { value: RatingShape; label: string }[] = [
 export function RatingSettings({ question }: { question: QuestionOf<"rating"> }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
   const props = question.properties;
+  const stepsId = useId();
+  const shapeId = useId();
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <Select
-        label="Steps"
-        options={STEPS}
-        value={props.max}
-        onChange={(max) => updateQuestion(question.id, { properties: { ...props, max } }, 0)}
-      />
-      <Select
-        label="Shape"
-        options={SHAPES}
-        value={props.shape}
-        onChange={(shape) => updateQuestion(question.id, { properties: { ...props, shape } }, 0)}
-      />
-    </div>
+    <>
+      <SettingRow label="Steps" htmlFor={stepsId}>
+        <div className="w-28">
+          <Select
+            id={stepsId}
+            options={STEPS}
+            value={props.max}
+            onChange={(max) => updateQuestion(question.id, { properties: { ...props, max } }, 0)}
+          />
+        </div>
+      </SettingRow>
+      <SettingRow label="Shape" htmlFor={shapeId}>
+        <div className="w-28">
+          <Select
+            id={shapeId}
+            options={SHAPES}
+            value={props.shape}
+            onChange={(shape) => updateQuestion(question.id, { properties: { ...props, shape } }, 0)}
+          />
+        </div>
+      </SettingRow>
+    </>
   );
 }

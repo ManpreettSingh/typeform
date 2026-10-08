@@ -22,7 +22,7 @@ def test_create_form_defaults(client):
     assert form["questions"] == []
     assert form["response_count"] == 0
     assert len(form["slug"]) == 8 and form["slug"].isalnum()
-    assert form["theme"]["button_color"] == "#0445AF"
+    assert form["theme"]["button_color"] == "#2A222B"
     assert form["thank_you"]["title"]
     assert form["published_at"] is None
     assert form["created_at"].endswith("Z") or "+00:00" in form["created_at"]
@@ -52,6 +52,8 @@ def test_list_forms_with_counts(client, db, make_form, add_question):
     assert [i["title"] for i in items] == ["Older", "Newer"]
     by_id = {i["id"]: i for i in items}
     assert by_id[older["id"]]["response_count"] == 1  # partial responses are not counted
+    assert by_id[older["id"]]["response_total"] == 2  # ...but are in the total
+    assert by_id[older["id"]]["theme"]["button_color"] == "#2A222B"
     assert by_id[older["id"]]["question_count"] == 1
     assert by_id[newer["id"]]["response_count"] == 0
     assert set(items[0]) >= {"id", "title", "status", "slug", "response_count", "updated_at"}

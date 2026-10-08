@@ -25,3 +25,13 @@ export function formatDateTime(iso: string): string {
 export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+/** "Oct 08, 2026" — the workspace list's date format (Typeform's). */
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+}
+
+/** Completed share of all responses as a whole percent, or null when there are none. */
+export function completionPercent(completed: number, total: number): number | null {
+  return total > 0 ? Math.round((completed / total) * 100) : null;
+}

@@ -4,9 +4,10 @@ import type { ReactNode } from "react";
 export type BadgeVariant = "neutral" | "success" | "accent" | "danger";
 
 const variants: Record<BadgeVariant, string> = {
-  neutral: "bg-bg-subtle text-text-muted",
-  success: "bg-success-soft text-success",
-  accent: "bg-accent-soft text-accent",
+  neutral: "bg-bg-hover text-text-muted",
+  success: "border border-success-line bg-success-soft text-success",
+  // Typeform's "Beta" / "Soon" badge.
+  accent: "border border-badge-line bg-badge-bg text-badge-text",
   danger: "bg-danger-soft text-danger",
 };
 

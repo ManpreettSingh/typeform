@@ -39,8 +39,8 @@ function SelectInner<T extends string | number>(
             onChange((typeof value === "number" ? Number(raw) : raw) as T);
           }}
           className={clsx(
-            "h-10 w-full appearance-none rounded-input border border-border-strong bg-bg pr-9 pl-3 text-sm text-text",
-            "transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent-soft focus:outline-none",
+            "h-9 w-full appearance-none rounded-field border border-border-strong bg-field pr-9 pl-3 text-sm text-text",
+            "transition-colors duration-150 focus:border-text-muted focus:ring-2 focus:ring-accent-soft focus:outline-none",
             "disabled:cursor-not-allowed disabled:bg-bg-subtle",
             className,
           )}

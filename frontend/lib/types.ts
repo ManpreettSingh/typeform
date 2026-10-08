@@ -158,7 +158,13 @@ type FormBase = {
   published_at: ISODateTime | null;
 };
 
-export type FormListItem = FormBase & { question_count: number };
+export type FormListItem = FormBase & {
+  question_count: number;
+  /** The form's own colors: its workspace icon and card are drawn with them (not with the app theme). */
+  theme: Theme;
+  /** Every response, partial included; completion rate = response_count / response_total. */
+  response_total: number;
+};
 
 export type Form = FormBase & {
   description: string | null;

@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Check, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 type Props = {
@@ -16,10 +16,13 @@ type Props = {
   onSubmit: () => void;
   /** Extra hint under the input, e.g. the long-text line-break tip. */
   hint?: ReactNode;
+  /** Builder canvas: editable fields shown in place of the title and description. */
+  titleSlot?: ReactNode;
+  descriptionSlot?: ReactNode;
   children: ReactNode;
 };
 
-/** Typeform-style question layout: "1 →", big title, help text, answer, OK + "press Enter". */
+/** Typeform-style question layout: square number badge, big title, help text, answer, OK + "press Enter". */
 export function QuestionShell({
   number,
   title,
@@ -32,28 +35,37 @@ export function QuestionShell({
   submitting,
   onSubmit,
   hint,
+  titleSlot,
+  descriptionSlot,
   children,
 }: Props) {
   return (
     <div className="w-full max-w-2xl">
       <div className="flex items-start gap-2 sm:gap-3">
-        <span className="mt-1.5 flex shrink-0 items-center gap-1 text-sm text-resp-accent sm:mt-2 sm:text-base">
+        {/* Typeform's current badge: a small square in the question color with the number knocked out. */}
+        <span
+          aria-hidden
+          className="mt-1 flex size-[18px] shrink-0 items-center justify-center rounded-[4px] bg-resp-text text-[11px] font-semibold text-resp-bg sm:mt-2"
+        >
           {number}
-          <ArrowRight className="size-3.5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 id={titleId} className="text-xl leading-snug break-words sm:text-[26px] sm:leading-[34px]">
-            {title.trim() || <span className="opacity-50">Your question here.</span>}
-            {required && (
-              <span aria-label="required">
-                {" "}
-                *
-              </span>
-            )}
-          </h2>
-          {description && (
-            <p className="mt-2 text-base break-words whitespace-pre-line opacity-70 sm:text-lg">{description}</p>
+          {titleSlot ?? (
+            <h2 id={titleId} className="text-xl leading-snug break-words sm:text-[26px] sm:leading-[34px]">
+              <span className="sr-only">Question {number}: </span>
+              {title.trim() || <span className="opacity-50">Your question here.</span>}
+              {required && (
+                <span aria-label="required">
+                  {" "}
+                  *
+                </span>
+              )}
+            </h2>
           )}
+          {descriptionSlot ??
+            (description && (
+              <p className="mt-2 text-base break-words whitespace-pre-line opacity-70 sm:text-lg">{description}</p>
+            ))}
 
           <div className="mt-6 sm:mt-8">{children}</div>
           {hint && <p className="mt-2 text-xs opacity-60">{hint}</p>}

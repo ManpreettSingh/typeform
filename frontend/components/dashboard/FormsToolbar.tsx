@@ -1,15 +1,17 @@
 "use client";
 
-import { ArrowUpDown, Check, Search } from "lucide-react";
-import { Button, Input, Menu } from "@/components/ui";
+import { clsx } from "clsx";
+import { Calendar, Check, ChevronDown, LayoutGrid, List } from "lucide-react";
+import { Button, Menu } from "@/components/ui";
 import type { FormListItem } from "@/lib/types";
+import type { WorkspaceView } from "./useWorkspaceView";
 
-export type SortKey = "updated" | "created" | "title";
+export type SortKey = "created" | "updated" | "title";
 
 const SORT_LABELS: Record<SortKey, string> = {
-  updated: "Last updated",
   created: "Date created",
-  title: "Title (A–Z)",
+  updated: "Last updated",
+  title: "Alphabetical",
 };
 
 export function sortForms(forms: FormListItem[], key: SortKey): FormListItem[] {
@@ -21,38 +23,52 @@ export function sortForms(forms: FormListItem[], key: SortKey): FormListItem[] {
 }
 
 type Props = {
-  query: string;
-  onQueryChange: (query: string) => void;
   sort: SortKey;
   onSortChange: (sort: SortKey) => void;
+  view: WorkspaceView;
+  onViewChange: (view: WorkspaceView) => void;
 };
 
-export function FormsToolbar({ query, onQueryChange, sort, onSortChange }: Props) {
+/** Typeform's workspace controls: a sort dropdown and the List / Grid switch. */
+export function FormsToolbar({ sort, onSortChange, view, onViewChange }: Props) {
   return (
     <div className="flex items-center gap-3">
-      <div className="min-w-0 flex-1 sm:w-72 sm:flex-none">
-        <Input
-          type="search"
-          aria-label="Search forms"
-          placeholder="Search forms"
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          leftIcon={<Search className="size-4" />}
-        />
-      </div>
       <Menu
         align="end"
         items={(Object.keys(SORT_LABELS) as SortKey[]).map((key) => ({
           label: SORT_LABELS[key],
-          icon: <Check className={key === sort ? "size-4 text-text" : "size-4 opacity-0"} aria-hidden />,
+          hint: key === sort ? <Check className="size-4 text-text" aria-label="(current)" /> : null,
           onSelect: () => onSortChange(key),
         }))}
         trigger={(props) => (
-          <Button {...props} variant="secondary" leftIcon={<ArrowUpDown className="size-4" aria-hidden />}>
+          <Button {...props} size="sm" variant="secondary" leftIcon={<Calendar className="size-4" aria-hidden />}>
             {SORT_LABELS[sort]}
+            <ChevronDown className="size-4 text-text-muted" aria-hidden />
           </Button>
         )}
       />
+      <div role="group" aria-label="View" className="inline-flex overflow-hidden rounded-field border border-border-strong bg-field">
+        {(
+          [
+            ["list", "List", List],
+            ["grid", "Grid", LayoutGrid],
+          ] as const
+        ).map(([value, label, Icon]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={view === value}
+            onClick={() => onViewChange(value)}
+            className={clsx(
+              "inline-flex h-8 items-center gap-1.5 px-2.5 text-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
+              view === value ? "bg-bg-hover text-text-soft" : "text-text-muted hover:text-text",
+            )}
+          >
+            <Icon className="size-4" aria-hidden />
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

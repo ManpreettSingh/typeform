@@ -6,16 +6,22 @@ import { ApiError, getErrorMessage } from "@/lib/api";
 import { formsApi } from "@/lib/queries/forms";
 import { questionsApi } from "@/lib/queries/questions";
 import { arrayMove } from "@dnd-kit/sortable";
-import type { Form, FormUpdate, Question, QuestionType, QuestionUpdate } from "@/lib/types";
+import type { Form, FormUpdate, Question, QuestionCreate, QuestionType, QuestionUpdate } from "@/lib/types";
 import { Autosaver, type SaveStatus } from "./autosave";
 
 export type BuilderForm = Pick<
   Form,
-  "id" | "slug" | "title" | "status" | "response_count" | "theme" | "thank_you"
+  "id" | "slug" | "title" | "description" | "status" | "response_count" | "theme" | "thank_you"
 >;
 
 /** Form-level fields edited in the builder and saved through PATCH /forms/{id}. */
-type FormSettings = Pick<Form, "title" | "theme" | "thank_you">;
+type FormSettings = Pick<Form, "title" | "description" | "theme" | "thank_you">;
+
+/** What the canvas shows: the welcome screen, the selected question, or the ending (thank-you screen). */
+export type BuilderScreen = "welcome" | "question" | "ending";
+
+/** Fields a new question can start with (type and position are handled by the store). */
+type QuestionInit = Omit<QuestionCreate, "type" | "position">;
 
 type LoadState = { status: "idle" | "loading" | "ready" | "error"; error: ApiError | null };
 
@@ -24,6 +30,7 @@ type BuilderState = {
   form: BuilderForm | null;
   questions: Question[];
   selectedId: number | null;
+  screen: BuilderScreen;
   saveStatus: SaveStatus;
   /** Last server-confirmed values, used to roll back failed saves. */
   savedSettings: FormSettings;
@@ -32,12 +39,17 @@ type BuilderState = {
 
 type BuilderActions = {
   loadForm: (formId: number) => Promise<void>;
+  /** Selects a question and shows it on the canvas. */
   select: (id: number) => void;
-  /** Local update + debounced PATCH of title / theme / thank_you. */
+  showScreen: (screen: BuilderScreen) => void;
+  /** Local update + debounced PATCH of title / description / theme / thank_you. */
   updateForm: (patch: Partial<FormSettings>, debounceMs?: number) => void;
   setTitle: (title: string) => void;
   commitTitle: () => void;
-  addQuestion: (type: QuestionType) => Promise<void>;
+  /** Inserts after the selected question (or appends) and selects it. */
+  addQuestion: (type: QuestionType, init?: QuestionInit) => Promise<void>;
+  /** Copies a question (not its logic) right below it. */
+  duplicateQuestion: (id: number) => Promise<void>;
   updateQuestion: (id: number, patch: QuestionUpdate, debounceMs?: number) => void;
   deleteQuestion: (id: number) => Promise<void>;
   /** Moves `activeId` to `overId`'s slot (drag and drop) and saves the new order. */
@@ -63,17 +75,18 @@ function withoutJumpsTo(question: Question, id: number): Question {
 const withLogicOf = (question: Question, saved: Question | undefined): Question =>
   saved ? { ...question, logic: saved.logic } : question;
 
-const toMeta = ({ id, slug, title, status, response_count, theme, thank_you }: Form): BuilderForm => ({
+const toMeta = ({ id, slug, title, description, status, response_count, theme, thank_you }: Form): BuilderForm => ({
   id,
   slug,
   title,
+  description,
   status,
   response_count,
   theme,
   thank_you,
 });
 
-const settingsOf = ({ title, theme, thank_you }: Form): FormSettings => ({ title, theme, thank_you });
+const settingsOf = ({ title, description, theme, thank_you }: Form): FormSettings => ({ title, description, theme, thank_you });
 
 const reportFailure = (what: string, error: unknown) => toast.error(`${what} ${getErrorMessage(error)}`);
 
@@ -96,15 +109,18 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
     form: null,
     questions: [],
     selectedId: null,
+    screen: "question",
     saveStatus: "saved",
-    savedSettings: { title: "", theme: {} as Form["theme"], thank_you: {} as Form["thank_you"] },
+    savedSettings: { title: "", description: null, theme: {} as Form["theme"], thank_you: {} as Form["thank_you"] },
     savedQuestions: {},
 
     async loadForm(formId) {
       const token = ++loadToken;
       const sameForm = get().form?.id === formId;
       // Re-showing the same form refreshes in the background; switching forms shows the skeleton.
-      if (!sameForm) set({ load: { status: "loading", error: null }, form: null, questions: [], selectedId: null });
+      if (!sameForm) {
+        set({ load: { status: "loading", error: null }, form: null, questions: [], selectedId: null, screen: "question" });
+      }
 
       await saver.flushAll();
       try {
@@ -128,7 +144,11 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
     },
 
     select(id) {
-      set({ selectedId: id });
+      set({ selectedId: id, screen: "question" });
+    },
+
+    showScreen(screen) {
+      set({ screen });
     },
 
     updateForm(patch, debounceMs = TEXT_DEBOUNCE_MS) {
@@ -174,16 +194,17 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
       void saver.flush(FORM_KEY);
     },
 
-    async addQuestion(type) {
-      const { form, questions, selectedId } = get();
+    async addQuestion(type, init = {}) {
+      const { form, questions, selectedId, screen } = get();
       if (!form) return;
-      // Insert after the selected question, like Typeform; otherwise append.
+      // Insert after the selected question, like Typeform; from the welcome screen, insert first; otherwise append.
       const selectedIndex = questions.findIndex((q) => q.id === selectedId);
-      const position = selectedIndex === -1 ? questions.length : selectedIndex + 1;
+      const position =
+        screen === "welcome" ? 0 : selectedIndex === -1 || screen === "ending" ? questions.length : selectedIndex + 1;
 
       await saver.now(STRUCTURE_KEY, async () => {
         try {
-          const created = await questionsApi.create(form.id, { type, position });
+          const created = await questionsApi.create(form.id, { ...init, type, position });
           set((s) => {
             const next = [...s.questions];
             next.splice(Math.min(created.position, next.length), 0, created);
@@ -191,6 +212,7 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
               questions: renumber(next),
               savedQuestions: { ...s.savedQuestions, [created.id]: created },
               selectedId: created.id,
+              screen: "question",
             };
           });
         } catch (error) {
@@ -198,6 +220,16 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
           throw error;
         }
       });
+    },
+
+    async duplicateQuestion(id) {
+      const source = get().questions.find((q) => q.id === id);
+      if (!source) return;
+      // Pending edits to the source go out first, so the copy matches what the creator sees.
+      await saver.flush(questionKey(id));
+      set({ selectedId: id, screen: "question" });
+      const { type, title, description, required, properties } = source;
+      await get().addQuestion(type, { title, description, required, properties });
     },
 
     updateQuestion(id, patch, debounceMs = TEXT_DEBOUNCE_MS) {

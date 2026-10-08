@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Round 2 · Typeform Original · Screen preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+/* Tokens measured from the user's Typeform screenshots (D:\screenshots, 2026-10-09). */
+:root {
+  --ink: #2a222b;          /* darkest: canvas text, Start button, question badge */
+  --primary: #3c323e;      /* Create form / Add content buttons, strong labels */
+  --text: #4c414e;         /* nav + tab labels, body */
+  --muted: #655d67;        /* secondary labels, icons */
+  --subtle: #847e85;       /* counters, hints */
+  --disabled: #c4c1c5;
+  --line: #e4e3e5;         /* control borders */
+  --line-soft: #ebeaec;    /* dividers */
+  --surface: #f7f7f8;      /* app frame, panels, toolbar */
+  --hover: #ededee;        /* selected / hover pills */
+  --canvas: #fafafa;       /* builder canvas + default form background */
+  --field: #fdfdfe;        /* inputs, selects */
+  --page: #ffffff;
+  --overlay: rgb(42 34 43 / 0.7);
+  --toast-bg: #fafcff; --toast-line: #9ac9f4; --info: #2f7bd3;
+  /* question type chips */
+  --qt-contact: #f8cdd8; --qt-choice: #ddd6fa; --qt-rating: #c4e3ba; --qt-text: #bdddf9; --qt-other: #fbe19d; --qt-screen: #dedcde;
+  --r-sm: 6px; --r-md: 8px; --r-lg: 12px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #d9d7da; font-size: 14px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+svg.lucide { width: 16px; height: 16px; stroke-width: 1.75; flex-shrink: 0; }
+
+/* ---------- preview chrome (not part of the design) ---------- */
+.intro { max-width: 1440px; margin: 32px auto 24px; padding: 28px 32px; background: #fff; border-radius: 12px; color: var(--ink); }
+.intro h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+.intro p { margin: 0; color: var(--muted); line-height: 1.55; max-width: 980px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.sw { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.sw i { width: 22px; height: 22px; border-radius: 6px; border: 1px solid #0001; display: block; }
+.label { max-width: 1440px; margin: 28px auto 10px; font-size: 13px; font-weight: 600; color: #4c414e; letter-spacing: .02em; text-transform: uppercase; }
+.screen { width: 1440px; height: 900px; margin: 0 auto 8px; background: var(--page); border-radius: 10px; overflow: hidden; box-shadow: 0 20px 60px #2a222b26; position: relative; display: flex; flex-direction: column; }
+
+/* ---------- shared controls ---------- */
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid transparent; background: none; font-weight: 500; white-space: nowrap; transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+.btn-dark { background: var(--primary); color: #fff; }
+.btn-dark:hover { background: var(--ink); }
+.btn-outline { background: var(--field); border-color: var(--line); color: var(--text); }
+.btn-outline:hover { background: var(--hover); }
+.btn-ghost { color: var(--muted); }
+.btn-ghost:hover { background: var(--hover); color: var(--text); }
+.icon-btn { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: var(--r-sm); border: none; background: none; color: var(--muted); transition: background-color 150ms ease; }
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+.square-btn { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--field); color: var(--muted); }
+.square-btn:hover { background: var(--hover); }
+:focus-visible { outline: 2px solid #3c323e; outline-offset: 2px; }
+.avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--qt-contact); color: var(--text); display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+.chip { width: 24px; height: 24px; border-radius: 6px; display: inline-grid; place-items: center; color: var(--primary); flex-shrink: 0; }
+.chip svg.lucide { width: 14px; height: 14px; }
+.toggle { width: 28px; height: 16px; border-radius: 999px; background: var(--hover); position: relative; border: none; padding: 0; flex-shrink: 0; transition: background-color 150ms ease; }
+.toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 10px; height: 10px; border-radius: 999px; background: var(--muted); transition: transform 200ms var(--ease-out), background-color 150ms ease; }
+.toggle[aria-checked="true"] { background: var(--muted); }
+.toggle[aria-checked="true"]::after { transform: translateX(12px); background: #fff; }
+.soon { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 999px; border: 1px solid #bdddf9; background: #f6fafd; color: #01487f; }
+
+/* ---------- workspace ---------- */
+.topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 10px; flex-shrink: 0; }
+.account { display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--text); }
+.logo-mark { width: 10px; height: 32px; border-radius: 999px; background: var(--ink); }
+.acct-avatar { width: 32px; height: 32px; border-radius: 8px; background: #d27169; color: #fff; display: grid; place-items: center; font-size: 15px; }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.top-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); padding: 6px 8px; border-radius: var(--r-sm); }
+.top-link:hover { background: var(--hover); color: var(--text); }
+.frame { flex: 1; min-height: 0; margin: 0 6px 6px; background: var(--surface); border-radius: var(--r-lg); display: flex; flex-direction: column; }
+.navtabs { display: flex; align-items: center; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--line-soft); }
+.navtab { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px 9px; color: var(--muted); border-radius: var(--r-sm) var(--r-sm) 0 0; position: relative; font-weight: 500; }
+.navtab.active { color: var(--text); }
+.navtab.active span.pill { position: absolute; inset: 0 0 4px; background: var(--hover); border-radius: var(--r-sm); z-index: 0; }
+.navtab.active::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; background: var(--primary); border-radius: 2px; }
+.navtab > :not(.pill) { position: relative; z-index: 1; }
+.navtab.disabled { color: var(--subtle); cursor: default; }
+.ws-body { flex: 1; min-height: 0; display: flex; }
+.sidebar { width: 256px; border-right: 1px solid var(--line-soft); display: flex; flex-direction: column; }
+.side-sec { padding: 16px; border-bottom: 1px solid var(--line-soft); }
+.side-sec:last-child { border-bottom: none; margin-top: auto; border-top: 1px solid var(--line-soft); }
+.side-search { display: flex; align-items: center; gap: 8px; color: var(--muted); padding: 6px 12px; border-radius: var(--r-sm); }
+.side-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; color: var(--muted); font-weight: 500; }
+.side-row .l { display: flex; align-items: center; gap: 8px; color: var(--text); }
+.ws-item { display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 12px; border-radius: var(--r-md); background: var(--hover); color: var(--primary); }
+.ws-item small { font-size: 12px; color: var(--text); }
+.main { flex: 1; min-width: 0; padding: 30px 40px; overflow: auto; }
+.main-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--line-soft); }
+.main-head h2 { margin: 0; font-size: 24px; font-weight: 400; color: var(--primary); display: flex; align-items: center; gap: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--field); }
+.seg button { height: 30px; padding: 0 10px; border: none; background: none; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--hover); color: var(--text); }
+.cols { display: grid; grid-template-columns: 1fr 110px 110px 130px 48px; align-items: center; padding: 34px 16px 10px; color: var(--muted); }
+.cols span:not(:first-child) { text-align: center; }
+.row { display: grid; grid-template-columns: 1fr 110px 110px 130px 48px; align-items: center; height: 48px; padding: 0 8px; margin-bottom: 8px; background: #fff; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); transition: border-color 150ms ease, box-shadow 150ms ease; }
+.row:hover { border-color: #d4d2d6; box-shadow: 0 1px 4px #2a222b0f; }
+.row > span:not(:first-child) { text-align: center; }
+.row .title { display: flex; align-items: center; gap: 12px; color: var(--primary); font-weight: 500; }
+.form-icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+.status { font-size: 12px; font-weight: 500; padding: 1px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); }
+.grid { display: none; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding-top: 28px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.card .thumb { height: 140px; display: flex; align-items: flex-end; padding: 14px; font-weight: 500; color: var(--ink); font-size: 15px; }
+.card .meta { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; color: var(--muted); font-size: 13px; }
+
+/* ---------- builder ---------- */
+.b-top { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 16px 0 24px; flex-shrink: 0; }
+.crumbs { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.crumbs b { font-weight: 400; color: var(--text); }
+.b-tabs { display: flex; gap: 28px; height: 100%; }
+.b-tab { display: flex; align-items: center; color: var(--muted); font-weight: 500; position: relative; padding: 0 2px; border: none; background: none; }
+.b-tab.active { color: var(--text); }
+.b-tab.active::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--text); border-radius: 0 0 3px 3px; }
+.b-right { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.b-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 256px 1fr 256px; gap: 16px; padding: 4px 13px 13px; }
+.panel { background: var(--surface); border-radius: var(--r-lg); }
+.col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.mode { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: var(--muted); }
+.mode .l { display: flex; align-items: center; gap: 8px; }
+.pages { flex: 1; padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+.pages h4, .endings h4, .rp h4 { margin: 0 0 12px 6px; font-size: 14px; font-weight: 600; color: #262627; }
+.page-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: var(--r-md); color: var(--text); border: none; background: none; text-align: left; width: 100%; transition: background-color 150ms ease; }
+.page-item:hover { background: #f0f0f1; }
+.page-item[aria-selected="true"] { background: var(--hover); }
+.page-item .tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px 0 4px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--primary); flex-shrink: 0; }
+.page-item .tag svg.lucide { width: 14px; height: 14px; }
+.page-item .t { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; }
+.page-item .branch { margin-left: auto; color: var(--subtle); }
+.add-link { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; color: var(--muted); border-top: 1px solid var(--line-soft); margin-top: 6px; }
+.endings { padding: 18px 14px; display: flex; flex-direction: column; }
+.endings .head { display: flex; justify-content: space-between; align-items: center; }
+.endings .head h4 { margin: 0 0 0 6px; }
+.toolbar { height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 8px; }
+.toolbar .sep { width: 1px; height: 20px; background: var(--line); margin: 0 6px; }
+.toolbar .grow { flex: 1; }
+.canvas-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: stretch; padding: 8px 30px 0; }
+.canvas { flex: 1; background: var(--canvas); border: 1px solid #eae9eb; display: grid; place-items: center; position: relative; color: var(--ink); }
+.q { width: 720px; }
+.q-head { display: flex; gap: 10px; align-items: flex-start; }
+.q-badge { margin-top: 9px; width: 18px; height: 18px; border-radius: 4px; background: var(--ink); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; flex-shrink: 0; }
+.q-title { font-size: 28px; line-height: 1.3; outline: none; border-radius: 4px; padding: 0 2px; }
+.q-title:hover, .q-desc:hover { background: #2a222b0a; }
+.q-desc { margin-top: 6px; font-size: 20px; color: #2a222bb3; font-style: italic; padding: 0 2px; }
+.q-desc.filled { font-style: normal; }
+.req { margin-left: 2px; }
+.choices { margin: 30px 0 0 28px; display: flex; flex-direction: column; gap: 8px; width: 320px; }
+.choice { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border-radius: 4px; border: 1px solid #2a222b99; background: #2a222b0d; font-size: 18px; color: var(--ink); }
+.choice kbd { width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #2a222b99; border-radius: 3px; background: var(--canvas); font: 600 12px Inter, sans-serif; }
+.add-choice { margin-left: 28px; margin-top: 10px; font-size: 14px; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; background: none; border: none; padding: 0; }
+.ok { margin: 26px 0 0 28px; display: flex; align-items: center; gap: 12px; }
+.ok .btn { height: 40px; padding: 0 16px; font-size: 18px; font-weight: 600; background: var(--ink); color: #fff; border-radius: 8px; }
+.ok small { font-size: 12px; color: var(--ink); }
+.rp-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.rp { padding: 18px 16px; }
+.rp .seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--hover); border-radius: var(--r-md); padding: 2px; }
+.rp .seg2 button { height: 30px; border: none; border-radius: 6px; background: none; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.rp .seg2 button[aria-pressed="true"] { background: #fbfbfc; color: var(--text); box-shadow: 0 1px 2px #2a222b1a; }
+.select { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 6px; background: var(--field); border: 1px solid var(--line); border-radius: var(--r-md); color: var(--text); width: 100%; }
+.select .grow { flex: 1; text-align: left; }
+.setting { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; color: var(--muted); }
+.setting.strong { color: var(--primary); font-weight: 600; }
+.hr { height: 1px; background: var(--line-soft); margin: 6px 0; }
+.logic-card { display: flex; flex-direction: column; gap: 10px; }
+.logic-card .head { display: flex; justify-content: space-between; align-items: center; }
+.logic-card .head h4 { margin: 0; }
+.rule { font-size: 13px; color: var(--muted); line-height: 1.5; background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px; }
+.rule b { color: var(--primary); font-weight: 500; }
+.toast { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 12px; width: 420px; padding: 18px 18px; background: var(--toast-bg); border: 1px solid var(--toast-line); border-radius: var(--r-md); color: var(--text); box-shadow: 0 4px 16px #2a222b14; animation: toast-in 300ms var(--ease-out) both; }
+.toast .grow { flex: 1; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+.toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } .toggle::after { transition: none; } }
+
+/* ---------- notes ---------- */
+.notes { max-width: 1440px; margin: 10px auto 40px; padding: 20px 28px; background: #fff; border-radius: 12px; color: var(--text); line-height: 1.6; }
+.notes h3 { margin: 0 0 8px; font-size: 15px; color: var(--ink); }
+.notes ul { margin: 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+
+<section class="intro">
+  <h1>Round 2 · Typeform Original — screen preview</h1>
+  <p>Workspace and builder rebuilt from your Typeform screenshots, filled with this project's real seed data. Colors are measured from the screenshots (Typeform's admin uses a plum-gray scale, not neutral gray). Fonts: Typeform uses its licensed font (TWK Lausanne); Inter is the closest free match. Hover the rows, buttons and toggles, click the List/Grid switch and the questions on the left.</p>
+  <div class="swatches">
+    <span class="sw"><i style="background:#2a222b"></i>Ink #2A222B</span>
+    <span class="sw"><i style="background:#3c323e"></i>Primary #3C323E</span>
+    <span class="sw"><i style="background:#4c414e"></i>Text #4C414E</span>
+    <span class="sw"><i style="background:#655d67"></i>Muted #655D67</span>
+    <span class="sw"><i style="background:#e4e3e5"></i>Line #E4E3E5</span>
+    <span class="sw"><i style="background:#f7f7f8"></i>Surface #F7F7F8</span>
+    <span class="sw"><i style="background:#ededee"></i>Selected #EDEDEE</span>
+    <span class="sw"><i style="background:#fafafa"></i>Canvas #FAFAFA</span>
+    <span class="sw"><i style="background:#bdddf9"></i>Text Qs</span>
+    <span class="sw"><i style="background:#ddd6fa"></i>Choice Qs</span>
+    <span class="sw"><i style="background:#c4e3ba"></i>Rating Qs</span>
+    <span class="sw"><i style="background:#f8cdd8"></i>Contact Qs</span>
+    <span class="sw"><i style="background:#fbe19d"></i>Other Qs</span>
+  </div>
+</section>
+
+<!-- ============================ SCREEN 1: WORKSPACE ============================ -->
+<div class="label">Screen 1 · Workspace (Forms list)</div>
+<div class="screen" id="workspace">
+  <header class="topbar">
+    <div class="account">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="acct-avatar">D</span>
+      Default creator <i data-lucide="chevron-down"></i>
+    </div>
+    <div class="top-right">
+      <a class="top-link" href="#"><i data-lucide="layout-grid"></i>Integrations <span class="soon">Soon</span></a>
+      <button class="icon-btn" aria-label="Appearance"><i data-lucide="sun"></i></button>
+      <button class="icon-btn" aria-label="Help"><i data-lucide="circle-help"></i></button>
+      <span class="avatar">DC</span>
+    </div>
+  </header>
+  <div class="frame">
+    <nav class="navtabs" aria-label="Sections">
+      <a class="navtab active" href="#"><span class="pill"></span><i data-lucide="panels-top-left"></i><span>Forms</span></a>
+      <span class="navtab disabled"><i data-lucide="users"></i><span>Contacts</span> <span class="soon">Soon</span></span>
+      <span class="navtab disabled"><i data-lucide="workflow"></i><span>Automations</span> <span class="soon">Soon</span></span>
+      <span class="navtab disabled"><i data-lucide="chart-line"></i><span>Insights</span> <span class="soon">Soon</span></span>
+    </nav>
+    <div class="ws-body">
+      <aside class="sidebar">
+        <div class="side-sec"><button class="btn btn-dark" style="width:100%;justify-content:center"><i data-lucide="plus"></i>Create form</button></div>
+        <div class="side-sec"><div class="side-search"><i data-lucide="search"></i>Search</div></div>
+        <div class="side-sec" style="border-bottom:none">
+          <div class="side-row"><span class="l"><i data-lucide="layout-grid"></i>Workspaces</span><button class="square-btn" aria-label="New workspace (coming soon)" disabled><i data-lucide="plus"></i></button></div>
+          <div class="side-row" style="margin-top:6px">Private <i data-lucide="chevron-up"></i></div>
+          <div class="ws-item" style="margin-top:6px">My workspace <small>3</small></div>
+        </div>
+        <div class="side-sec">
+          <div style="color:var(--primary);margin-bottom:6px">Responses collected</div>
+          <div style="font-size:16px;color:var(--primary)">45 <span style="font-size:12px;color:var(--muted)">completed · 7 in progress</span></div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="main-head">
+          <h2>My workspace <button class="icon-btn" aria-label="Workspace options"><i data-lucide="ellipsis"></i></button></h2>
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-outline"><i data-lucide="calendar"></i>Date created <i data-lucide="chevron-down"></i></button>
+            <div class="seg">
+              <button aria-pressed="true" data-view="list"><i data-lucide="list"></i>List</button>
+              <button aria-pressed="false" data-view="grid"><i data-lucide="layout-grid"></i>Grid</button>
+            </div>
+          </div>
+        </div>
+        <div id="list-view">
+          <div class="cols"><span></span><span>Responses</span><span>Completion</span><span>Updated</span><span></span></div>
+          <div class="row"><span class="title"><span class="form-icon" style="background:#c4e3ba"></span>Customer Feedback</span><span>26</span><span>87%</span><span>Oct 08, 2026</span><span><button class="icon-btn" aria-label="Form options"><i data-lucide="ellipsis"></i></button></span></div>
+          <div class="row"><span class="title"><span class="form-icon" style="background:#fbe19d"></span>Event Registration — Frontend Summit</span><span>19</span><span>86%</span><span>Oct 08, 2026</span><span><button class="icon-btn" aria-label="Form options"><i data-lucide="ellipsis"></i></button></span></div>
+          <div class="row"><span class="title"><span class="form-icon" style="background:#bdddf9"></span>Product Survey (draft) <span class="status">Draft</span></span><span>–</span><span>–</span><span>Oct 08, 2026</span><span><button class="icon-btn" aria-label="Form options"><i data-lucide="ellipsis"></i></button></span></div>
+        </div>
+        <div id="grid-view" class="grid">
+          <div class="card"><div class="thumb" style="background:#c4e3ba">Customer Feedback</div><div class="meta"><span>26 responses</span><i data-lucide="ellipsis"></i></div></div>
+          <div class="card"><div class="thumb" style="background:#fbe19d">Event Registration — Frontend Summit</div><div class="meta"><span>19 responses</span><i data-lucide="ellipsis"></i></div></div>
+          <div class="card"><div class="thumb" style="background:#bdddf9">Product Survey (draft)</div><div class="meta"><span class="status">Draft</span><i data-lucide="ellipsis"></i></div></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ SCREEN 2: BUILDER ============================ -->
+<div class="label">Screen 2 · Builder (Content) — multiple choice selected</div>
+<div class="screen" id="builder">
+  <header class="b-top">
+    <div class="crumbs"><i data-lucide="panels-top-left"></i>Forms <i data-lucide="chevron-right"></i><b>Customer Feedback</b></div>
+    <nav class="b-tabs" aria-label="Form sections">
+      <button class="b-tab active">Content</button>
+      <button class="b-tab">Workflow</button>
+      <button class="b-tab">Connect</button>
+      <button class="b-tab">Share</button>
+      <button class="b-tab">Results</button>
+    </nav>
+    <div class="b-right">
+      <span style="display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-size:13px"><i data-lucide="check"></i>Saved</span>
+      <button class="square-btn" aria-label="Copy public link" title="Copy public link"><i data-lucide="link"></i></button>
+      <button class="btn btn-outline">Unpublish</button>
+      <button class="icon-btn" aria-label="Help"><i data-lucide="circle-help"></i></button>
+      <span class="avatar">DC</span>
+    </div>
+  </header>
+  <div class="b-body">
+    <div class="col">
+      <div class="panel mode"><span class="l"><i data-lucide="rows-2"></i>Questions</span><span style="font-size:12px">7</span></div>
+      <div class="panel pages">
+        <h4>Pages</h4>
+        <button class="page-item" data-q="0"><span class="tag" style="background:var(--qt-screen)"><i data-lucide="gallery-vertical"></i></span><span class="t">Welcome screen</span></button>
+        <button class="page-item" data-q="1"><span class="tag" style="background:var(--qt-text)"><i data-lucide="minus"></i>1</span><span class="t">First things first — what's your first name?</span></button>
+        <button class="page-item" data-q="2"><span class="tag" style="background:var(--qt-rating)"><i data-lucide="star"></i>2</span><span class="t">How likely are you to recommend us?</span></button>
+        <button class="page-item" data-q="3" aria-selected="true"><span class="tag" style="background:var(--qt-choice)"><i data-lucide="list-checks"></i>3</span><span class="t">Which features do you use most?</span></button>
+        <button class="page-item" data-q="4"><span class="tag" style="background:var(--qt-choice)"><i data-lucide="circle-slash"></i>4</span><span class="t">Did anything frustrate you along the way?</span><i data-lucide="git-branch" class="branch"></i></button>
+        <button class="page-item" data-q="5"><span class="tag" style="background:var(--qt-text)"><i data-lucide="align-left"></i>5</span><span class="t">Sorry to hear that. What happened?</span></button>
+        <button class="page-item" data-q="6"><span class="tag" style="background:var(--qt-choice)"><i data-lucide="chevron-down"></i>6</span><span class="t">How did you hear about us?</span></button>
+        <button class="page-item" data-q="7"><span class="tag" style="background:var(--qt-contact)"><i data-lucide="mail"></i>7</span><span class="t">Can we follow up with you?</span></button>
+        <div class="add-link"><i data-lucide="plus"></i>Add content</div>
+      </div>
+      <div class="panel endings">
+        <div class="head"><h4>Endings</h4><button class="square-btn" aria-label="Add ending" disabled><i data-lucide="plus"></i></button></div>
+        <button class="page-item" style="margin-top:10px"><span class="tag" style="background:var(--qt-screen)"><i data-lucide="flag"></i></span><span class="t">Thanks for the feedback!</span></button>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="panel toolbar">
+        <button class="btn btn-dark"><i data-lucide="plus"></i>Add content</button>
+        <button class="btn btn-ghost"><i data-lucide="palette"></i>Design</button>
+        <span class="sep"></span>
+        <button class="icon-btn" aria-label="Mobile preview"><i data-lucide="smartphone"></i></button>
+        <button class="icon-btn" aria-label="Preview"><i data-lucide="play"></i></button>
+        <button class="icon-btn" aria-label="Settings"><i data-lucide="settings"></i></button>
+        <span class="grow"></span>
+        <button class="icon-btn" aria-label="Toggle settings panel"><i data-lucide="panel-right"></i></button>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas">
+          <div class="q">
+            <div class="q-head"><span class="q-badge">3</span><div><div class="q-title" contenteditable="true" spellcheck="false">Which features do you use most?</div><div class="q-desc">Description (optional)</div></div></div>
+            <div class="choices">
+              <div class="choice"><kbd>A</kbd>Form builder</div>
+              <div class="choice"><kbd>B</kbd>Logic jumps</div>
+              <div class="choice"><kbd>C</kbd>Themes</div>
+              <div class="choice"><kbd>D</kbd>Results &amp; charts</div>
+              <div class="choice"><kbd>E</kbd>CSV export</div>
+            </div>
+            <button class="add-choice">Add choice</button>
+            <div class="ok"><button class="btn">OK <i data-lucide="check"></i></button><small>press <b>Enter ↵</b></small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-col">
+      <div class="panel rp">
+        <h4>Question <i data-lucide="circle-help" style="width:12px;height:12px;color:var(--muted)"></i></h4>
+        <div class="seg2"><button aria-pressed="true"><i data-lucide="minus"></i>Text</button><button aria-pressed="false" disabled title="Coming soon"><i data-lucide="video"></i>Video</button></div>
+      </div>
+      <div class="panel rp" style="flex:1">
+        <h4>Answer</h4>
+        <div class="select"><span class="chip" style="background:var(--qt-choice)"><i data-lucide="list-checks"></i></span><span class="grow">Multiple Choice</span></div>
+        <div class="hr" style="margin-top:14px"></div>
+        <div class="setting">Required <button class="toggle" role="switch" aria-checked="false" aria-label="Required"></button></div>
+        <div class="setting">Multiple selection <button class="toggle" role="switch" aria-checked="true" aria-label="Multiple selection"></button></div>
+        <div class="setting" style="color:var(--subtle)">Randomize <span class="soon">Soon</span></div>
+        <div class="hr"></div>
+        <div class="setting strong">Image or video <span class="soon">Soon</span></div>
+      </div>
+      <div class="panel rp logic-card">
+        <div class="head"><h4>Logic</h4><button class="square-btn" aria-label="Add logic rule"><i data-lucide="plus"></i></button></div>
+        <div style="font-size:13px;color:var(--muted)">No jumps — goes to question 4.</div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" role="status"><i data-lucide="info" style="color:var(--info);width:20px;height:20px"></i><span class="grow">Edits are always autosaved.</span><button class="icon-btn" aria-label="Dismiss"><i data-lucide="x"></i></button></div>
+</div>
+
+<section class="notes">
+  <h3>What changes vs. the current app</h3>
+  <ul>
+    <li><b>Workspace:</b> Typeform's top bar + rounded light frame, section tabs (Forms active, others "Soon"), left sidebar (Create form, Search, workspace list, totals), and a <b>List view</b> by default with a Grid switch, instead of our card grid only.</li>
+    <li><b>Builder:</b> Content / Workflow / Connect / Share / Results tabs (Workflow = our logic overview, Connect = integrations placeholder, Share = a full share page like Typeform's); left "Pages" panel with colored type tags; toolbar with Add content, Design, preview; <b>question title, description and choices edited directly on the canvas</b> (like Typeform) instead of text fields in the right panel; right panel keeps only answer type and toggles, plus a Logic card.</li>
+    <li><b>Default form look:</b> Typeform's current default is monochrome (canvas #FAFAFA, text and buttons #2A222B) with a small square question-number badge, not the old blue "1 →".</li>
+    <li><b>Colors everywhere:</b> our neutral grays become Typeform's plum-grays; question-type chip colors follow Typeform's groups (text = blue, choice = lavender, rating = green, contact = pink, other = yellow).</li>
+    <li><b>Kept from our app:</b> dark-mode switch (bonus), "Soon" placeholders instead of Typeform's paid upsells ("View plans", AI chat are left out).</li>
+  </ul>
+</section>
+
+<script>
+  lucide.createIcons();
+  // Typeform's "autosaved" toast: dismiss on X or after a few seconds.
+  const toast = document.querySelector(".toast");
+  const hide = () => { toast.classList.add("leaving"); setTimeout(() => toast.remove(), 220); };
+  toast.querySelector("button").addEventListener("click", hide);
+  setTimeout(hide, 4000);
+  // List / Grid switch
+  document.querySelectorAll(".seg [data-view]").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".seg [data-view]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    document.getElementById("list-view").style.display = b.dataset.view === "list" ? "" : "none";
+    document.getElementById("grid-view").style.display = b.dataset.view === "grid" ? "grid" : "none";
+  }));
+  // Page selection
+  document.querySelectorAll(".pages .page-item").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".pages .page-item").forEach((x) => x.removeAttribute("aria-selected"));
+    b.setAttribute("aria-selected", "true");
+  }));
+  // Toggles
+  document.querySelectorAll(".toggle").forEach((t) => t.addEventListener("click", () => t.setAttribute("aria-checked", String(t.getAttribute("aria-checked") !== "true"))));
+</script>
+</body>
+</html>

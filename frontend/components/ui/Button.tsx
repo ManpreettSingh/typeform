@@ -14,15 +14,15 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-primary text-primary-fg hover:bg-primary-hover",
-  secondary: "bg-bg text-text border border-border-strong hover:bg-bg-subtle",
-  ghost: "bg-transparent text-text hover:bg-bg-subtle",
+  secondary: "bg-field text-text-soft border border-border-strong hover:bg-bg-hover",
+  ghost: "bg-transparent text-text-muted hover:bg-bg-hover hover:text-text",
   danger: "bg-danger text-primary-fg hover:bg-danger-hover",
   dangerGhost: "bg-transparent text-danger hover:bg-danger-soft",
 };
 
 const sizes: Record<ButtonSize, string> = {
   sm: "h-8 px-3 text-sm gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
+  md: "h-9 px-4 text-sm gap-2",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(

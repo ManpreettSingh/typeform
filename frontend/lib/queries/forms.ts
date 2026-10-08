@@ -26,8 +26,9 @@ export const formKeys = {
 
 // ---- Helpers -----------------------------------------------------------
 
-export function toListItem(form: Form): FormListItem {
-  const { id, slug, title, status, response_count, created_at, updated_at, published_at } = form;
+/** `responseTotal` (partial included) isn't on the detail shape; callers pass the list's value when they have it. */
+export function toListItem(form: Form, responseTotal = form.response_count): FormListItem {
+  const { id, slug, title, status, response_count, created_at, updated_at, published_at, theme } = form;
   return {
     id,
     slug,
@@ -38,6 +39,8 @@ export function toListItem(form: Form): FormListItem {
     updated_at,
     published_at,
     question_count: form.questions.length,
+    response_total: responseTotal,
+    theme,
   };
 }
 
@@ -46,8 +49,9 @@ function storeForm(qc: QueryClient, form: Form) {
   qc.setQueryData(formKeys.detail(form.id), form);
   qc.setQueryData<FormListItem[]>(formKeys.list(), (list) => {
     if (!list) return list;
-    const item = toListItem(form);
-    return list.some((f) => f.id === form.id) ? list.map((f) => (f.id === form.id ? item : f)) : [item, ...list];
+    const existing = list.find((f) => f.id === form.id);
+    const item = toListItem(form, existing?.response_total);
+    return existing ? list.map((f) => (f.id === form.id ? item : f)) : [item, ...list];
   });
 }
 

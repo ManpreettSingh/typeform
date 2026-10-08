@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Round 4 · Typeform Original · Motion</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #2a222b; --primary: #3c323e; --text: #4c414e; --muted: #655d67; --subtle: #847e85;
+  --line: #e4e3e5; --line-soft: #ebeaec; --surface: #f7f7f8; --selected: #ededee; --canvas: #fafafa; --field: #fdfdfe;
+  --success: #177767; --overlay: rgb(42 34 43 / 0.7); --toast-bg: #fafcff; --toast-line: #9ac9f4;
+  --qt-text: #bdddf9; --qt-choice: #ddd6fa; --qt-rating: #c4e3ba; --qt-contact: #f8cdd8; --qt-other: #fbe19d;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Slow-mo multiplier, set by the controls (1, 2 or 4). */
+  --slow: 1;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface); color: var(--text); font: 14px/1.55 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; cursor: pointer; }
+.bar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: #fff; border-bottom: 1px solid var(--line-soft); }
+.bar b { color: var(--primary); }
+.bar .grow { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--field); }
+.seg button { height: 30px; padding: 0 12px; border: none; background: none; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--selected); color: var(--text); }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 24px 80px; }
+h1 { font-size: 24px; font-weight: 400; color: var(--primary); margin: 12px 0 4px; }
+.lead { color: var(--muted); max-width: 760px; margin: 0 0 8px; }
+h2 { font-size: 15px; font-weight: 600; color: var(--primary); margin: 36px 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.card { background: #fff; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+.card h3 { margin: 0 0 2px; font-size: 14px; font-weight: 600; color: var(--primary); }
+.card .spec { margin: 0 0 16px; font-size: 12px; color: var(--muted); }
+.stage { position: relative; height: 180px; background: var(--surface); border-radius: 8px; overflow: hidden; display: grid; place-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid transparent; font-weight: 500; white-space: nowrap; transition: background-color calc(150ms * var(--slow)) ease, border-color calc(150ms * var(--slow)) ease, color calc(150ms * var(--slow)) ease; }
+.btn-dark { background: var(--primary); color: #fff; }
+.btn-dark:hover { background: var(--ink); }
+.btn-outline { background: var(--field); border-color: var(--line); color: var(--text); }
+.btn-outline:hover { background: var(--selected); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ================= Publish → Share (the hero) ================= */
+.hero { position: relative; background: #fff; border-radius: 12px; overflow: hidden; }
+.hero .top { height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 16px 0 20px; border-bottom: 1px solid var(--line-soft); }
+.hero .tabs { display: flex; gap: 26px; height: 100%; }
+.hero .tab { display: flex; align-items: center; color: var(--muted); font-weight: 500; position: relative; }
+.hero .tab.active { color: var(--text); }
+.hero .tab.active::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--text); border-radius: 0 0 3px 3px; }
+.hero .right { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
+.hero .body { position: relative; height: 470px; background: var(--surface); margin: 8px; border-radius: 12px; overflow: hidden; }
+/* builder view (before) */
+.builder-view { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity calc(200ms * var(--slow)) var(--ease-out); }
+.builder-view .q { width: 480px; color: var(--ink); background: var(--canvas); border: 1px solid #eae9eb; padding: 48px 40px; }
+.builder-view .q b { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--ink); color: #fff; font-size: 11px; margin-right: 8px; vertical-align: 4px; }
+.builder-view .q span { font-size: 24px; }
+.hero[data-phase="share"] .builder-view { opacity: 0; pointer-events: none; }
+/* share view (after) */
+.share-view { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 44px; gap: 18px; pointer-events: none; }
+.hero[data-phase="share"] .share-view { pointer-events: auto; }
+.share-view > * { opacity: 0; transform: translateY(12px); }
+.hero[data-phase="share"] .share-view > * { opacity: 1; transform: none; transition: opacity calc(320ms * var(--slow)) var(--ease-out), transform calc(320ms * var(--slow)) var(--ease-out); }
+.hero[data-phase="share"] .share-view > :nth-child(2) { transition-delay: calc(60ms * var(--slow)); }
+.hero[data-phase="share"] .share-view > :nth-child(3) { transition-delay: calc(120ms * var(--slow)); }
+.share-view h4 { margin: 0; font-size: 22px; font-weight: 400; color: var(--primary); }
+.link-card { width: 560px; background: #fff; border-radius: 12px; padding: 20px; display: flex; gap: 10px; align-items: center; }
+.link-field { flex: 1; height: 32px; display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--text); overflow: hidden; }
+.link-field span { white-space: nowrap; clip-path: inset(0 100% 0 0); }
+.hero[data-phase="share"] .link-field span { clip-path: inset(0 0 0 0); transition: clip-path calc(420ms * var(--slow)) var(--ease-out) calc(220ms * var(--slow)); }
+.copy-wrap { position: relative; }
+.copy-wrap::after { content: ""; position: absolute; inset: -4px; border-radius: 10px; border: 2px solid var(--primary); opacity: 0; transform: scale(0.96); pointer-events: none; }
+.hero[data-phase="share"] .copy-wrap::after { animation: ring calc(700ms * var(--slow)) var(--ease-out) calc(560ms * var(--slow)) 1 both; }
+@keyframes ring { 0% { opacity: 0.35; transform: scale(0.96); } 100% { opacity: 0; transform: scale(1.12); } }
+.embed-row { display: flex; gap: 12px; }
+.embed { width: 274px; height: 74px; background: #fff; border: 1px solid var(--line); border-radius: 10px; display: flex; overflow: hidden; }
+.embed i { width: 96px; background: var(--qt-choice); }
+.embed:last-child i { background: var(--qt-text); }
+.embed span { padding: 12px; color: var(--text); }
+/* the Publish button and its states */
+.pub { position: relative; min-width: 108px; justify-content: center; overflow: visible; }
+.pub .lbl { display: inline-flex; align-items: center; gap: 6px; transition: opacity calc(200ms * var(--slow)) ease, filter calc(200ms * var(--slow)) ease; }
+.pub.swap .lbl { opacity: 0; filter: blur(2px); }
+.pub.done { background: var(--success); }
+.pub.done:hover { background: var(--success); }
+.check path { stroke-dasharray: 16; stroke-dashoffset: 16; }
+.pub.done .check path { stroke-dashoffset: 0; transition: stroke-dashoffset calc(320ms * var(--slow)) var(--ease-out) calc(80ms * var(--slow)); }
+.spinner { width: 14px; height: 14px; border-radius: 999px; border: 2px solid #ffffff55; border-top-color: #fff; animation: spin calc(600ms * var(--slow)) linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.particle { position: absolute; width: 8px; height: 8px; border-radius: 2px; pointer-events: none; z-index: 5; }
+.live-toast { position: absolute; right: 16px; bottom: 16px; padding: 12px 16px; background: var(--toast-bg); border: 1px solid var(--toast-line); border-radius: 8px; color: var(--text); box-shadow: 0 4px 16px #2a222b14; opacity: 0; transform: translateY(100%); transition: opacity calc(300ms * var(--slow)) var(--ease-out), transform calc(300ms * var(--slow)) var(--ease-out); }
+.hero[data-phase="share"] .live-toast.show { opacity: 1; transform: none; }
+.hero-controls { display: flex; gap: 10px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: 13px; }
+
+/* ================= Standard motion ================= */
+.menu { position: absolute; top: 56px; left: calc(50% - 64px); width: 170px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px; box-shadow: 0 4px 16px #2a222b1f; transform-origin: top left; transition: opacity calc(180ms * var(--slow)) var(--ease-out), transform calc(180ms * var(--slow)) var(--ease-out); }
+.menu[data-closed] { opacity: 0; transform: scale(0.95); pointer-events: none; transition-duration: calc(135ms * var(--slow)); }
+.menu div { padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+.menu div:hover { background: var(--selected); }
+.overlay { position: absolute; inset: 0; background: var(--overlay); transition: opacity calc(240ms * var(--slow)) ease; }
+.overlay[data-closed] { opacity: 0; pointer-events: none; transition-duration: calc(180ms * var(--slow)); }
+.modal { position: absolute; left: 50%; top: 50%; width: 260px; height: 120px; margin: -60px 0 0 -130px; background: #fff; border-radius: 16px; padding: 16px; transition: opacity calc(240ms * var(--slow)) var(--ease-out), transform calc(240ms * var(--slow)) var(--ease-out); }
+.modal[data-closed] { opacity: 0; transform: scale(0.96); pointer-events: none; transition-duration: calc(180ms * var(--slow)); }
+.modal small { color: var(--muted); }
+.toast { position: absolute; left: 16px; right: 16px; bottom: 14px; padding: 12px 14px; background: var(--toast-bg); border: 1px solid var(--toast-line); border-radius: 8px; transition: opacity calc(300ms * var(--slow)) var(--ease-out), transform calc(300ms * var(--slow)) var(--ease-out); }
+.toast[data-closed] { opacity: 0; transform: translateY(100%); transition-duration: calc(220ms * var(--slow)); }
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 60%; background: #fff; box-shadow: -8px 0 24px #2a222b1f; padding: 16px; transition: transform calc(320ms * var(--slow)) var(--ease-drawer); }
+.drawer[data-closed] { transform: translateX(100%); transition-duration: calc(240ms * var(--slow)); }
+.drawer small { color: var(--muted); display: block; margin-top: 8px; }
+.q-stage { position: absolute; inset: 0; display: grid; place-items: center; background: var(--canvas); }
+.q-slide { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 19px; transition: transform calc(350ms * var(--slow)) var(--ease-out), opacity calc(350ms * var(--slow)) var(--ease-out); }
+.q-slide b { width: 18px; height: 18px; border-radius: 4px; background: var(--ink); color: #fff; font-size: 11px; display: grid; place-items: center; }
+.q-slide[data-state="out"] { transform: translateY(-60px); opacity: 0; transition-duration: calc(250ms * var(--slow)); }
+.q-slide[data-state="in"] { transform: translateY(60px); opacity: 0; transition: none; }
+.progress { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #2a222b1f; }
+.progress i { display: block; height: 100%; background: var(--ink); transform-origin: left; transform: scaleX(0.33); transition: transform calc(300ms * var(--slow)) var(--ease-out); }
+.copy { min-width: 112px; justify-content: center; }
+.copy .lbl { display: inline-flex; gap: 6px; align-items: center; transition: opacity calc(200ms * var(--slow)) ease, filter calc(200ms * var(--slow)) ease; }
+.copy.swap .lbl { opacity: 0; filter: blur(2px); }
+.none { color: var(--muted); font-size: 13px; text-align: center; padding: 0 20px; }
+.none b { color: var(--primary); display: block; font-size: 14px; margin-bottom: 4px; }
+/* easing plotter */
+.plot { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.plot svg { width: 100%; height: 160px; background: var(--surface); border-radius: 8px; }
+.plot .dot-track { height: 24px; background: var(--surface); border-radius: 999px; position: relative; margin-top: 8px; }
+.plot .dot { position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 999px; background: var(--primary); }
+/* broken on purpose */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pair .stage { height: 150px; }
+.tag { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; }
+.tag.bad { background: #fdeceb; color: #c0392b; }
+.tag.good { background: #f4faf8; color: var(--success); }
+.pop { width: 150px; height: 70px; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px #2a222b1f; }
+
+/* Reduced motion: real media query + the gallery's simulation toggle. Opacity stays, movement goes. */
+@media (prefers-reduced-motion: reduce) { :root { --rm: 1; } }
+.rm .share-view > *, .rm .menu, .rm .modal, .rm .toast, .rm .drawer, .rm .q-slide, .rm .live-toast { transform: none !important; }
+.rm .drawer[data-closed] { opacity: 0; }
+.rm .drawer { transition-property: opacity !important; }
+.rm .hero[data-phase="share"] .copy-wrap::after { animation: none; }
+.rm .link-field span { clip-path: none !important; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <b>Round 4 · Motion review</b>
+  <span class="grow"></span>
+  <span style="color:var(--muted)">Speed</span>
+  <div class="seg" id="speed"><button aria-pressed="true" data-v="1">1×</button><button aria-pressed="false" data-v="2">½×</button><button aria-pressed="false" data-v="4">¼×</button></div>
+  <span style="color:var(--muted)">Reduced motion</span>
+  <div class="seg" id="rm"><button aria-pressed="true" data-v="off">Off</button><button aria-pressed="false" data-v="on">On</button></div>
+</div>
+<main>
+  <h1>How things move</h1>
+  <p class="lead">Typeform's interface is calm, so most motion here is short and quiet. The one exception is publishing a form: it happens once per form, so it gets a small celebration. Use the speed switch to watch any animation slowly, and the reduced-motion switch to see what people with that setting get.</p>
+
+  <h2>1 · Publish → Share (your request)</h2>
+  <div class="hero" id="hero" data-phase="build">
+    <div class="top">
+      <span style="color:var(--muted)">Forms › <b style="font-weight:400;color:var(--text)">Customer Feedback</b></span>
+      <div class="tabs"><span class="tab active" id="tab-content">Content</span><span class="tab">Workflow</span><span class="tab">Connect</span><span class="tab" id="tab-share">Share</span><span class="tab">Results</span></div>
+      <div class="right"><button class="btn btn-dark pub" id="publish"><span class="lbl">Publish</span></button></div>
+    </div>
+    <div class="body">
+      <div class="builder-view"><div class="q"><b>1</b><span>First things first — what's your first name?</span></div></div>
+      <div class="share-view">
+        <h4>Choose how you'd like to share your form</h4>
+        <div class="link-card">
+          <span class="copy-wrap"><button class="btn btn-dark copy" id="copy-hero"><span class="lbl">🔗 Copy link</span></button></span>
+          <div class="link-field"><span>https://forms.example.app/f/demo-feedback</span></div>
+        </div>
+        <div class="embed-row"><div class="embed"><i></i><span>On your website</span></div><div class="embed"><i></i><span>In your email</span></div></div>
+      </div>
+      <div class="live-toast" id="live-toast">ⓘ Your form is live. Anyone with the link can respond.</div>
+    </div>
+    <div class="hero-controls">
+      <button class="btn btn-outline" id="replay">↺ Reset</button>
+      <span>Click <b>Publish</b>. ① button shows a spinner while saving → ② turns green with a check that draws in, and a small burst of the question-tag colors → ③ the Share page rises in, the link writes itself in, and Copy link gets one soft ring → ④ "Your form is live" toast.</span>
+    </div>
+  </div>
+
+  <h2>2 · Everyday motion</h2>
+  <div class="grid">
+    <div class="card"><h3>Copy link</h3><p class="spec">Feedback · label crossfade with 2px blur · 200ms · back after 1.6s</p>
+      <div class="stage"><button class="btn btn-dark copy" id="copy"><span class="lbl">🔗 Copy link</span></button></div></div>
+    <div class="card"><h3>Menu (⋯ on a form)</h3><p class="spec">Spatial · grows from its trigger · 180ms in / 135ms out · strong ease-out</p>
+      <div class="stage" style="place-items:start center;padding-top:16px;height:210px"><button class="btn btn-outline" id="menu-btn">⋯ Options</button><div class="menu" id="menu" data-closed><div>Rename</div><div>Duplicate</div><div>Copy link</div><div style="color:#c0392b">Delete</div></div></div></div>
+    <div class="card"><h3>Modal (Add content, confirms)</h3><p class="spec">Avoid a jarring change · centered, from 0.96 · 240ms in / 180ms out</p>
+      <div class="stage"><button class="btn btn-outline" id="modal-btn">Open modal</button><div class="overlay" id="overlay" data-closed></div><div class="modal" id="modal" data-closed><b style="color:var(--primary)">Delete this form?</b><br><small>This can't be undone.</small><div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-outline" id="modal-close">Cancel</button></div></div></div></div>
+    <div class="card"><h3>Toast</h3><p class="spec">Spatial · in and out through the bottom edge · 300ms in / 220ms out · transitions (re-triggerable)</p>
+      <div class="stage"><button class="btn btn-outline" id="toast-btn">Show toast</button><div class="toast" id="toast" data-closed>ⓘ Edits are always autosaved.</div></div></div>
+    <div class="card"><h3>Response drawer</h3><p class="spec">Spatial · slides from the right · 320ms in / 240ms out · drawer curve</p>
+      <div class="stage"><button class="btn btn-outline" id="drawer-btn">Open response</button><div class="drawer" id="drawer" data-closed><b style="color:var(--primary)">Oct 8, 2026 · Completed</b><small>1. First name — Amara</small><small>2. Recommend — 8/10</small><small>3. Features — Form builder, Themes</small><button class="btn btn-outline" style="margin-top:12px" id="drawer-close">Close</button></div></div></div>
+    <div class="card"><h3>Respondent: next question</h3><p class="spec">Spatial · old rises out 250ms, new rises in 350ms (Typeform's pace) · progress bar scales, never resizes</p>
+      <div class="stage"><div class="q-stage"><div class="progress"><i id="prog"></i></div><div class="q-slide" id="qs"><b>1</b><span>What's your first name?</span></div></div><button class="btn btn-outline" id="q-btn" style="position:absolute;bottom:12px;right:12px">Next ↓</button></div></div>
+    <div class="card"><h3>No animation, on purpose</h3><p class="spec">Used many times a day → instant</p>
+      <div class="stage"><div class="none"><b>Instant</b>Builder and results tab switches · selecting a question in the list · List/Grid switch · keyboard navigation in the builder · row hover (only a 150ms shadow).</div></div></div>
+  </div>
+
+  <h2>3 · The curves</h2>
+  <div class="plot" id="plot"></div>
+
+  <h2>4 · Broken on purpose (wrong vs right)</h2>
+  <div class="grid">
+    <div class="card"><h3>Menu easing</h3><p class="spec">ease-in starts slow, exactly when you're watching</p>
+      <div class="pair"><div class="stage" data-demo="easein"><span class="tag bad">ease-in 300ms</span><div class="pop"></div></div><div class="stage" data-demo="easeout"><span class="tag good">ease-out 180ms</span><div class="pop"></div></div></div>
+      <button class="btn btn-outline" style="margin-top:10px" data-play="easein,easeout">Play both</button></div>
+    <div class="card"><h3>Appearing</h3><p class="spec">nothing appears from nothing</p>
+      <div class="pair"><div class="stage" data-demo="scale0"><span class="tag bad">scale(0)</span><div class="pop"></div></div><div class="stage" data-demo="scale95"><span class="tag good">scale(0.95) + fade</span><div class="pop"></div></div></div>
+      <button class="btn btn-outline" style="margin-top:10px" data-play="scale0,scale95">Play both</button></div>
+    <div class="card"><h3>Modal length</h3><p class="spec">long UI animation feels like lag</p>
+      <div class="pair"><div class="stage" data-demo="slow"><span class="tag bad">600ms</span><div class="pop"></div></div><div class="stage" data-demo="fast"><span class="tag good">240ms</span><div class="pop"></div></div></div>
+      <button class="btn btn-outline" style="margin-top:10px" data-play="slow,fast">Play both</button></div>
+  </div>
+</main>
+
+<script>
+const root = document.documentElement;
+const slow = () => Number(getComputedStyle(root).getPropertyValue("--slow")) || 1;
+const reduced = () => document.body.classList.contains("rm") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.body.classList.add("rm");
+const seg = (id, fn) => document.querySelectorAll(`#${id} button`).forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(`#${id} button`).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  fn(b.dataset.v);
+}));
+seg("speed", (v) => root.style.setProperty("--slow", v));
+seg("rm", (v) => document.body.classList.toggle("rm", v === "on"));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms * slow()));
+
+/* ---------- Publish → Share ---------- */
+const hero = document.getElementById("hero");
+const pub = document.getElementById("publish");
+const label = pub.querySelector(".lbl");
+const CHIP = ["--qt-text", "--qt-choice", "--qt-rating", "--qt-contact", "--qt-other"].map((v) => getComputedStyle(root).getPropertyValue(v).trim());
+
+async function swapLabel(btn, html) {
+  const lbl = btn.querySelector(".lbl");
+  btn.classList.add("swap");
+  await wait(reduced() ? 120 : 200);
+  lbl.innerHTML = html;
+  btn.classList.remove("swap");
+}
+
+function burst(fromEl) {
+  if (reduced()) return;
+  const box = fromEl.getBoundingClientRect();
+  const host = hero.getBoundingClientRect();
+  const cx = box.left - host.left + box.width / 2, cy = box.top - host.top + box.height / 2;
+  // Question-tag pastels plus the two strong brand tones so the burst reads on a light page.
+  const colors = [...CHIP, "#3c323e", "#177767", "#3c323e"];
+  for (let i = 0; i < 26; i++) {
+    const p = document.createElement("span");
+    const size = 6 + Math.random() * 6;
+    p.className = "particle";
+    p.style.width = p.style.height = `${size}px`;
+    p.style.background = colors[i % colors.length];
+    p.style.left = `${cx - size / 2}px`; p.style.top = `${cy - size / 2}px`;
+    if (i % 3 === 0) p.style.borderRadius = "999px";
+    hero.appendChild(p);
+    // The button sits at the top-right: fan out down and to the sides, then drift down a little as they fade.
+    const angle = Math.PI * (0.08 + 0.84 * Math.random());
+    const dist = 60 + Math.random() * 110;
+    const dx = Math.cos(angle) * dist * (Math.random() < 0.65 ? -1 : 1), dy = Math.sin(angle) * dist;
+    const rot = (Math.random() - 0.5) * 300;
+    p.animate([
+      { transform: "translate(0,0) rotate(0deg) scale(1)", opacity: 1 },
+      { transform: `translate(${dx}px, ${dy}px) rotate(${rot * 0.7}deg) scale(1)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(${dx * 1.08}px, ${dy + 24}px) rotate(${rot}deg) scale(0.7)`, opacity: 0 },
+    ], { duration: (800 + Math.random() * 250) * slow(), easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" })
+      .finished.then(() => p.remove());
+  }
+}
+
+let publishing = false;
+pub.addEventListener("click", async () => {
+  if (publishing || hero.dataset.phase === "share") return;
+  publishing = true;
+  await swapLabel(pub, '<span class="spinner"></span>');
+  await wait(600); // the real request
+  pub.classList.add("done");
+  await swapLabel(pub, '<svg class="check" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5l3 3 6-7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Published');
+  burst(pub);
+  await wait(260);
+  hero.dataset.phase = "share";
+  document.getElementById("tab-content").classList.remove("active");
+  document.getElementById("tab-share").classList.add("active");
+  await wait(700);
+  document.getElementById("live-toast").classList.add("show");
+  await wait(2600);
+  document.getElementById("live-toast").classList.remove("show");
+  publishing = false;
+});
+document.getElementById("replay").addEventListener("click", () => {
+  hero.dataset.phase = "build";
+  pub.classList.remove("done", "swap");
+  label.innerHTML = "Publish";
+  document.getElementById("tab-share").classList.remove("active");
+  document.getElementById("tab-content").classList.add("active");
+  document.getElementById("live-toast").classList.remove("show");
+  publishing = false;
+});
+
+/* ---------- Copy link ---------- */
+function wireCopy(btn) {
+  let busy = false;
+  btn.addEventListener("click", async () => {
+    if (busy) return; busy = true;
+    await swapLabel(btn, "✓ Copied");
+    await wait(1600);
+    await swapLabel(btn, "🔗 Copy link");
+    busy = false;
+  });
+}
+wireCopy(document.getElementById("copy"));
+wireCopy(document.getElementById("copy-hero"));
+
+/* ---------- Everyday ---------- */
+const toggle = (id) => document.getElementById(id).toggleAttribute("data-closed");
+document.getElementById("menu-btn").onclick = () => toggle("menu");
+document.getElementById("modal-btn").onclick = () => { toggle("overlay"); toggle("modal"); };
+document.getElementById("modal-close").onclick = () => { toggle("overlay"); toggle("modal"); };
+let tt; document.getElementById("toast-btn").onclick = () => { const t = document.getElementById("toast"); t.removeAttribute("data-closed"); clearTimeout(tt); tt = setTimeout(() => t.setAttribute("data-closed", ""), 2200 * slow()); };
+document.getElementById("drawer-btn").onclick = () => toggle("drawer");
+document.getElementById("drawer-close").onclick = () => toggle("drawer");
+const QS = ["What's your first name?", "How likely are you to recommend us?", "Which features do you use most?"];
+let qi = 0;
+document.getElementById("q-btn").onclick = async () => {
+  const s = document.getElementById("qs");
+  s.dataset.state = "out";
+  await wait(250);
+  qi = (qi + 1) % QS.length;
+  s.innerHTML = `<b>${qi + 1}</b><span>${QS[qi]}</span>`;
+  document.getElementById("prog").style.transform = `scaleX(${(qi + 1) / QS.length})`;
+  s.dataset.state = "in";
+  requestAnimationFrame(() => requestAnimationFrame(() => delete s.dataset.state));
+};
+
+/* ---------- Curves ---------- */
+const curves = [["Entering / leaving", [0.23, 1, 0.32, 1]], ["Moving on screen", [0.77, 0, 0.175, 1]], ["Drawer", [0.32, 0.72, 0, 1]]];
+document.getElementById("plot").innerHTML = curves.map(([name, [x1, y1, x2, y2]], i) => `
+  <div class="card"><h3>${name}</h3><p class="spec">cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})</p>
+  <svg viewBox="-10 -10 120 120" preserveAspectRatio="none"><path d="M0 100 L100 0" stroke="#e4e3e5" stroke-dasharray="3 3"/>
+  <path d="M0 100 C ${x1 * 100} ${100 - y1 * 100}, ${x2 * 100} ${100 - y2 * 100}, 100 0" fill="none" stroke="#3c323e" stroke-width="2.5"/></svg>
+  <div class="dot-track"><span class="dot" id="dot${i}"></span></div>
+  <button class="btn btn-outline" style="margin-top:10px" data-curve="${i}">Play</button></div>`).join("");
+document.querySelectorAll("[data-curve]").forEach((b) => b.onclick = () => {
+  const [, c] = curves[b.dataset.curve];
+  const dot = document.getElementById(`dot${b.dataset.curve}`);
+  const w = dot.parentElement.clientWidth - 24;
+  dot.animate([{ transform: "translateX(0)" }, { transform: `translateX(${w}px)` }], { duration: 600 * slow(), easing: `cubic-bezier(${c.join(",")})`, fill: "forwards" });
+});
+
+/* ---------- Broken on purpose ---------- */
+const DEMOS = {
+  easein: { from: { opacity: 0, transform: "scale(0.95)" }, duration: 300, easing: "cubic-bezier(0.55, 0.055, 0.675, 0.19)" },
+  easeout: { from: { opacity: 0, transform: "scale(0.95)" }, duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+  scale0: { from: { opacity: 1, transform: "scale(0)" }, duration: 240, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+  scale95: { from: { opacity: 0, transform: "scale(0.95)" }, duration: 240, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+  slow: { from: { opacity: 0, transform: "scale(0.96)" }, duration: 600, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+  fast: { from: { opacity: 0, transform: "scale(0.96)" }, duration: 240, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+};
+document.querySelectorAll("[data-play]").forEach((b) => b.onclick = () => b.dataset.play.split(",").forEach((k) => {
+  const d = DEMOS[k];
+  document.querySelector(`[data-demo="${k}"] .pop`).animate([d.from, { opacity: 1, transform: "scale(1)" }], { duration: d.duration * slow(), easing: d.easing });
+}));
+</script>
+</body>
+</html>

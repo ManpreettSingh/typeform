@@ -1,0 +1,127 @@
+/*
+ * Typeform Original · design tokens v1.0
+ * Measured from real Typeform screenshots (workspace, builder, share, results), 2026-10-09.
+ * Source of truth for frontend/app/globals.css: copy changes here first.
+ *
+ * Contrast (WCAG): ink/primary/text/muted pass AA on every light background.
+ * --tf-subtle (3.4–4.0:1) is for counters / large or decorative text only; small text uses --tf-muted.
+ * --tf-info (4.3:1) is for icons only.
+ */
+:root {
+  /* Ink scale (plum-gray, not neutral gray) */
+  --tf-ink: #2a222b;        /* darkest: respondent text + buttons, question badge */
+  --tf-primary: #3c323e;    /* dark buttons (Create form, Add content), titles, strong labels */
+  --tf-text: #4c414e;       /* nav + tab labels, body copy */
+  --tf-muted: #655d67;      /* secondary labels, icons */
+  --tf-subtle: #847e85;     /* counters, large hints only */
+  --tf-disabled: #c4c1c5;
+
+  /* Surfaces */
+  --tf-page: #ffffff;       /* top bars, cards, table */
+  --tf-surface: #f7f7f8;    /* app frame, side panels, toolbar */
+  --tf-selected: #ededee;   /* active pill, selected row, hover */
+  --tf-canvas: #fafafa;     /* builder canvas, default form background */
+  --tf-field: #fdfdfe;      /* inputs, selects, outline buttons */
+  --tf-line: #e4e3e5;       /* control borders */
+  --tf-line-soft: #ebeaec;  /* dividers */
+  --tf-overlay: rgb(42 34 43 / 0.7);
+
+  /* Status */
+  --tf-success: #177767;    /* "Completed" pill, success */
+  --tf-success-soft: #f4faf8;
+  --tf-danger: #c0392b;
+  --tf-danger-soft: #fdeceb;
+  --tf-info: #2f7bd3;       /* icon only */
+  --tf-toast-bg: #fafcff;
+  --tf-toast-line: #9ac9f4;
+  --tf-badge-bg: #f6fafd;   /* "Beta" / "Soon" */
+  --tf-badge-line: #bdddf9;
+  --tf-badge-text: #01487f;
+
+  /* Question-type chips (bg); icon + number are always --tf-primary */
+  --tf-qt-text: #bdddf9;    /* short text, long text */
+  --tf-qt-choice: #ddd6fa;  /* multiple choice, dropdown, yes/no */
+  --tf-qt-rating: #c4e3ba;  /* rating */
+  --tf-qt-contact: #f8cdd8; /* email */
+  --tf-qt-other: #fbe19d;   /* number */
+  --tf-qt-screen: #dedcde;  /* welcome / ending screens */
+
+  /* Default form theme (Typeform's current monochrome default) */
+  --tf-form-bg: #fafafa;
+  --tf-form-text: #2a222b;
+  --tf-form-button: #2a222b;
+
+  /* Type */
+  --tf-font: "Inter", system-ui, sans-serif; /* stand-in for Typeform's licensed TWK Lausanne */
+  --tf-text-xs: 12px;   /* badges, hints */
+  --tf-text-sm: 13px;   /* secondary rows */
+  --tf-text-base: 14px; /* UI default */
+  --tf-text-md: 16px;
+  --tf-text-lg: 20px;   /* question description */
+  --tf-text-xl: 24px;   /* page titles: "My workspace", "Response summary" */
+  --tf-text-q: 26px;    /* respondent question title (28px on the builder canvas) */
+  --tf-text-answer: 30px;
+
+  /* Spacing (4px scale) */
+  --tf-space-1: 4px; --tf-space-2: 8px; --tf-space-3: 12px; --tf-space-4: 16px;
+  --tf-space-5: 20px; --tf-space-6: 24px; --tf-space-8: 32px; --tf-space-10: 40px; --tf-space-12: 48px;
+
+  /* Radius */
+  --tf-radius-sm: 6px;   /* buttons, nav pills */
+  --tf-radius-md: 8px;   /* inputs, selects, segmented, respondent buttons */
+  --tf-radius-row: 10px; /* form list rows */
+  --tf-radius-lg: 12px;  /* panels, cards, app frame */
+  --tf-radius-modal: 16px;
+  --tf-radius-pill: 999px;
+
+  /* Elevation */
+  --tf-shadow-row: 0 1px 4px rgb(42 34 43 / 0.06);
+  --tf-shadow-popover: 0 4px 16px rgb(42 34 43 / 0.12), 0 1px 3px rgb(42 34 43 / 0.08);
+  --tf-shadow-modal: 0 16px 48px rgb(42 34 43 / 0.2);
+  --tf-shadow-toast: 0 4px 16px rgb(42 34 43 / 0.08);
+
+  /* Motion (emil-design-eng rules, tuned to Typeform's calm feel) */
+  --tf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --tf-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --tf-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --tf-dur-press: 120ms;
+  --tf-dur-hover: 150ms;
+  --tf-dur-menu: 180ms;
+  --tf-dur-modal: 240ms;
+  --tf-dur-question-in: 350ms;  /* respondent slide in */
+  --tf-dur-question-out: 250ms; /* respondent slide out */
+}
+
+/* Dark mode (bonus; Typeform has none). Layering mirrors light mode: frame/panels darkest, rows and cards
+   raised above them; tag colors stay saturated (with dark ink on top) so forms keep their color. */
+:root[data-theme="dark"] {
+  --tf-ink: #ffffff;
+  --tf-primary: #f3f0f3;
+  --tf-text: #e2dde3;
+  --tf-muted: #b4adb5;
+  --tf-subtle: #918a92;
+  --tf-disabled: #5a535b;
+  --tf-page: #262128;
+  --tf-surface: #1a171b;
+  --tf-selected: #353037;
+  --tf-canvas: #201c21;
+  --tf-field: #2b262d;
+  --tf-line: #423b44;
+  --tf-line-soft: #322c34;
+  --tf-overlay: rgb(0 0 0 / 0.6);
+  --tf-success: #5ccb94;
+  --tf-success-soft: #173323;
+  --tf-danger: #f2716a;
+  --tf-danger-soft: #3b1f1d;
+  --tf-toast-bg: #1f2633;
+  --tf-toast-line: #34557f;
+  --tf-badge-bg: #1c2633;
+  --tf-badge-line: #34557f;
+  --tf-badge-text: #9fc4f5;
+  --tf-qt-text: #8fc3f3;
+  --tf-qt-choice: #b6a8f4;
+  --tf-qt-rating: #9ed58b;
+  --tf-qt-contact: #f2a2b9;
+  --tf-qt-other: #f4cd6c;
+  --tf-qt-screen: #bab4bd;
+}

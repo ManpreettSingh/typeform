@@ -1,112 +1,136 @@
 @import "tailwindcss";
 
 /*
- * Design tokens — the single place to tune the Typeform look (see docs/DESIGN_SYSTEM.md).
- * Components must use the Tailwind utilities generated from @theme below
- * (bg-bg, text-text-muted, border-border, bg-primary, rounded-card, ...), never raw values.
+ * Design tokens — the single place to tune the look. Values come from the "Typeform Original" brand kit
+ * (docs/design/brand-kit/tokens.css), measured from real Typeform screens: plum-tinted grays, one dark
+ * action color, colored question-type tags. Components use the Tailwind utilities generated from @theme
+ * below (bg-bg, text-text-muted, border-border, bg-primary, rounded-card, ...), never raw values.
  */
 :root {
   color-scheme: light;
 
   /* Fixed ink/paper for form-themed (respondent) content: unaffected by dark mode. */
-  --ink: #262627;
+  --ink: #2a222b;
   --paper: #ffffff;
 
-  --bg: #ffffff;
-  --bg-subtle: #f5f5f5;
-  --bg-hover: #ebebeb;
-  --text: #262627;
-  --text-muted: #6b6b6c;
-  --border: #e5e5e5;
-  --border-strong: #c2c2c2;
-  --primary: #262627;
-  --primary-hover: #3d3d3e;
+  --bg: #ffffff;            /* page, top bars, cards, rows */
+  --bg-subtle: #f7f7f8;     /* app frame, side panels, toolbar */
+  --bg-hover: #ededee;      /* active pill, selected row, hover */
+  --canvas: #fafafa;        /* builder canvas */
+  --field: #fdfdfe;         /* inputs, selects, outline buttons */
+  --text: #3c323e;          /* titles, labels, body */
+  --text-soft: #4c414e;     /* nav and tab labels */
+  --text-muted: #655d67;    /* secondary labels, icons */
+  --text-subtle: #847e85;   /* counters and large hints only (3.4–4:1) */
+  --border: #ebeaec;        /* dividers */
+  --border-strong: #e4e3e5; /* control borders */
+  --primary: #3c323e;       /* the one dark action color */
+  --primary-hover: #2a222b;
   --primary-fg: #ffffff;
-  --accent: #0445af;
-  --accent-soft: #e6ecf7;
-  --danger: #d93025;
-  --danger-hover: #b3261e;
-  --danger-soft: #fdecea;
-  --success: #1f7a4d;
-  --success-soft: #e3f4ea;
-  --overlay: rgb(38 38 39 / 0.45);
+  --accent: #3c323e;        /* focus rings, links, selected marks */
+  --accent-soft: #ededee;
+  --danger: #c0392b;
+  --danger-hover: #a5281c;
+  --danger-soft: #fdeceb;
+  --success: #177767;
+  --success-soft: #f4faf8;
+  --success-line: #a7d3c7;
+  --info: #2f7bd3;          /* icons only */
+  --toast-bg: #fafcff;
+  --toast-line: #9ac9f4;
+  --badge-bg: #f6fafd;      /* "Soon" / "Beta" */
+  --badge-line: #bdddf9;
+  --badge-text: #01487f;
+  --overlay: rgb(42 34 43 / 0.7);
 
-  /* Dashboard card thumbnails, picked deterministically per form */
-  --thumb-1: #e8e2f8;
-  --thumb-2: #dcefe6;
-  --thumb-3: #fde6d8;
-  --thumb-4: #dce8f8;
-  --thumb-5: #f8e1ea;
-  --thumb-6: #f3eed5;
-  --thumb-fg: #262627;
+  /* Form icons in the workspace (Typeform's colored squares), picked deterministically per form */
+  --thumb-1: #bdddf9;
+  --thumb-2: #ddd6fa;
+  --thumb-3: #c4e3ba;
+  --thumb-4: #f8cdd8;
+  --thumb-5: #fbe19d;
+  --thumb-6: #dedcde;
+  --thumb-fg: #2a222b;
+  /* Account avatar square in the top bar (Typeform's), next to the logo pill */
+  --account: #d27169;
+  --account-fg: #ffffff;
 
-  /* Question-type chips (builder list, type picker) */
-  --qt-text: #dbe7fb;
-  --qt-text-fg: #1f4fa3;
-  --qt-choice: #ece3fb;
-  --qt-choice-fg: #5b3aa8;
-  --qt-contact: #dcf1e5;
-  --qt-contact-fg: #1f7a4d;
-  --qt-number: #fde7d6;
-  --qt-number-fg: #a8521f;
-  --qt-yesno: #fbe2ea;
-  --qt-yesno-fg: #a3304f;
+  /* Question-type tags, grouped like Typeform (icon + number always --qt-fg) */
+  --qt-text: #bdddf9;    /* short / long text */
+  --qt-choice: #ddd6fa;  /* multiple choice, dropdown, yes/no */
+  --qt-rating: #c4e3ba;  /* rating */
+  --qt-contact: #f8cdd8; /* email */
+  --qt-other: #fbe19d;   /* number */
+  --qt-screen: #dedcde;  /* welcome / ending */
+  --qt-fg: #3c323e;
 
-  /* Respondent screens. Defaults only: RespondentTheme overrides these per form theme. */
-  --resp-bg: var(--paper);
+  /* Respondent screens. Defaults only: RespondentTheme overrides these per form theme
+     (Typeform's current default is monochrome). */
+  --resp-bg: #fafafa;
   --resp-text: var(--ink);
-  --resp-accent: #0445af;
+  --resp-accent: var(--ink);
   --resp-accent-fg: var(--paper);
   --resp-font: var(--font-inter), system-ui, sans-serif;
   /* Validation message on respondent screens; fixed like ink/paper. */
-  --resp-error: #d93025;
-  --resp-error-soft: #fdecea;
+  --resp-error: #c0392b;
+  --resp-error-soft: #fdeceb;
 }
 
 /*
- * Dark mode for the creator UI (dashboard, builder, results): the same tokens, swapped.
+ * Dark mode for the creator UI (dashboard, builder, results): the same plum tint, inverted.
  * <html data-theme> is set before first paint by the script in app/layout.tsx (lib/colorScheme.ts).
  */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #18181a;
-  --bg-subtle: #222225;
-  --bg-hover: #2e2e32;
-  --text: #ededee;
-  --text-muted: #a3a3a8;
-  --border: #323236;
-  --border-strong: #4b4b51;
-  --primary: #ededee;
-  --primary-hover: #d2d2d5;
-  --primary-fg: #18181a;
-  --accent: #7aa7f5;
-  --accent-soft: #1f2d48;
+  /* Layering mirrors light mode: the frame/panels are the darkest layer, rows and cards sit above it. */
+  --bg: #262128;            /* top bar, rows, cards (raised) */
+  --bg-subtle: #1a171b;     /* app frame, side panels, toolbar */
+  --bg-hover: #353037;
+  --canvas: #201c21;
+  --field: #2b262d;
+  --text: #f3f0f3;
+  --text-soft: #e2dde3;
+  --text-muted: #b4adb5;
+  --text-subtle: #918a92;
+  --border: #322c34;
+  --border-strong: #423b44;
+  --primary: #f3f0f3;
+  --primary-hover: #ffffff;
+  --primary-fg: #1a171b;
+  --accent: #f3f0f3;
+  --accent-soft: #353037;
   --danger: #f2716a;
   --danger-hover: #f59590;
   --danger-soft: #3b1f1d;
   --success: #5ccb94;
   --success-soft: #173323;
+  --success-line: #2d5a42;
+  --info: #9fc4f5;
+  --toast-bg: #1f2633;
+  --toast-line: #34557f;
+  --badge-bg: #1c2633;
+  --badge-line: #34557f;
+  --badge-text: #9fc4f5;
   --overlay: rgb(0 0 0 / 0.6);
 
-  --thumb-1: #2e2944;
-  --thumb-2: #213429;
-  --thumb-3: #3b2b22;
-  --thumb-4: #222f47;
-  --thumb-5: #3a2630;
-  --thumb-6: #35311f;
-  --thumb-fg: #ededee;
+  /* Typeform's tag colors stay saturated in the dark so forms and question types keep their color;
+     icons and numbers on them switch to dark ink. */
+  --thumb-1: #8fc3f3;
+  --thumb-2: #b6a8f4;
+  --thumb-3: #9ed58b;
+  --thumb-4: #f2a2b9;
+  --thumb-5: #f4cd6c;
+  --thumb-6: #bab4bd;
+  --thumb-fg: #1a171b;
 
-  --qt-text: #1f2d48;
-  --qt-text-fg: #a3c1f7;
-  --qt-choice: #2e2547;
-  --qt-choice-fg: #c7b0f7;
-  --qt-contact: #173323;
-  --qt-contact-fg: #84d6aa;
-  --qt-number: #3d2b1c;
-  --qt-number-fg: #f3b688;
-  --qt-yesno: #3d202b;
-  --qt-yesno-fg: #f3a1bb;
+  --qt-text: #8fc3f3;
+  --qt-choice: #b6a8f4;
+  --qt-rating: #9ed58b;
+  --qt-contact: #f2a2b9;
+  --qt-other: #f4cd6c;
+  --qt-screen: #bab4bd;
+  --qt-fg: #1a171b;
 }
 
 @theme inline {
@@ -114,7 +138,18 @@
   --color-bg-subtle: var(--bg-subtle);
   --color-bg-hover: var(--bg-hover);
   --color-text: var(--text);
+  --color-text-soft: var(--text-soft);
   --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-canvas: var(--canvas);
+  --color-field: var(--field);
+  --color-info: var(--info);
+  --color-toast-bg: var(--toast-bg);
+  --color-toast-line: var(--toast-line);
+  --color-badge-bg: var(--badge-bg);
+  --color-badge-line: var(--badge-line);
+  --color-badge-text: var(--badge-text);
+  --color-success-line: var(--success-line);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-primary: var(--primary);
@@ -135,16 +170,15 @@
   --color-thumb-5: var(--thumb-5);
   --color-thumb-6: var(--thumb-6);
   --color-thumb-fg: var(--thumb-fg);
+  --color-account: var(--account);
+  --color-account-fg: var(--account-fg);
   --color-qt-text: var(--qt-text);
-  --color-qt-text-fg: var(--qt-text-fg);
   --color-qt-choice: var(--qt-choice);
-  --color-qt-choice-fg: var(--qt-choice-fg);
+  --color-qt-rating: var(--qt-rating);
   --color-qt-contact: var(--qt-contact);
-  --color-qt-contact-fg: var(--qt-contact-fg);
-  --color-qt-number: var(--qt-number);
-  --color-qt-number-fg: var(--qt-number-fg);
-  --color-qt-yesno: var(--qt-yesno);
-  --color-qt-yesno-fg: var(--qt-yesno-fg);
+  --color-qt-other: var(--qt-other);
+  --color-qt-screen: var(--qt-screen);
+  --color-qt-fg: var(--qt-fg);
   --color-resp-bg: var(--resp-bg);
   --color-resp-text: var(--resp-text);
   --color-resp-accent: var(--resp-accent);
@@ -155,16 +189,24 @@
 
   --font-sans: var(--font-inter), system-ui, sans-serif;
 
-  --radius-input: 4px;
-  --radius-card: 8px;
+  --radius-input: 6px;  /* buttons, nav pills, small controls */
+  --radius-field: 8px;  /* inputs, selects, segmented controls */
+  --radius-row: 10px;   /* form list rows */
+  --radius-card: 12px;  /* panels, cards, app frame */
+  --radius-modal: 16px;
   --radius-pill: 999px;
   /* Respondent buttons (OK, Start, ↑/↓): rounder than builder controls, like current Typeform. */
   --radius-resp-button: 8px;
 
-  --shadow-popover: 0 4px 16px rgb(0 0 0 / 0.12), 0 1px 3px rgb(0 0 0 / 0.08);
-  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.2);
+  --shadow-row: 0 1px 4px rgb(42 34 43 / 0.06);
+  --shadow-popover: 0 4px 16px rgb(42 34 43 / 0.12), 0 1px 3px rgb(42 34 43 / 0.08);
+  --shadow-modal: 0 16px 48px rgb(42 34 43 / 0.2);
+  --shadow-toast: 0 4px 16px rgb(42 34 43 / 0.08);
 
   --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  /* Motion tokens from the brand kit (round 4): strong ease-out for entering/leaving, drawer curve. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --animate-shake: shake 0.4s var(--ease-out-cubic);
   @keyframes shake {

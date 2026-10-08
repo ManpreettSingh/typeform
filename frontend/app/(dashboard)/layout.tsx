@@ -1,10 +1,15 @@
+import { SectionTabs } from "@/components/dashboard/SectionTabs";
 import { TopNav } from "@/components/dashboard/TopNav";
 
+/** Typeform's workspace shell: white top bar, then a rounded light frame holding section tabs + content. */
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
+    <div className="flex h-dvh flex-col bg-bg">
       <TopNav />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">{children}</main>
-    </>
+      <div className="mx-1.5 mb-1.5 flex min-h-0 flex-1 flex-col rounded-card bg-bg-subtle">
+        <SectionTabs />
+        <main className="flex min-h-0 flex-1">{children}</main>
+      </div>
+    </div>
   );
 }

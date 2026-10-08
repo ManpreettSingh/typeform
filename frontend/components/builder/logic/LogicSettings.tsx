@@ -2,11 +2,12 @@
 
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { useState } from "react";
-import { Button, IconButton, Input, Select, type SelectOption } from "@/components/ui";
+import { IconButton, Input, Select, type SelectOption } from "@/components/ui";
 import { OPS_BY_TYPE, OP_LABELS } from "@/lib/logic";
 import { optionLetter } from "@/lib/questionTypes";
 import type { LogicOp, LogicRule, LogicTarget, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { PanelCard } from "../panel/PanelCard";
 import { isCompleteRule, questionLabel, ruleProblem } from "./ruleText";
 
 const MAX_RULES = 20;
@@ -36,50 +37,52 @@ export function LogicSettings({ question }: { question: Question }) {
     );
 
   return (
-    <section aria-labelledby="logic-heading" className="flex flex-col gap-4 border-t border-border pt-5">
-      <div className="flex flex-col gap-1">
-        <h3 id="logic-heading" className="text-sm font-semibold text-text">
-          Logic
-        </h3>
-        <p className="text-xs text-text-muted">
-          Jump to a later question, or end the form, depending on the answer. The first matching rule wins.
-        </p>
-      </div>
-
-      {rules.map((rule, i) => (
-        <RuleEditor
-          key={i}
-          number={i + 1}
-          rule={rule}
-          question={question}
-          questions={questions}
-          index={index}
-          onChange={(patch, debounceMs) => update(i, patch, debounceMs)}
-          onRemove={() => change(rules.filter((_, j) => j !== i))}
-        />
-      ))}
-
-      {rules.length > 0 && (
-        <p className="text-xs text-text-muted">
-          Any other answer goes to{" "}
-          <span className="font-medium text-text">
-            {next ? questionLabel(questions, next.id) : "the end of the form"}
-          </span>
-        </p>
-      )}
-
-      <div>
-        <Button
+    <PanelCard
+      title="Logic"
+      action={
+        <IconButton
           size="sm"
-          variant="secondary"
-          leftIcon={<Plus className="size-4" aria-hidden />}
+          label="Add rule"
+          icon={<Plus className="size-4" />}
           disabled={rules.length >= MAX_RULES}
           onClick={() => change([...rules, newRule(question, next?.id ?? "end")])}
-        >
-          Add rule
-        </Button>
+          className="border border-border-strong bg-field"
+        />
+      }
+    >
+      <div className="flex flex-col gap-3">
+        {rules.length === 0 && (
+          <p className="text-xs text-text-muted">
+            Jump to a later question, or end the form, depending on the answer. Without rules, this goes to:{" "}
+            <span className="font-medium text-text">
+              {next ? questionLabel(questions, next.id) : "the end of the form"}
+            </span>
+          </p>
+        )}
+
+        {rules.map((rule, i) => (
+          <RuleEditor
+            key={i}
+            number={i + 1}
+            rule={rule}
+            question={question}
+            questions={questions}
+            index={index}
+            onChange={(patch, debounceMs) => update(i, patch, debounceMs)}
+            onRemove={() => change(rules.filter((_, j) => j !== i))}
+          />
+        ))}
+
+        {rules.length > 0 && (
+          <p className="text-xs text-text-muted">
+            Any other answer goes to{" "}
+            <span className="font-medium text-text">
+              {next ? questionLabel(questions, next.id) : "the end of the form"}
+            </span>
+          </p>
+        )}
       </div>
-    </section>
+    </PanelCard>
   );
 }
 
@@ -119,7 +122,8 @@ function RuleEditor({ number, rule, question, questions, index, onChange, onRemo
     .filter((q, i) => i > index || (q.id === rule.to && q.id !== question.id))
     .map((q) => ({
       value: String(q.id),
-      label: questions.indexOf(q) > index ? questionLabel(questions, q.id) : `${questionLabel(questions, q.id)} (earlier)`,
+      label:
+        questions.indexOf(q) > index ? questionLabel(questions, q.id) : `${questionLabel(questions, q.id)} (earlier)`,
     }));
   targets.push({ value: "end", label: "End of form" });
 
@@ -127,7 +131,7 @@ function RuleEditor({ number, rule, question, questions, index, onChange, onRemo
     <div
       role="group"
       aria-label={`Rule ${number}`}
-      className="flex flex-col gap-2.5 rounded-card border border-border bg-bg-subtle p-3"
+      className="flex flex-col gap-2.5 rounded-field border border-border-strong bg-bg p-3"
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold tracking-wide text-text-muted uppercase">If the answer</span>

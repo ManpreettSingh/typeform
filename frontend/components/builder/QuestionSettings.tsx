@@ -1,100 +1,91 @@
 "use client";
 
-import { MousePointerClick, Trash2 } from "lucide-react";
-import { useEffect, useRef } from "react";
-import { Button, EmptyState, Textarea, Toggle } from "@/components/ui";
+import { Minus, MousePointerClick, Trash2, Video } from "lucide-react";
+import { Button, EmptyState } from "@/components/ui";
 import { QUESTION_TYPE_META } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { LogicSettings } from "./logic/LogicSettings";
+import { PanelCard, PanelDivider, SwitchRow } from "./panel/PanelCard";
 import { QuestionTypeChip } from "./QuestionTypeChip";
 import { ChoiceSettings } from "./settings/ChoiceSettings";
 import { NumberSettings } from "./settings/NumberSettings";
 import { RatingSettings } from "./settings/RatingSettings";
 import { TextSettings } from "./settings/TextSettings";
 
-const TITLE_MAX = 1000;
-const DESCRIPTION_MAX = 2000;
-
+/**
+ * Right panel for the selected question, laid out like Typeform's: a Question card, an Answer card (type,
+ * Required, type-specific switches) and a Logic card. Title, description and choices are edited on the canvas.
+ */
 export function QuestionSettings({ onDelete }: { onDelete: (question: Question) => void }) {
   const question = useBuilderStore((s) => s.questions.find((q) => q.id === s.selectedId));
-  const index = useBuilderStore((s) => s.questions.findIndex((q) => q.id === s.selectedId));
 
   if (!question) {
     return (
-      <EmptyState
-        className="py-10"
-        icon={<MousePointerClick className="size-6" />}
-        title="No question selected"
-        description="Pick a question on the left to edit it."
-      />
+      <PanelCard>
+        <EmptyState
+          className="py-8"
+          icon={<MousePointerClick className="size-6" />}
+          title="No question selected"
+          description="Pick a question on the left, or add content."
+        />
+      </PanelCard>
     );
   }
   // Keyed so per-editor local state (e.g. half-typed numbers) resets between questions.
-  return <Fields key={question.id} question={question} number={index + 1} onDelete={onDelete} />;
+  return <Fields key={question.id} question={question} onDelete={onDelete} />;
 }
 
-function Fields({
-  question,
-  number,
-  onDelete,
-}: {
-  question: Question;
-  number: number;
-  onDelete: (question: Question) => void;
-}) {
+function Fields({ question, onDelete }: { question: Question; onDelete: (question: Question) => void }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
-  const titleRef = useRef<HTMLTextAreaElement>(null);
-  const isUntitled = !question.title;
-
-  // A freshly added question starts untitled: put the cursor straight into its title.
-  useEffect(() => {
-    if (isUntitled) titleRef.current?.focus();
-    // Only on first render for this question.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
-    <div className="flex flex-col gap-6 p-5">
-      <div className="flex items-center gap-2 text-sm text-text-muted">
-        <QuestionTypeChip type={question.type} />
-        <span className="font-medium text-text">{QUESTION_TYPE_META[question.type].label}</span>
-        <span>· Question {number}</span>
-      </div>
+    <div className="flex flex-col gap-3">
+      <PanelCard title="Question">
+        <div role="group" aria-label="Question format" className="grid grid-cols-2 rounded-field bg-bg-hover p-0.5">
+          <span className="flex h-8 items-center justify-center gap-2 rounded-input bg-bg text-sm text-text-soft shadow-sm">
+            <Minus className="size-4" aria-hidden />
+            Text
+          </span>
+          <span
+            aria-disabled="true"
+            title="Video questions are coming soon"
+            className="flex h-8 cursor-default items-center justify-center gap-2 text-sm text-text-muted"
+          >
+            <Video className="size-4" aria-hidden />
+            Video
+          </span>
+        </div>
+      </PanelCard>
 
-      <Textarea
-        ref={titleRef}
-        label="Question"
-        placeholder="Your question here."
-        value={question.title}
-        maxLength={TITLE_MAX}
-        onChange={(e) => updateQuestion(question.id, { title: e.target.value })}
-      />
-      <Textarea
-        label="Description"
-        placeholder="Optional help text shown under the question"
-        value={question.description ?? ""}
-        maxLength={DESCRIPTION_MAX}
-        onChange={(e) => updateQuestion(question.id, { description: e.target.value || null })}
-      />
-      <Toggle
-        label="Required"
-        checked={question.required}
-        onChange={(required) => updateQuestion(question.id, { required }, 0)}
-      />
-
-      <section className="flex flex-col gap-4 border-t border-border pt-5">
-        <h3 className="text-sm font-semibold text-text">Settings</h3>
+      <PanelCard title="Answer">
+        <div
+          title="The answer type is set when the question is added"
+          className="flex h-9 items-center gap-2.5 rounded-field border border-border-strong bg-field px-1.5 text-sm text-text"
+        >
+          <QuestionTypeChip type={question.type} />
+          {QUESTION_TYPE_META[question.type].label}
+        </div>
+        <PanelDivider />
+        <SwitchRow
+          label="Required"
+          checked={question.required}
+          onChange={(required) => updateQuestion(question.id, { required }, 0)}
+        />
         <TypeSettings question={question} />
-      </section>
-
-      <LogicSettings question={question} />
-
-      <div className="border-t border-border pt-4">
-        <Button variant="dangerGhost" size="sm" leftIcon={<Trash2 className="size-4" aria-hidden />} onClick={() => onDelete(question)}>
+        <PanelDivider />
+        <Button
+          variant="dangerGhost"
+          size="sm"
+          className="-ml-2"
+          leftIcon={<Trash2 className="size-4" aria-hidden />}
+          onClick={() => onDelete(question)}
+        >
           Delete question
         </Button>
-      </div>
+      </PanelCard>
+
+      <LogicSettings question={question} />
     </div>
   );
 }
@@ -113,6 +104,24 @@ function TypeSettings({ question }: { question: Question }) {
       return <TextSettings question={question} />;
     case "email":
     case "yes_no":
-      return <p className="text-sm text-text-muted">No extra settings for this question type.</p>;
+      return null;
   }
+}
+
+/** Welcome screen panel: what it is and when respondents see it. */
+export function WelcomeSettings() {
+  const hasDescription = useBuilderStore((s) => Boolean(s.form?.description?.trim()));
+  return (
+    <PanelCard title="Welcome Screen">
+      <p className="text-sm text-text-muted">
+        Edit the title and description on the canvas. The title is also your form&rsquo;s name.
+      </p>
+      <PanelDivider />
+      <p className="text-sm text-text-muted">
+        {hasDescription
+          ? "Respondents see this screen before question 1, with a Start button."
+          : "Hidden until it has a description: respondents start on question 1."}
+      </p>
+    </PanelCard>
+  );
 }

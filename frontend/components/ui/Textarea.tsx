@@ -29,11 +29,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={clsx(
-          "w-full resize-y rounded-input border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted",
+          "w-full resize-y rounded-field border bg-field px-3 py-2 text-sm text-text placeholder:text-text-muted",
           "transition-colors duration-150 focus:outline-none focus:ring-2",
           error
             ? "border-danger focus:ring-danger-soft"
-            : "border-border-strong focus:border-accent focus:ring-accent-soft",
+            : "border-border-strong focus:border-text-muted focus:ring-accent-soft",
           "disabled:cursor-not-allowed disabled:bg-bg-subtle",
           className,
         )}

@@ -15,7 +15,11 @@ export function PreviewOverlay({ onClose }: { onClose: () => void }) {
   const form = useBuilderStore((s) => s.form!);
   const questions = useBuilderStore((s) => s.questions);
   const [run, setRun] = useState(0);
-  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -59,7 +63,13 @@ export function PreviewOverlay({ onClose }: { onClose: () => void }) {
       </div>
       <RespondentTheme theme={form.theme} className="min-h-0 flex-1">
         {/* Keyed by run: Restart starts a fresh flow. */}
-        <RespondentFlow key={run} questions={questions} thankYou={form.thank_you} />
+        <RespondentFlow
+          key={run}
+          questions={questions}
+          thankYou={form.thank_you}
+          // Same rule as the public page: a description turns the welcome screen on.
+          welcome={form.description?.trim() ? { title: form.title, description: form.description.trim() } : null}
+        />
       </RespondentTheme>
     </div>,
     document.body,

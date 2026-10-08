@@ -51,7 +51,7 @@ export function Tabs<T extends string>({ items, value, onChange, className, ...a
             className={clsx(
               "relative h-9 px-3 text-sm font-medium transition-colors duration-150",
               "focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50",
-              selected ? "text-text" : "text-text-muted hover:text-text",
+              selected ? "text-text" : "text-text-soft hover:text-text",
             )}
           >
             {item.label}

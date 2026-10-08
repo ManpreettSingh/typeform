@@ -6,7 +6,7 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 ## Forms (creator)
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/forms` | list (most recently updated first): id, title, status, slug, response_count (completed only), question_count, created_at, updated_at, published_at |
+| GET | `/forms` | list (most recently updated first): id, title, status, slug, response_count (completed only), response_total (all, partial included), question_count, theme (for the workspace preview), created_at, updated_at, published_at |
 | POST | `/forms` | create `{title?}` (body optional) → form with 0 questions, default theme/thank_you |
 | GET | `/forms/{id}` | form + ordered questions + response_count. All form-returning endpoints use this shape |
 | PATCH | `/forms/{id}` | `{title?, description?, theme?, thank_you?}`; omitted = unchanged; only `description` may be null; theme/thank_you replaced whole |

@@ -27,6 +27,10 @@ export type QuestionRendererProps = {
    */
   canEnd?: boolean;
   submitting?: boolean;
+  /** Builder canvas: editable title / description, and a replacement answer area (e.g. inline choice editing). */
+  titleSlot?: React.ReactNode;
+  descriptionSlot?: React.ReactNode;
+  answerSlot?: React.ReactNode;
 };
 
 /** One question as respondents see it. Used by the live flow, the full preview and the builder canvas. */
@@ -42,6 +46,9 @@ export function QuestionRenderer({
   isLast,
   canEnd = isLast,
   submitting,
+  titleSlot,
+  descriptionSlot,
+  answerSlot,
 }: QuestionRendererProps) {
   const titleId = useId();
   const live = mode === "live";
@@ -83,6 +90,8 @@ export function QuestionRenderer({
       submitLabel={isLast ? "Submit" : "OK"}
       submitting={submitting}
       onSubmit={onSubmit}
+      titleSlot={titleSlot}
+      descriptionSlot={descriptionSlot}
       hint={
         question.type === "long_text" ? (
           <>
@@ -91,7 +100,7 @@ export function QuestionRenderer({
         ) : undefined
       }
     >
-      {answer}
+      {answerSlot ?? answer}
     </QuestionShell>
   );
 }

@@ -23,6 +23,10 @@ def _response_count_expr() -> ColumnElement[int]:
     )
 
 
+def _response_total_expr() -> ColumnElement[int]:
+    return select(func.count(Response.id)).where(Response.form_id == Form.id).correlate(Form).scalar_subquery()
+
+
 def _question_count_expr() -> ColumnElement[int]:
     return select(func.count(Question.id)).where(Question.form_id == Form.id).correlate(Form).scalar_subquery()
 
@@ -37,13 +41,13 @@ def get_form(db: Session, form_id: int) -> Form:
 def list_forms(db: Session) -> list[FormListItem]:
     # One query with correlated counts — no per-form round trips.
     rows = db.execute(
-        select(Form, _response_count_expr(), _question_count_expr()).order_by(
+        select(Form, _response_count_expr(), _response_total_expr(), _question_count_expr()).order_by(
             Form.updated_at.desc(), Form.id.desc()
         )
     ).all()
     return [
-        _serialize(FormListItem, form, response_count=responses, question_count=questions)
-        for form, responses, questions in rows
+        _serialize(FormListItem, form, response_count=responses, response_total=total, question_count=questions)
+        for form, responses, total, questions in rows
     ]
 
 

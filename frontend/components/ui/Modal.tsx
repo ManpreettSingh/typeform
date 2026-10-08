@@ -1,8 +1,9 @@
 "use client";
 
+import { clsx } from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { IconButton } from "./IconButton";
 
@@ -12,20 +13,43 @@ export type ModalProps = {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** "xl" for wide pickers (Add content). */
+  size?: "md" | "xl";
+  /** Replaces the default title row (the title stays the dialog's accessible name). */
+  header?: ReactNode;
+  bodyClassName?: string;
+  /** Give focus back to what had it before opening (default). Off when the dialog's action moves focus itself. */
+  restoreFocus?: boolean;
 };
+
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 const noopSubscribe = () => () => {};
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  footer,
+  size = "md",
+  header,
+  bodyClassName,
+  restoreFocus = true,
+}: ModalProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   // Portals need `document`; false during SSR, true after hydration.
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
-  useEffect(() => {
+  // Read at close time, so the decision can be made by the action that closes the dialog. A layout effect, so it's
+  // already updated when the open-effect's cleanup (a passive effect) runs in the same commit.
+  const restoreFocusRef = useRef(restoreFocus);
+  useLayoutEffect(() => {
     onCloseRef.current = onClose;
-  }, [onClose]);
+    restoreFocusRef.current = restoreFocus;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +68,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
-      previouslyFocused?.focus();
+      if (restoreFocusRef.current) previouslyFocused?.focus();
     };
   }, [open]);
 
@@ -57,9 +81,8 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           <motion.div
             className="absolute inset-0 bg-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            animate={{ opacity: 1, transition: { duration: 0.24 } }}
+            exit={{ opacity: 0, transition: { duration: 0.18 } }}
             onClick={onClose}
           />
           <motion.div
@@ -68,19 +91,31 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="relative w-full max-w-md rounded-card bg-bg shadow-modal focus:outline-none"
-            initial={{ opacity: 0, scale: 0.96, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.2, ease: [0.33, 1, 0.68, 1] }}
+            className={clsx(
+              "relative w-full rounded-modal bg-bg shadow-modal focus:outline-none",
+              size === "xl" ? "max-w-5xl" : "max-w-md",
+            )}
+            // Centered (not trigger-anchored), from 0.96: 240ms in, 180ms out (motion review, round 4).
+            initial={{ opacity: 0, transform: "scale(0.96)" }}
+            animate={{ opacity: 1, transform: "scale(1)", transition: { duration: 0.24, ease: EASE_OUT } }}
+            exit={{ opacity: 0, transform: "scale(0.96)", transition: { duration: 0.18, ease: EASE_OUT } }}
           >
-            <div className="flex items-center justify-between px-6 pt-5">
-              <h2 id={titleId} className="text-lg font-semibold text-text">
-                {title}
-              </h2>
-              <IconButton label="Close" icon={<X className="size-4" />} size="sm" onClick={onClose} />
-            </div>
-            <div className="px-6 py-4 text-sm text-text-muted">{children}</div>
+            {header ? (
+              <>
+                <h2 id={titleId} className="sr-only">
+                  {title}
+                </h2>
+                {header}
+              </>
+            ) : (
+              <div className="flex items-center justify-between px-6 pt-5">
+                <h2 id={titleId} className="text-lg font-semibold text-text">
+                  {title}
+                </h2>
+                <IconButton label="Close" icon={<X className="size-4" />} size="sm" onClick={onClose} />
+              </div>
+            )}
+            <div className={bodyClassName ?? "px-6 py-4 text-sm text-text-muted"}>{children}</div>
             {footer && <div className="flex justify-end gap-2 px-6 pb-5">{footer}</div>}
           </motion.div>
         </div>

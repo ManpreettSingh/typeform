@@ -21,18 +21,23 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { clsx } from "clsx";
-import { GitBranch, GripVertical, ListPlus, Trash2 } from "lucide-react";
+import { CopyPlus, GalleryVertical, GitBranch, GripVertical, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { EmptyState, IconButton } from "@/components/ui";
+import { Button, IconButton, Menu } from "@/components/ui";
+import { QUESTION_TYPE_META } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
-import { AddQuestionMenu } from "./AddQuestionMenu";
-import { QuestionTypeChip } from "./QuestionTypeChip";
 
-type Props = { onDelete: (question: Question) => void };
+type Props = { onDelete: (question: Question) => void; onAddContent: () => void };
 
-export function QuestionList({ onDelete }: Props) {
+/**
+ * Typeform's "Pages" panel: the welcome screen, then every question as a colored type tag with its number,
+ * drag to reorder (handle or keyboard), ⋮ for duplicate / delete, and "Add content" at the bottom.
+ */
+export function QuestionList({ onDelete, onAddContent }: Props) {
   const questions = useBuilderStore((s) => s.questions);
+  const screen = useBuilderStore((s) => s.screen);
+  const showScreen = useBuilderStore((s) => s.showScreen);
   const moveQuestion = useBuilderStore((s) => s.moveQuestion);
   const [activeId, setActiveId] = useState<number | null>(null);
 
@@ -60,23 +65,24 @@ export function QuestionList({ onDelete }: Props) {
   const active = questions.find((q) => q.id === activeId);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between gap-2 px-4 py-3">
-        <h2 className="text-sm font-semibold text-text">
-          Questions <span className="font-normal text-text-muted">({questions.length})</span>
-        </h2>
-        {questions.length > 0 && <AddQuestionMenu />}
-      </div>
+    <div className="flex flex-col gap-1 p-3">
+      <h2 className="px-2 pt-1 pb-2 text-sm font-semibold text-text">Pages</h2>
+      <button
+        type="button"
+        onClick={() => showScreen("welcome")}
+        aria-current={screen === "welcome" ? "true" : undefined}
+        className={clsx(
+          "flex w-full items-center gap-2.5 rounded-field p-2 text-left text-sm text-text-soft focus-visible:outline-2 focus-visible:outline-accent",
+          screen === "welcome" ? "bg-bg-hover" : "hover:bg-bg-hover/60",
+        )}
+      >
+        <span className="flex h-6 items-center rounded-input bg-qt-screen px-1.5 text-qt-fg">
+          <GalleryVertical className="size-3.5" aria-hidden />
+        </span>
+        Welcome screen
+      </button>
 
-      {questions.length === 0 ? (
-        <EmptyState
-          className="py-10"
-          icon={<ListPlus className="size-6" />}
-          title="No questions yet"
-          description="Add your first question to start building."
-          action={<AddQuestionMenu variant="primary" />}
-        />
-      ) : (
+      {questions.length > 0 && (
         <DndContext
           id="question-list"
           sensors={sensors}
@@ -94,7 +100,7 @@ export function QuestionList({ onDelete }: Props) {
           onDragCancel={() => setActiveId(null)}
         >
           <SortableContext items={questions.map((q) => q.id)} strategy={verticalListSortingStrategy}>
-            <ol className="flex flex-col gap-0.5 px-2 pb-4">
+            <ol className="flex flex-col gap-0.5">
               {questions.map((q, i) => (
                 <SortableQuestion key={q.id} question={q} number={i + 1} onDelete={onDelete} />
               ))}
@@ -102,20 +108,37 @@ export function QuestionList({ onDelete }: Props) {
           </SortableContext>
           <DragOverlay>
             {active && (
-              <div className="rounded-input bg-bg shadow-popover">
+              <div className="rounded-field bg-bg shadow-popover">
                 <QuestionRow question={active} number={positionOf(active.id)} selected />
               </div>
             )}
           </DragOverlay>
         </DndContext>
       )}
+
+      <div className="mt-1 border-t border-border pt-2">
+        <Button
+          variant={questions.length ? "ghost" : "primary"}
+          size="sm"
+          className="w-full"
+          leftIcon={<Plus className="size-4" aria-hidden />}
+          onClick={onAddContent}
+        >
+          Add content
+        </Button>
+      </div>
     </div>
   );
 }
 
-function SortableQuestion({ question, number, onDelete }: { question: Question; number: number } & Props) {
-  const selectedId = useBuilderStore((s) => s.selectedId);
+function SortableQuestion({
+  question,
+  number,
+  onDelete,
+}: { question: Question; number: number } & Pick<Props, "onDelete">) {
+  const selected = useBuilderStore((s) => s.screen === "question" && s.selectedId === question.id);
   const select = useBuilderStore((s) => s.select);
+  const duplicateQuestion = useBuilderStore((s) => s.duplicateQuestion);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: question.id,
   });
@@ -130,7 +153,7 @@ function SortableQuestion({ question, number, onDelete }: { question: Question; 
         ref={setActivatorNodeRef}
         type="button"
         aria-label={`Reorder question ${number}`}
-        className="absolute top-1/2 left-0.5 z-10 flex h-7 w-5 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-input text-text-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-accent active:cursor-grabbing"
+        className="absolute top-1/2 -left-3.5 z-10 flex h-7 w-4 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-input text-text-muted opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-accent active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
@@ -139,40 +162,60 @@ function SortableQuestion({ question, number, onDelete }: { question: Question; 
       <button
         type="button"
         onClick={() => select(question.id)}
-        aria-current={question.id === selectedId ? "true" : undefined}
-        className="w-full rounded-input text-left focus-visible:outline-2 focus-visible:outline-accent"
+        aria-current={selected ? "true" : undefined}
+        className="w-full rounded-field text-left focus-visible:outline-2 focus-visible:outline-accent"
       >
-        <QuestionRow question={question} number={number} selected={question.id === selectedId} />
+        <QuestionRow question={question} number={number} selected={selected} />
       </button>
-      <IconButton
-        size="sm"
-        label={`Delete question ${number}`}
-        icon={<Trash2 className="size-3.5" />}
-        onClick={() => onDelete(question)}
-        className="absolute top-1/2 right-1.5 -translate-y-1/2 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100"
+      <Menu
+        className="!absolute top-1/2 right-1 -translate-y-1/2 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100"
+        items={[
+          {
+            label: "Duplicate",
+            icon: <CopyPlus className="size-4 text-text-muted" />,
+            onSelect: () => void duplicateQuestion(question.id),
+          },
+          {
+            label: "Delete",
+            icon: <Trash2 className="size-4" />,
+            danger: true,
+            separatorBefore: true,
+            onSelect: () => onDelete(question),
+          },
+        ]}
+        trigger={(props) => (
+          <IconButton
+            {...props}
+            size="sm"
+            label={`Options for question ${number}`}
+            icon={<MoreVertical className="size-4" />}
+          />
+        )}
       />
     </li>
   );
 }
 
 function QuestionRow({ question, number, selected }: { question: Question; number: number; selected: boolean }) {
+  const { icon: Icon, chip, label } = QUESTION_TYPE_META[question.type];
   return (
     <span
       className={clsx(
-        "flex w-full items-center gap-2.5 rounded-input py-2 pr-10 pl-6 text-sm text-text transition-colors",
-        selected ? "bg-bg-hover" : "hover:bg-bg-subtle",
+        "flex w-full items-center gap-2.5 rounded-field py-2 pr-9 pl-2 text-sm text-text-soft transition-colors",
+        selected ? "bg-bg-hover" : "hover:bg-bg-hover/60",
       )}
     >
-      <span className="w-4 shrink-0 text-right text-xs text-text-muted tabular-nums">{number}</span>
-      <QuestionTypeChip type={question.type} />
+      {/* Typeform's page tag: the type's color, its icon and the question number. */}
+      <span
+        title={label}
+        className={clsx("flex h-6 shrink-0 items-center gap-1 rounded-input px-1.5 text-xs font-medium", chip)}
+      >
+        <Icon className="size-3.5" aria-hidden />
+        <span className="tabular-nums">{number}</span>
+      </span>
       <span className={clsx("truncate", !question.title.trim() && "text-text-muted italic")}>
         {question.title.trim() || "Untitled question"}
       </span>
-      {question.required && (
-        <span className="shrink-0 text-text-muted" aria-label="Required">
-          *
-        </span>
-      )}
       {question.logic && (
         <span className="ml-auto shrink-0 text-text-muted" title="Has logic jumps">
           <GitBranch className="size-3.5" aria-label="Has logic jumps" />

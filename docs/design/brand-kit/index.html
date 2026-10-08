@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typeform Original · Brand kit v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--tf-surface); color: var(--tf-text); font: 14px/1.55 var(--tf-font); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.nav { position: sticky; top: 0; z-index: 10; display: flex; gap: 4px; align-items: center; padding: 10px 24px; background: var(--tf-page); border-bottom: 1px solid var(--tf-line-soft); overflow-x: auto; }
+.nav b { margin-right: 16px; color: var(--tf-primary); white-space: nowrap; }
+.nav a { text-decoration: none; color: var(--tf-muted); padding: 6px 10px; border-radius: var(--tf-radius-sm); white-space: nowrap; }
+.nav a:hover { background: var(--tf-selected); color: var(--tf-text); }
+main { max-width: 1120px; margin: 0 auto; padding: 0 24px 80px; }
+section { background: var(--tf-page); border-radius: var(--tf-radius-lg); padding: 40px; margin-top: 24px; }
+.head { display: flex; gap: 24px; align-items: baseline; margin-bottom: 28px; }
+.head .num { font-size: 13px; font-weight: 600; color: var(--tf-subtle); min-width: 28px; }
+.head h2 { margin: 0; font-size: var(--tf-text-xl); font-weight: 400; color: var(--tf-primary); }
+.head p { margin: 6px 0 0; color: var(--tf-muted); max-width: 640px; }
+.cover { padding: 64px 40px; }
+.cover h1 { margin: 0; font-size: 40px; font-weight: 400; color: var(--tf-ink); }
+.cover p { color: var(--tf-muted); max-width: 640px; font-size: 16px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: var(--tf-radius-pill); border: 1px solid var(--tf-badge-line); background: var(--tf-badge-bg); color: var(--tf-badge-text); }
+.toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 28px; }
+.toc a { text-decoration: none; background: var(--tf-surface); border-radius: var(--tf-radius-md); padding: 12px 14px; color: var(--tf-text); }
+.toc a:hover { background: var(--tf-selected); }
+.toc small { display: block; color: var(--tf-muted); font-size: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.swatch { border: 1px solid var(--tf-line); border-radius: var(--tf-radius-md); overflow: hidden; }
+.swatch i { display: block; height: 64px; }
+.swatch div { padding: 8px 10px; font-size: 12px; }
+.swatch b { display: block; color: var(--tf-primary); font-weight: 500; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--tf-line-soft); }
+th { color: var(--tf-muted); font-weight: 500; }
+.ok { color: var(--tf-success); font-weight: 600; }
+.bad { color: var(--tf-danger); font-weight: 600; }
+.type-row { display: grid; grid-template-columns: 140px 1fr; gap: 20px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--tf-line-soft); }
+.type-row small { color: var(--tf-muted); }
+.bar { height: 16px; background: var(--tf-qt-text); border-radius: 4px; }
+.space-row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; padding: 6px 0; }
+.demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.demo { background: var(--tf-surface); border-radius: var(--tf-radius-md); padding: 20px; min-height: 160px; position: relative; overflow: hidden; }
+.demo h4 { margin: 0 0 4px; font-size: 13px; color: var(--tf-primary); font-weight: 600; }
+.demo p { margin: 0 0 14px; font-size: 12px; color: var(--tf-muted); }
+/* components */
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--tf-radius-sm); border: 1px solid transparent; font: 500 14px var(--tf-font); cursor: pointer; transition: background-color var(--tf-dur-hover) ease, border-color var(--tf-dur-hover) ease; }
+.btn-dark { background: var(--tf-primary); color: var(--tf-page); }
+.btn-dark:hover { background: var(--tf-ink); }
+.btn-outline { background: var(--tf-field); border-color: var(--tf-line); color: var(--tf-text); }
+.btn-outline:hover { background: var(--tf-selected); }
+.btn-ghost { background: none; color: var(--tf-muted); }
+.btn-ghost:hover { background: var(--tf-selected); color: var(--tf-text); }
+.btn-resp { height: 40px; padding: 0 16px; border-radius: var(--tf-radius-md); background: var(--tf-form-button); color: #fff; font-size: 18px; font-weight: 600; }
+:focus-visible { outline: 2px solid var(--tf-primary); outline-offset: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--tf-primary); }
+.input { height: 34px; padding: 0 10px; border: 1px solid var(--tf-line); border-radius: var(--tf-radius-md); background: var(--tf-field); font: 14px var(--tf-font); color: var(--tf-text); width: 220px; }
+.input:focus { outline: none; border-color: var(--tf-primary); }
+.toggle { width: 28px; height: 16px; border-radius: 999px; background: var(--tf-selected); position: relative; border: none; padding: 0; cursor: pointer; }
+.toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 10px; height: 10px; border-radius: 999px; background: var(--tf-muted); transition: transform 200ms var(--tf-ease-out); }
+.toggle[aria-checked="true"] { background: var(--tf-muted); }
+.toggle[aria-checked="true"]::after { transform: translateX(12px); background: #fff; }
+.seg { display: inline-flex; border: 1px solid var(--tf-line); border-radius: var(--tf-radius-md); overflow: hidden; background: var(--tf-field); }
+.seg button { height: 30px; padding: 0 12px; border: none; background: none; color: var(--tf-muted); font: 14px var(--tf-font); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--tf-selected); color: var(--tf-text); }
+.row { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 10px; background: var(--tf-page); border: 1px solid var(--tf-line); border-radius: var(--tf-radius-row); color: var(--tf-primary); font-weight: 500; transition: box-shadow var(--tf-dur-hover) ease; }
+.row:hover { box-shadow: var(--tf-shadow-row); }
+.row i { width: 32px; height: 32px; border-radius: 8px; background: var(--tf-qt-rating); }
+.status-done { font-size: 12px; padding: 1px 8px; border: 1px solid #a7d3c7; color: var(--tf-success); border-radius: 6px; background: var(--tf-success-soft); }
+.badge-q { width: 18px; height: 18px; border-radius: 4px; background: var(--tf-ink); color: #fff; font: 600 11px var(--tf-font); display: inline-grid; place-items: center; }
+/* motion demos */
+.menu { position: absolute; top: 64px; left: 20px; background: var(--tf-page); border: 1px solid var(--tf-line); border-radius: var(--tf-radius-md); box-shadow: var(--tf-shadow-popover); padding: 4px; width: 160px; transform-origin: top left; transition: opacity var(--tf-dur-menu) var(--tf-ease-out), transform var(--tf-dur-menu) var(--tf-ease-out); }
+.menu[data-closed] { opacity: 0; transform: scale(0.95); pointer-events: none; transition-duration: calc(var(--tf-dur-menu) * 0.75); }
+.menu div { padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+.menu div:hover { background: var(--tf-selected); }
+.toast { position: absolute; left: 20px; right: 20px; bottom: 16px; padding: 12px 14px; background: var(--tf-toast-bg); border: 1px solid var(--tf-toast-line); border-radius: var(--tf-radius-md); box-shadow: var(--tf-shadow-toast); font-size: 13px; transition: opacity 300ms var(--tf-ease-out), transform 300ms var(--tf-ease-out); }
+.toast[data-closed] { opacity: 0; transform: translateY(100%); transition-duration: 220ms; }
+.slide-stage { height: 70px; position: relative; overflow: hidden; }
+.slide { position: absolute; inset: 0; display: flex; align-items: center; gap: 8px; color: var(--tf-ink); font-size: 18px; transition: transform var(--tf-dur-question-in) var(--tf-ease-out), opacity var(--tf-dur-question-in) var(--tf-ease-out); }
+.slide[data-state="below"] { transform: translateY(40px); opacity: 0; transition: none; }
+.slide[data-state="above"] { transform: translateY(-40px); opacity: 0; transition-duration: var(--tf-dur-question-out); }
+@media (prefers-reduced-motion: reduce) {
+  .menu, .toast, .slide, .toggle::after { transition-property: opacity !important; }
+  .menu[data-closed], .toast[data-closed], .slide[data-state] { transform: none !important; }
+}
+.voice td:first-child { color: var(--tf-danger); text-decoration: line-through; }
+.voice td:nth-child(2) { color: var(--tf-primary); font-weight: 500; }
+code { font-size: 12px; background: var(--tf-surface); padding: 1px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Sections">
+  <b>Typeform Original</b>
+  <a href="#logo">Logo</a><a href="#color">Color</a><a href="#type">Type</a><a href="#spacing">Spacing</a>
+  <a href="#motion">Motion</a><a href="#components">Components</a><a href="#voice">Voice</a><a href="#files">Files</a>
+</nav>
+<main>
+  <section class="cover">
+    <span class="pill">v1.0 · approved preview 2026-10-09</span>
+    <h1 style="margin-top:16px">Typeform Original</h1>
+    <p>The design system of this Typeform clone, measured from real Typeform screens (workspace, builder, share, results). It copies Typeform's look: a calm plum-gray interface, one dark action color, colored question-type tags, and a monochrome default form. This kit has no manifesto or mascot because Typeform's app has neither.</p>
+    <div class="toc">
+      <a href="#logo">01 Logo<small>Our app mark</small></a><a href="#color">02 Color<small>Palette + contrast</small></a>
+      <a href="#type">03 Type<small>One family, 8 sizes</small></a><a href="#spacing">05 Spacing<small>4px scale</small></a>
+      <a href="#motion">06 Motion<small>Live demos</small></a><a href="#components">07 Components<small>From tokens</small></a>
+      <a href="#voice">08 Voice<small>Microcopy</small></a><a href="#files">09 Files<small>Where things live</small></a>
+    </div>
+  </section>
+
+  <section id="logo">
+    <div class="head"><span class="num">01</span><div><h2>Logo</h2><p>Typeform's own mark (a pill beside a rounded square), redrawn as SVG at the user's request: this is a clone. Creator UI only (top bar, favicon); public form pages don't carry it, so respondents can't mistake a clone form for a real Typeform. The README states the project is unofficial and not affiliated with Typeform.</p></div></div>
+    <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+      <img src="assets/logo.svg" width="96" height="96" alt="App mark">
+      <img src="assets/logo.svg" width="32" height="32" alt="App mark, 32px">
+      <img src="assets/logo.svg" width="16" height="16" alt="App mark, 16px">
+      <p style="color:var(--tf-muted);max-width:420px">Minimum size 16px. In the workspace top bar Typeform shows only the pill; the account avatar fills the square's place. Builder breadcrumbs use the full mark.</p>
+    </div>
+  </section>
+
+  <section id="color">
+    <div class="head"><span class="num">02</span><div><h2>Color</h2><p>Plum-tinted grays, not neutral gray. One dark action color (Primary). Color appears only in question-type tags and status.</p></div></div>
+    <div class="grid" id="palette"></div>
+    <h3 style="margin:32px 0 12px;font-size:15px;color:var(--tf-primary)">Contrast matrix (WCAG 2.1)</h3>
+    <table id="matrix"><thead><tr><th>Text</th><th>Page #FFF</th><th>Surface</th><th>Selected</th><th>Canvas</th><th>Rule</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section id="type">
+    <div class="head"><span class="num">03</span><div><h2>Type</h2><p>One family, like Typeform. Inter stands in for Typeform's licensed TWK Lausanne. Regular (400) for titles, Medium (500) for buttons and labels, Semibold (600) for panel headings.</p></div></div>
+    <div class="type-row"><small>Answer · 30</small><span style="font-size:30px;font-weight:300;color:var(--tf-ink)">Type your answer here...</span></div>
+    <div class="type-row"><small>Question · 26 / 28</small><span style="font-size:26px;color:var(--tf-ink)">How likely are you to recommend us?</span></div>
+    <div class="type-row"><small>Page title · 24</small><span style="font-size:24px;color:var(--tf-primary)">My workspace</span></div>
+    <div class="type-row"><small>Description · 20</small><span style="font-size:20px;color:var(--tf-muted)">1 = not at all likely, 10 = extremely likely</span></div>
+    <div class="type-row"><small>Medium · 16</small><span style="font-size:16px">Responses collected</span></div>
+    <div class="type-row"><small>Base · 14</small><span>Customer Feedback · 26 responses · Oct 08, 2026</span></div>
+    <div class="type-row"><small>Small · 13</small><span style="font-size:13px;color:var(--tf-muted)">Any other answer goes to question 5</span></div>
+    <div class="type-row"><small>XS · 12</small><span style="font-size:12px;color:var(--tf-muted)">press <b>Enter ↵</b></span></div>
+  </section>
+
+  <section id="spacing">
+    <div class="head"><span class="num">05</span><div><h2>Spacing</h2><p>A 4px scale. Panels sit 16px apart; panel padding is 16–20px; rows are 48px tall with 8px between them.</p></div></div>
+    <div id="spaces"></div>
+    <h3 style="margin:28px 0 12px;font-size:15px;color:var(--tf-primary)">Radius</h3>
+    <div style="display:flex;gap:16px;flex-wrap:wrap" id="radii"></div>
+  </section>
+
+  <section id="motion">
+    <div class="head"><span class="num">06</span><div><h2>Motion</h2><p>Calm and quick. Hover and color changes 150ms <code>ease</code>; menus 180ms; modals 240ms; respondent questions slide 350ms in / 250ms out. All entering motion uses the strong ease-out; exits are ~75% of the entry time. With reduced motion only opacity changes. Keyboard actions never animate in the creator UI.</p></div></div>
+    <div class="demo-grid">
+      <div class="demo"><h4>Menu (180ms, from its trigger)</h4><p>Scales from 0.95 at the top-left corner.</p><button class="btn btn-outline" id="menu-btn">Options ▾</button>
+        <div class="menu" id="menu" data-closed><div>Rename</div><div>Duplicate</div><div>Delete</div></div></div>
+      <div class="demo"><h4>Toast (300ms in, 220ms out)</h4><p>Enters and leaves from the same edge.</p><button class="btn btn-outline" id="toast-btn">Show toast</button>
+        <div class="toast" id="toast" data-closed>ⓘ Edits are always autosaved.</div></div>
+      <div class="demo"><h4>Respondent question (350 / 250ms)</h4><p>Old question rises out, new one rises in.</p><button class="btn btn-outline" id="slide-btn">Next question</button>
+        <div class="slide-stage"><div class="slide" id="slide"><span class="badge-q">1</span>What's your first name?</div></div></div>
+      <div class="demo"><h4>Toggle (200ms)</h4><p>Knob moves; colors fade.</p><button class="toggle" role="switch" aria-checked="false" aria-label="Required"></button></div>
+    </div>
+    <p style="margin-top:16px;color:var(--tf-muted)">The publish/share celebration is designed separately in Step 4 (Animation review).</p>
+  </section>
+
+  <section id="components">
+    <div class="head"><span class="num">07</span><div><h2>Components</h2><p>Built only from tokens. These map to the app's own primitives in <code>frontend/components/ui</code> (no shadcn: the app already has its own small set, and shadcn's defaults would pull the look away from Typeform).</p></div></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-dark">＋ Create form</button>
+      <button class="btn btn-outline">Date created ▾</button>
+      <button class="btn btn-ghost">Design</button>
+      <button class="btn btn-resp">OK ✓</button>
+      <span class="pill">Soon</span>
+      <span class="status-done">Completed</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px">
+      <span class="chip" style="background:var(--tf-qt-text)">≡ 1 Short text</span>
+      <span class="chip" style="background:var(--tf-qt-choice)">☷ 2 Multiple choice</span>
+      <span class="chip" style="background:var(--tf-qt-rating)">☆ 3 Rating</span>
+      <span class="chip" style="background:var(--tf-qt-contact)">✉ 4 Email</span>
+      <span class="chip" style="background:var(--tf-qt-other)"># 5 Number</span>
+      <span class="chip" style="background:var(--tf-qt-screen)">▯ Welcome</span>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:20px">
+      <input class="input" placeholder="Search forms">
+      <div class="seg"><button aria-pressed="true">List</button><button aria-pressed="false">Grid</button></div>
+      <button class="toggle" role="switch" aria-checked="true" aria-label="Multiple selection"></button>
+    </div>
+    <div class="row" style="margin-top:20px;max-width:640px"><i></i>Customer Feedback<span style="margin-left:auto;color:var(--tf-muted);font-weight:400">26 · 87% · Oct 08, 2026</span></div>
+  </section>
+
+  <section id="voice" class="voice">
+    <div class="head"><span class="num">08</span><div><h2>Voice</h2><p>Typeform talks like a person: short, friendly, plain verbs. No jargon, no exclamation overload, sentence case everywhere.</p></div></div>
+    <table><thead><tr><th>Avoid</th><th>Use</th><th>Where</th></tr></thead><tbody>
+      <tr><td>Submit form data</td><td>Submit</td><td>Last question button</td></tr>
+      <tr><td>Field is required</td><td>Please fill this in</td><td>Validation</td></tr>
+      <tr><td>Invalid e-mail address</td><td>Hmm… that email doesn't look right</td><td>Validation</td></tr>
+      <tr><td>No data available</td><td>Waiting for responses. Your data will appear here.</td><td>Empty summary</td></tr>
+      <tr><td>0 results found</td><td>No responses</td><td>Empty table</td></tr>
+      <tr><td>Changes saved successfully</td><td>Edits are always autosaved.</td><td>Builder toast</td></tr>
+      <tr><td>Share options</td><td>Choose how you'd like to share your form</td><td>Share page</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="files">
+    <div class="head"><span class="num">09</span><div><h2>Files</h2><p>Where every piece lives.</p></div></div>
+    <table><thead><tr><th>File</th><th>What</th></tr></thead><tbody>
+      <tr><td><code>docs/design/brand-kit/tokens.css</code></td><td>Source of truth (light + dark)</td></tr>
+      <tr><td><code>docs/design/brand-kit/tokens.ts</code> · <code>tokens.json</code></td><td>Generated by <code>build-tokens.py</code> (TypeScript / DTCG)</td></tr>
+      <tr><td><code>docs/design/brand-kit/assets/logo.svg</code></td><td>Typeform mark (same file as <code>frontend/app/icon.svg</code>; React version in <code>frontend/components/TypeformLogo.tsx</code>)</td></tr>
+      <tr><td><code>frontend/app/globals.css</code></td><td>Where the app consumes the tokens (Tailwind <code>@theme</code>)</td></tr>
+      <tr><td><code>docs/design/mockups/</code></td><td>Approved screen mockups</td></tr>
+    </tbody></table>
+  </section>
+</main>
+<script>
+  const css = getComputedStyle(document.documentElement);
+  const v = (n) => css.getPropertyValue(`--tf-${n}`).trim();
+  // Palette
+  const swatches = [["ink","Respondent text, badge"],["primary","Dark buttons, titles"],["text","Nav, body"],["muted","Secondary labels"],["subtle","Counters (large only)"],["disabled","Disabled"],["page","Cards, top bars"],["surface","Frame, panels"],["selected","Active, hover"],["canvas","Builder canvas"],["line","Control borders"],["line-soft","Dividers"],["success","Completed"],["danger","Delete, errors"],["qt-text","Text questions"],["qt-choice","Choice questions"],["qt-rating","Rating"],["qt-contact","Email"],["qt-other","Number"],["qt-screen","Screens"]];
+  document.getElementById("palette").innerHTML = swatches.map(([n, use]) => `<div class="swatch"><i style="background:var(--tf-${n})"></i><div><b>${n}</b>${v(n).toUpperCase()}<br>${use}</div></div>`).join("");
+  // Contrast matrix, computed from the live token values
+  const lum = (hex) => { const c = [1,3,5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((x) => x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]; };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const rules = { ink: "Any text", primary: "Any text", text: "Any text", muted: "Any text", subtle: "Large / decorative only (≥18px)", info: "Icons only", success: "Any text", danger: "Any text" };
+  document.querySelector("#matrix tbody").innerHTML = Object.keys(rules).map((n) => `<tr><td><b style="color:var(--tf-${n})">${n}</b></td>${["page","surface","selected","canvas"].map((bg) => { const r = ratio(v(n), v(bg)); return `<td class="${r >= 4.5 ? "ok" : "bad"}">${r.toFixed(2)} ${r >= 7 ? "AAA ✓" : r >= 4.5 ? "AA ✓" : "✗"}</td>`; }).join("")}<td>${rules[n]}</td></tr>`).join("");
+  // Spacing + radius
+  document.getElementById("spaces").innerHTML = [1,2,3,4,5,6,8,10,12].map((s) => `<div class="space-row"><small>space-${s} · ${v("space-" + s)}</small><div class="bar" style="width:${v("space-" + s)}"></div></div>`).join("");
+  document.getElementById("radii").innerHTML = ["sm","md","row","lg","modal"].map((r) => `<div style="text-align:center"><div style="width:72px;height:56px;background:var(--tf-selected);border:1px solid var(--tf-line);border-radius:var(--tf-radius-${r})"></div><small style="color:var(--tf-muted)">${r} · ${v("radius-" + r)}</small></div>`).join("");
+  // Demos
+  const menu = document.getElementById("menu");
+  document.getElementById("menu-btn").onclick = () => menu.toggleAttribute("data-closed");
+  const toast = document.getElementById("toast"); let t;
+  document.getElementById("toast-btn").onclick = () => { toast.removeAttribute("data-closed"); clearTimeout(t); t = setTimeout(() => toast.setAttribute("data-closed", ""), 2200); };
+  const slide = document.getElementById("slide"); const qs = ["What's your first name?", "How likely are you to recommend us?", "Which features do you use most?"]; let qi = 0;
+  document.getElementById("slide-btn").onclick = () => { slide.dataset.state = "above"; setTimeout(() => { qi = (qi + 1) % qs.length; slide.innerHTML = `<span class="badge-q">${qi + 1}</span>${qs[qi]}`; slide.dataset.state = "below"; requestAnimationFrame(() => requestAnimationFrame(() => delete slide.dataset.state)); }, 250); };
+  document.querySelectorAll(".toggle").forEach((b) => b.onclick = () => b.setAttribute("aria-checked", String(b.getAttribute("aria-checked") !== "true")));
+</script>
+</body>
+</html>

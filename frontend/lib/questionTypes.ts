@@ -1,12 +1,12 @@
 import {
   AlignLeft,
-  ChevronDownCircle,
+  ChevronDown,
+  CircleSlash,
+  Equal,
   Hash,
   ListChecks,
   Mail,
   Star,
-  ThumbsUp,
-  Type,
   type LucideIcon,
 } from "lucide-react";
 import { QUESTION_TYPES, type QuestionType } from "@/lib/types";
@@ -18,15 +18,17 @@ export type QuestionTypeMeta = {
   chip: string;
 };
 
+// Colors follow Typeform's groups: text = blue, choice (incl. yes/no) = lavender, rating = green,
+// contact = pink, other = yellow. Icons and numbers on a chip are always the same dark ink.
 export const QUESTION_TYPE_META: Record<QuestionType, QuestionTypeMeta> = {
-  short_text: { label: "Short Text", icon: Type, chip: "bg-qt-text text-qt-text-fg" },
-  long_text: { label: "Long Text", icon: AlignLeft, chip: "bg-qt-text text-qt-text-fg" },
-  multiple_choice: { label: "Multiple Choice", icon: ListChecks, chip: "bg-qt-choice text-qt-choice-fg" },
-  dropdown: { label: "Dropdown", icon: ChevronDownCircle, chip: "bg-qt-choice text-qt-choice-fg" },
-  email: { label: "Email", icon: Mail, chip: "bg-qt-contact text-qt-contact-fg" },
-  number: { label: "Number", icon: Hash, chip: "bg-qt-number text-qt-number-fg" },
-  yes_no: { label: "Yes/No", icon: ThumbsUp, chip: "bg-qt-yesno text-qt-yesno-fg" },
-  rating: { label: "Rating", icon: Star, chip: "bg-qt-number text-qt-number-fg" },
+  short_text: { label: "Short Text", icon: Equal, chip: "bg-qt-text text-qt-fg" },
+  long_text: { label: "Long Text", icon: AlignLeft, chip: "bg-qt-text text-qt-fg" },
+  multiple_choice: { label: "Multiple Choice", icon: ListChecks, chip: "bg-qt-choice text-qt-fg" },
+  dropdown: { label: "Dropdown", icon: ChevronDown, chip: "bg-qt-choice text-qt-fg" },
+  email: { label: "Email", icon: Mail, chip: "bg-qt-contact text-qt-fg" },
+  number: { label: "Number", icon: Hash, chip: "bg-qt-other text-qt-fg" },
+  yes_no: { label: "Yes/No", icon: CircleSlash, chip: "bg-qt-choice text-qt-fg" },
+  rating: { label: "Rating", icon: Star, chip: "bg-qt-rating text-qt-fg" },
 };
 
 export const QUESTION_TYPE_LIST = QUESTION_TYPES.map((type) => ({ type, ...QUESTION_TYPE_META[type] }));

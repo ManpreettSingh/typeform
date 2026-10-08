@@ -1,5 +1,7 @@
 # Typeform Clone
 
+> **Unofficial clone built for an assignment. Not affiliated with or endorsed by Typeform.** The Typeform name and logo belong to Typeform; they appear only in the creator UI to match the original.
+
 A functional clone of [Typeform](https://www.typeform.com): build a form, publish it, share a public link, collect answers one question at a time, and review the results. Built for the SDE Fullstack assignment with **Next.js + TypeScript**, **FastAPI** and **SQLite**.
 
 | Dashboard | Builder (with logic jumps) |
@@ -233,12 +235,14 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 - **Answers to questions that a jump skipped are dropped.**
 - **Branching is forward-only.** If a reorder makes a rule point backwards, the rule is skipped at fill time and the builder flags it.
 - **Multi-select answers are stored in the creator's option order.** If an option is deleted, older answers show it as “(removed choice)”.
-- **The welcome screen appears only when the form has a description.** The builder has no description field (see limitations), so seeded and API-created forms have one.
+- **The welcome screen appears only when the form has a description.** In the builder, pick “Welcome screen” in Pages and type a description on the canvas to turn it on.
 - **The last question never auto-submits.** Neither does any question whose answer can end the form. Submitting always takes OK or Enter.
 
 ## Known limitations
 - No field for the form description (the welcome screen) in the builder. It can be set through the API, and the seeded forms have one.
-- The builder is desktop-first. Below 1024 px the canvas preview is hidden. On phones the panes show one at a time, and Results / Share aren't reachable from the builder header.
+- The builder is desktop-first. Below 1024 px its three columns become one pane at a time (Pages / Canvas / Settings), and the section tabs (Workflow, Share, Results…) are hidden below 768 px.
+- A question's type can't be changed after it's added (delete it and add another).
+- The redesign (Typeform look, in progress) covers the workspace and builder; the create flow with Gemini “Create with AI”, the Share page with its publish animation, results and respondent screens are next. See `docs/design/`.
 - Logic rules can't be reordered.
 - Abandoned partial responses are kept. Reloading mid-form starts a new partial response.
 - The same browser can submit a form more than once.
