@@ -5,7 +5,7 @@ import type { ThankYou } from "@/lib/types";
 export function ThankYouScreen({ thankYou, interactive = true }: { thankYou: ThankYou; interactive?: boolean }) {
   const { title, message, button_text, button_url } = thankYou;
   const buttonClass =
-    "inline-flex items-center gap-1.5 rounded-input bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg";
+    "inline-flex items-center gap-1.5 rounded-resp-button bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg";
 
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-4 text-center">

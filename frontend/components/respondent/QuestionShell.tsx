@@ -42,10 +42,10 @@ export function QuestionShell({
           <ArrowRight className="size-3.5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 id={titleId} className="text-xl leading-snug break-words sm:text-2xl">
+          <h2 id={titleId} className="text-xl leading-snug break-words sm:text-[26px] sm:leading-[34px]">
             {title.trim() || <span className="opacity-50">Your question here.</span>}
             {required && (
-              <span aria-label="required" className="text-resp-accent">
+              <span aria-label="required">
                 {" "}
                 *
               </span>
@@ -75,7 +75,7 @@ export function QuestionShell({
                   onClick={onSubmit}
                   disabled={submitting}
                   aria-busy={submitting || undefined}
-                  className="inline-flex items-center gap-1.5 rounded-input bg-resp-accent px-4 py-2 text-base font-semibold text-resp-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-resp-accent disabled:cursor-wait disabled:opacity-70 sm:text-lg"
+                  className="inline-flex items-center gap-1.5 rounded-resp-button bg-resp-accent px-4 py-2 text-base font-semibold text-resp-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-resp-accent disabled:cursor-wait disabled:opacity-70 sm:text-lg"
                 >
                   {submitting ? "Submitting…" : submitLabel}
                   {submitting ? (

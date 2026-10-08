@@ -1,8 +1,8 @@
 # PROGRESS
 
-**Current phase:** Phase 8 — Seed, README, QA & Submission
+**Current phase:** All phases done (0–8)
 **Last updated:** 2026-10-08
-**Next action:** Run `phases/PHASE_8.md`
+**Next action:** Submit. Optional: deploy (Phase 8 task 8, not done)
 
 ## Phase status
 | # | Phase | Status |
@@ -15,7 +15,7 @@
 | 5 | Respondent Flow (public) | ✅ Done |
 | 6 | Results & Analytics | ✅ Done |
 | 7 | Polish, Bonuses & Placeholders | ✅ Done |
-| 8 | Seed, README, QA & Submission | ⬜ |
+| 8 | Seed, README, QA & Submission | ✅ Done |
 
 ## Feature checklist
 ### Form Management
@@ -54,8 +54,8 @@
 - [x] Partial responses / completion rate (`/responses/start` + PATCH per step, token-protected)
 - [x] Dark mode (creator UI; Light / Dark / System)
 ### Submission
-- [ ] Seed data (2+ published forms, responses) — demo form now has 8 completed + 2 partial responses; second form pending
-- [ ] README (setup, stack, architecture, schema, assumptions)
+- [x] Seed data: Customer Feedback (30 responses, 4 partial) + Event Registration (22, 3 partial), both published with logic jumps; 1 draft
+- [x] README (screenshots, setup, stack, architecture, ER diagram, API summary, assumptions, bonuses, limitations)
 
 ## Session log
 | Date | Phase | What was done | Issues / follow-ups |
@@ -69,6 +69,8 @@
 | 2026-10-08 | 6 | Backend: `GET /forms/{id}/responses` (paginated, status filter, newest first), `GET …/responses/{rid}` (answers with question titles, in order), `DELETE …/responses/{rid}`, `GET /forms/{id}/summary` via `services/stats.py` (choice/dropdown/yes-no counts, rating average + distribution, number min/avg/max, latest 5 text answers), bonus `GET …/responses/export.csv` (`services/export.py`, readable values, BOM, formula-injection guard); seed adds 10 demo responses (8 completed, 2 partial) only to a seeded form that has none; 14 new pytest tests (87 total) incl. summary checked against the raw seed data. Frontend `/forms/[id]/results`: header (Create / Results / Share, View form), Summary | Responses tabs, stat tiles (responses, completion rate, in progress), per-question cards with single-hue horizontal bars (counts + %), rating average, number figures, recent text; responses table (one column per question, truncated, sticky date, keyboard-openable rows, pagination, Export CSV); `Drawer` primitive with full response (formatted per type, newer/older, delete with confirm); empty state with Share / Publish & share; `lib/answerFormat.ts` mirrors the CSV formatting | 38-check Phase 6 browser run (isolated ports, fresh seeded DB): tiles/averages/counts compared with SQL over the DB, new public submission appears, drawer formatting for all 8 types, delete, CSV download, pagination (25), empty/draft states, builder ↔ results tabs, 390px. Phase 5 (43), 4 (33), 3 (33), 2 (29, seeded-card check updated for the new demo responses) re-run green |
 
 | 2026-10-08 | 7 | **Branching**: `schemas/logic.py` (ops/values per type, ≤20 rules, 422 keyed `logic.rules.<i>.*`), `services/logic.py` resolver (forward-only → no cycles) mirrored by `lib/logic.ts`; PATCH `/questions` accepts `logic` (targets must be other questions of the form); delete drops jumps to the deleted question; duplicate remaps targets; submissions validated along the respondent's path. Builder: Logic section per question (condition / value / target, half-typed rules kept local until valid, warnings for removed choices and backward jumps), branch icon in the list, Settings → Logic overview with Edit links. Flow: history stack for ↑, path-based progress and "n of N", Submit / auto-advance aware of jumps to the end. **Partial responses**: `POST …/responses/start` → `{response_id, token}`, `PATCH /public/responses/{id}` (snapshot replace, `complete`), 409 once completed; client `usePartialResponse` (start on first move, serialized silent saves, POST fallback). **Dark mode**: dark token set under `:root[data-theme=dark]`, inline head script (no flash), `ThemeToggle` (Light / Dark / System, follows the OS and other tabs) in dashboard / builder / results headers, sonner follows it; respondent content uses fixed `--ink` / `--paper` / `--resp-error*` so forms look the same in both. **Polish**: `not-found.tsx`, `error.tsx`, `global-error.tsx`, `icon.svg` (replaces the stock Next favicon), builder `<title>` with the form name, phone builder shows one pane at a time (Questions / Edit question / Settings), responsive skeleton, compact phone top bar. Payment / File upload types listed disabled in Add question. 13 new pytest tests (100 total) | 56-check Phase 7 browser run (isolated ports, fresh seeded DB): rule add / edit / remove persisted, incomplete rule not sent, backward-jump warning, overview + Edit, preview follows jumps, three respondent paths checked in SQLite (early end, skip, dropped off-path answer), partial row created / updated / completed in place, abandoned partial in results, wrong token 404, dark toggle + reload with JS blocked + System follows OS, forms unaffected by dark mode, 404 page, favicon, disabled types, 390px builder. Phase 2 (29), 3 (33), 4 (33, Logic check updated), 5 (43, final-submit counter includes the PATCH) and 6 (38) re-run green |
+
+| 2026-10-08 | 8 | **Seed** rewritten: "Customer Feedback" (7 types, 1–10 rating, Yes/No jump), "Event Registration — Frontend Summit" (custom dark theme + Georgia, number, Day-pass jump, thank-you button), "Product Survey (draft)"; responses generated from fixed random seeds, spread over 30 days, each run through `validate_answers` (so branching holds) and partial ones cut part-way along their path; still keyed by slug + only fills forms without responses. Seed-based pytest tests now derive expectations from the DB rows instead of hard-coded values (101 tests). **README** rewritten (8 screenshots in `docs/screenshots/`, Mermaid ER diagram, API table, assumptions, limitations). **Cleanup**: `/dev/ui` removed, unused `DEFAULT_THANK_YOU` removed, `setup.mjs` no longer triggers Node's DEP0190 warning, no stray console logs. **Typeform comparison** (public typeform.com form; builder/dashboard need a login): respondent fixes: no focus ring on the auto-focused Start button, 1px answer underline that thickens on focus, 8px button / ↑↓ radius (`--radius-resp-button`), required `*` in the title color, 26/34px question titles; also dropped a doubled "?." in the logic hint | Fresh-clone check: copy of tracked + untracked files → `npm install`, `npm run setup`, `npm run seed` in **73 s**, then build + start on isolated ports, app immediately usable with data (README screenshots taken from it). All browser suites re-run green on the new seed: Phase 2 (29), 3 (33), 4 (33), 5 (43), 6 (38), 7 (56) — fixtures updated for the new demo forms. Normal build / typecheck / lint / pytest green. Deploy not done |
 
 ## Decisions & assumptions (feeds README)
 - **Branching is forward-only.** A rule may name any other question (so a reorder never makes autosave fail), but at fill time a target that isn't after the question is skipped; the builder flags such rules. First matching rule wins; unanswered questions match nothing; no match → next question.
@@ -116,7 +118,6 @@
 
 ## Known issues
 - `pytest` prints a Starlette deprecation warning (TestClient on `httpx`; suggests `httpx2`). Harmless; revisit if it becomes an error.
-- `app/dev/ui` is a temporary primitives showcase — remove in Phase 8. (Health home page replaced by redirect to `/forms`.)
 - Below `md` the results header hides the Create / Results / Share tabs; the builder's phone pane bar reaches Settings, but Results / Share aren't reachable from the phone builder header.
 - Logic rules can't be reordered (remove and re-add to change their order).
 - Abandoned partial responses are kept (no cleanup); a respondent who reloads mid-form starts a new partial response.
@@ -130,4 +131,5 @@
 - Untitled questions can still be published (server only rejects zero questions).
 - **Turbopack cache can serve a stale `globals.css`** (seen 2026-10-08, project lives in OneDrive): new theme tokens didn't reach the CSS until `.next/cache/turbopack` was cleared. If new Tailwind tokens/classes don't apply, stop `npm run dev`, delete `frontend/.next/dev/cache` (dev) or `frontend/.next/cache/turbopack` (build), and restart.
 - Optional "+ insert between questions" control (Phase 4 task 6) not implemented; new questions insert after the selected one instead.
-- Typeform's real dashboard wasn't compared side by side (needs a login); layout follows DESIGN_SYSTEM.md notes.
+- Typeform's real dashboard and builder weren't compared side by side (need a login); only a public Typeform form was. Dashboard / builder follow DESIGN_SYSTEM.md notes.
+- Not deployed (optional Phase 8 task).

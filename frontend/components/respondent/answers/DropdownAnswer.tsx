@@ -48,7 +48,7 @@ export function DropdownAnswer({ question, value, onChange, onSubmit, live, labe
 
   return (
     <div className="relative max-w-xl">
-      <div className="flex items-center border-b-2 border-resp-accent/30 focus-within:border-resp-accent">
+      <div className="flex items-center border-b border-resp-accent/30 focus-within:border-resp-accent focus-within:shadow-[0_1px_0_var(--resp-accent)]">
         <input
           ref={inputRef}
           role="combobox"

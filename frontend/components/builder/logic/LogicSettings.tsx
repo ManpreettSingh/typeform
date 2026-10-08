@@ -65,7 +65,6 @@ export function LogicSettings({ question }: { question: Question }) {
           <span className="font-medium text-text">
             {next ? questionLabel(questions, next.id) : "the end of the form"}
           </span>
-          .
         </p>
       )}
 

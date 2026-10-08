@@ -156,9 +156,12 @@ def test_reorder_rejects_invalid_ids(client, make_form, add_question, bad):
 
 
 def test_seed_is_idempotent(client):
-    assert seed() == (1, 10)
+    assert seed() == (3, 52)
     assert seed() == (0, 0)
-    forms = client.get("/api/forms").json()
-    assert len(forms) == 1
-    assert forms[0]["status"] == "published"
-    assert forms[0]["question_count"] == 4
+    forms = {f["slug"]: f for f in client.get("/api/forms").json()}
+    assert {slug: f["status"] for slug, f in forms.items()} == {
+        "demo-feedback": "published",
+        "demo-event": "published",
+        "demo-draft": "draft",
+    }
+    assert [forms[slug]["response_count"] for slug in ("demo-feedback", "demo-event", "demo-draft")] == [26, 19, 0]

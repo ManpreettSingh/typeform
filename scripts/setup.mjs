@@ -9,8 +9,13 @@ const backend = join(root, "backend");
 const frontend = join(root, "frontend");
 
 function run(cmd, args, cwd) {
-  console.log(`\n> ${cmd} ${args.join(" ")}  (in ${cwd})`);
-  const { status } = spawnSync(cmd, args, { cwd, stdio: "inherit", shell: process.platform === "win32" });
+  const line = [cmd, ...args.map((a) => (/\s/.test(a) ? `"${a}"` : a))].join(" ");
+  console.log(`\n> ${line}  (in ${cwd})`);
+  // Windows needs a shell to find npm.cmd; give it one pre-quoted command line rather than an args array.
+  const { status } =
+    process.platform === "win32"
+      ? spawnSync(line, { cwd, stdio: "inherit", shell: true })
+      : spawnSync(cmd, args, { cwd, stdio: "inherit" });
   if (status !== 0) process.exit(status ?? 1);
 }
 

@@ -235,7 +235,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete, onPro
           <span aria-hidden className="rounded-input bg-resp-bg/80 px-2 py-1 text-xs opacity-70 sm:text-sm">
             {position} of {total}
           </span>
-          <div className="pointer-events-auto flex overflow-hidden rounded-input">
+          <div className="pointer-events-auto flex overflow-hidden rounded-resp-button">
             <NavButton label="Previous question" disabled={state.history.length === 0 || state.submitting} onClick={goPrev}>
               <ChevronUp className="size-5" aria-hidden />
             </NavButton>

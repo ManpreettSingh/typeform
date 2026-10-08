@@ -4,8 +4,10 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { AnswerProps } from "../types";
 
 const FIELD =
-  "w-full border-b-2 border-resp-accent/30 bg-transparent pb-2 text-2xl font-light text-resp-accent " +
-  "placeholder:text-resp-accent/40 focus:border-resp-accent focus:outline-none sm:text-3xl";
+  // Thin underline that thickens on focus (box-shadow, so the text doesn't shift), like Typeform.
+  "w-full border-b border-resp-accent/30 bg-transparent pb-2 text-2xl font-light text-resp-accent " +
+  "placeholder:text-resp-accent/40 focus:border-resp-accent focus:shadow-[0_1px_0_var(--resp-accent)] focus:outline-none " +
+  "sm:text-3xl";
 
 function useAutofocus<T extends HTMLElement>(live: boolean) {
   const ref = useRef<T>(null);

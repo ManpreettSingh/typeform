@@ -4,9 +4,10 @@ import { useEffect, useRef } from "react";
 export function WelcomeScreen({ title, description, onStart }: { title: string; description: string; onStart: () => void }) {
   const startRef = useRef<HTMLButtonElement>(null);
 
-  // Focused so Enter starts natively and keyboard users land on the only action.
+  // Focused so Enter starts natively and keyboard users land on the only action. No focus ring until the
+  // respondent actually uses the keyboard (Typeform doesn't show one on load either).
   useEffect(() => {
-    startRef.current?.focus({ preventScroll: true });
+    startRef.current?.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
   }, []);
 
   return (
@@ -18,7 +19,7 @@ export function WelcomeScreen({ title, description, onStart }: { title: string; 
           ref={startRef}
           type="button"
           onClick={onStart}
-          className="rounded-input bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-resp-accent"
+          className="rounded-resp-button bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-resp-accent"
         >
           Start
         </button>

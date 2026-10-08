@@ -13,7 +13,7 @@
 | `--primary` (builder buttons) | #262627 (dark) |
 | `--accent` (respondent default answer color) | #0445AF |
 | `--danger` | #D93025 |
-| Radius | 4px inputs / 8px cards / 999px pills |
+| Radius | 4px inputs / 8px cards / 8px respondent buttons (`--radius-resp-button`) / 999px pills |
 | Font | Inter (fallback system-ui). Respondent title ~ 24–32px, answer text ~ 24px light |
 
 ## Motion (respondent)

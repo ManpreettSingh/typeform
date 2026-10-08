@@ -1,10 +1,13 @@
+import csv
+import io
 from collections import Counter
 
 import pytest
 
-from app.seed import COMPLETED, SEED_FORMS, seed
+from app.models import Response
+from app.seed import SEED_FORMS, seed
 
-DEMO = SEED_FORMS[0]
+DEMO = SEED_FORMS[0]  # Customer Feedback: text, rating, multi-choice, yes/no (with a jump), dropdown, email
 
 
 @pytest.fixture
@@ -14,47 +17,61 @@ def demo(client):
     return client.get(f"/api/forms/{form['id']}").json()
 
 
-def _completed_values(position: int) -> list:
-    """Raw seeded answers for one question, completed responses only, most recent first."""
-    rows = sorted((r for r in DEMO["responses"] if r[0] == COMPLETED), key=lambda r: r[1])
-    return [r[2][position] for r in rows if r[2][position] is not None]
+def _raw(db, form_id: int) -> list[Response]:
+    """Seeded rows straight from the DB, newest first (by submission, else start)."""
+    rows = db.query(Response).filter(Response.form_id == form_id).all()
+    return sorted(rows, key=lambda r: (r.submitted_at or r.started_at, r.id), reverse=True)
+
+
+def _completed_values(rows: list[Response], question_id: int) -> list:
+    return [a.value for r in rows if r.status == "completed" for a in r.answers if a.question_id == question_id]
 
 
 # ---- Summary ---------------------------------------------------------------
 
 
-def test_summary_matches_seeded_raw_data(client, demo):
+def test_summary_matches_seeded_raw_data(client, db, demo):
+    rows = _raw(db, demo["id"])
+    completed = sum(r.status == "completed" for r in rows)
     summary = client.get(f"/api/forms/{demo['id']}/summary").json()
-    total = len(DEMO["responses"])
-    completed = sum(1 for r in DEMO["responses"] if r[0] == COMPLETED)
-    assert summary["total_responses"] == total
-    assert summary["completed"] == completed
-    assert summary["completion_rate"] == pytest.approx(completed / total)
+    assert summary["total_responses"] == len(rows) == DEMO["responses"]["count"]
+    assert summary["completed"] == completed == DEMO["responses"]["count"] - DEMO["responses"]["partial"]
+    assert summary["completion_rate"] == round(completed / len(rows), 4)
     assert [q["question_id"] for q in summary["questions"]] == [q["id"] for q in demo["questions"]]
 
-    name, rating, features, comments = summary["questions"]
+    by_type = {q["type"]: (q, s) for q, s in zip(demo["questions"], summary["questions"], strict=True)}
 
-    assert name["type"] == "short_text"
+    question, name = by_type["short_text"]
     assert name["answered"] == completed
-    assert name["recent"] == _completed_values(0)[:5]
+    assert name["recent"] == _completed_values(rows, question["id"])[:5]
 
-    ratings = _completed_values(1)
-    assert rating["answered"] == len(ratings)
-    assert rating["average"] == pytest.approx(round(sum(ratings) / len(ratings), 2))
-    assert rating["max"] == 5
-    assert rating["distribution"] == {str(i): Counter(ratings)[i] for i in range(1, 6)}
+    question, nps = by_type["rating"]
+    scores = _completed_values(rows, question["id"])
+    assert nps["max"] == 10
+    assert nps["average"] == pytest.approx(round(sum(scores) / len(scores), 2))
+    assert nps["distribution"] == {str(i): Counter(scores)[i] for i in range(1, 11)}
 
-    picks = _completed_values(2)
+    question, features = by_type["multiple_choice"]
+    picks = _completed_values(rows, question["id"])
     assert features["answered"] == len(picks)
     expected = Counter(option for pick in picks for option in pick)
-    assert [(c["option_id"], c["label"], c["count"]) for c in features["counts"]] == [
-        ("builder", "Form builder", expected["builder"]),
-        ("sharing", "Sharing", expected["sharing"]),
-        ("results", "Results", expected["results"]),
+    assert [(c["option_id"], c["count"]) for c in features["counts"]] == [
+        (o["id"], expected[o["id"]]) for o in question["properties"]["options"]
     ]
 
-    assert comments["answered"] == len(_completed_values(3))
-    assert comments["recent"] == _completed_values(3)[:5]
+    # Branching: only respondents who answered Yes reached the follow-up question.
+    _, frustrated = by_type["yes_no"]
+    yes = next(c["count"] for c in frustrated["counts"] if c["option_id"] == "yes")
+    assert by_type["long_text"][1]["answered"] == yes > 0
+    assert by_type["dropdown"][1]["answered"] == completed
+
+
+def test_seeded_responses_follow_the_branching(client, db, demo):
+    frustrated_id, follow_up_id = (q["id"] for q in demo["questions"] if q["type"] in ("yes_no", "long_text"))
+    for r in _raw(db, demo["id"]):
+        answers = {a.question_id: a.value for a in r.answers}
+        if answers.get(frustrated_id) is False:
+            assert follow_up_id not in answers
 
 
 def test_summary_for_other_types(client, make_form, add_question):
@@ -108,23 +125,24 @@ def test_summary_missing_form_is_404(client):
 # ---- Responses list / detail / delete ---------------------------------------
 
 
-def test_list_responses_newest_first_with_pagination(client, demo):
+def test_list_responses_newest_first_with_pagination(client, db, demo):
+    rows = _raw(db, demo["id"])
     url = f"/api/forms/{demo['id']}/responses"
     first = client.get(url, params={"page_size": 4}).json()
-    assert first["total"] == len(DEMO["responses"])
+    assert first["total"] == len(rows) == 30
     assert (first["page"], first["page_size"]) == (1, 4)
-    # Newest first: the two partial responses are the most recent rows in the seed.
-    assert [i["status"] for i in first["items"]] == ["partial", "partial", "completed", "completed"]
-    name_id = str(demo["questions"][0]["id"])
-    assert first["items"][2]["answers"][name_id] == "Omar"
+    assert [i["id"] for i in first["items"]] == [r.id for r in rows[:4]]
 
-    last = client.get(url, params={"page_size": 4, "page": 3}).json()
-    assert len(last["items"]) == 2
+    last = client.get(url, params={"page_size": 4, "page": 8}).json()
+    assert [i["id"] for i in last["items"]] == [r.id for r in rows[28:]]
     assert client.get(url, params={"page": 9}).json()["items"] == []
 
-    completed = client.get(url, params={"status": "completed"}).json()
-    assert completed["total"] == 8
+    completed = client.get(url, params={"status": "completed", "page_size": 100}).json()
+    assert completed["total"] == 26
     assert all(i["submitted_at"] for i in completed["items"])
+    partial = client.get(url, params={"status": "partial"}).json()
+    assert partial["total"] == 4
+    assert all(i["submitted_at"] is None for i in partial["items"])
 
 
 @pytest.mark.parametrize("params", [{"page": 0}, {"page_size": 0}, {"page_size": 101}, {"status": "nope"}])
@@ -132,16 +150,13 @@ def test_list_responses_rejects_bad_params(client, demo, params):
     assert client.get(f"/api/forms/{demo['id']}/responses", params=params).status_code == 422
 
 
-def test_response_detail_in_question_order(client, demo):
-    items = client.get(f"/api/forms/{demo['id']}/responses", params={"status": "completed"}).json()["items"]
-    omar = items[0]
-    detail = client.get(f"/api/forms/{demo['id']}/responses/{omar['id']}").json()
+def test_response_detail_in_question_order(client, db, demo):
+    newest = next(r for r in _raw(db, demo["id"]) if r.status == "completed")
+    detail = client.get(f"/api/forms/{demo['id']}/responses/{newest.id}").json()
     assert detail["status"] == "completed"
-    assert [(a["question_title"], a["question_type"], a["value"]) for a in detail["answers"]] == [
-        ("What's your name?", "short_text", "Omar"),
-        ("How would you rate your experience?", "rating", 4),
-        ("Which features do you use most?", "multiple_choice", ["builder", "results"]),
-        ("Anything else you'd like to tell us?", "long_text", "Great experience overall!"),
+    stored = {a.question_id: a.value for a in newest.answers}
+    assert [(a["question_id"], a["question_title"], a["question_type"], a["value"]) for a in detail["answers"]] == [
+        (q["id"], q["title"], q["type"], stored[q["id"]]) for q in demo["questions"] if q["id"] in stored
     ]
 
 
@@ -158,29 +173,35 @@ def test_delete_response(client, demo):
     rid = client.get(url, params={"status": "completed"}).json()["items"][0]["id"]
     assert client.delete(f"{url}/{rid}").status_code == 204
     assert client.get(f"{url}/{rid}").status_code == 404
-    assert client.get(f"/api/forms/{demo['id']}").json()["response_count"] == 7
-    assert client.get(f"/api/forms/{demo['id']}/summary").json()["completed"] == 7
+    assert client.get(f"/api/forms/{demo['id']}").json()["response_count"] == 25
+    assert client.get(f"/api/forms/{demo['id']}/summary").json()["completed"] == 25
 
 
 # ---- CSV export ---------------------------------------------------------------
 
 
-def test_csv_export(client, demo):
+def test_csv_export(client, db, demo):
     res = client.get(f"/api/forms/{demo['id']}/responses/export.csv")
     assert res.status_code == 200
     assert res.headers["content-type"].startswith("text/csv")
-    assert 'filename="Customer-feedback-responses.csv"' in res.headers["content-disposition"]
+    assert 'filename="Customer-Feedback-responses.csv"' in res.headers["content-disposition"]
     text = res.content.decode("utf-8")
-    assert text.startswith("﻿")
-    lines = text.lstrip("﻿").splitlines()
-    assert lines[0] == (
-        "Response ID,Status,Started at,Submitted at,What's your name?,How would you rate your experience?,"
-        "Which features do you use most?,Anything else you'd like to tell us?"
-    )
-    assert len(lines) == 1 + len(DEMO["responses"])
-    omar = next(line for line in lines if ",Omar," in line)
-    assert omar.endswith(",Omar,4/5,Form builder; Results,Great experience overall!")
-    assert ",partial," in lines[1]
+    assert text.startswith("\ufeff")
+    rows = list(csv.reader(io.StringIO(text.lstrip("\ufeff"))))
+    assert rows[0] == ["Response ID", "Status", "Started at", "Submitted at", *(q["title"] for q in demo["questions"])]
+    assert len(rows) == 1 + DEMO["responses"]["count"]
+
+    # One full row checked against the stored answers, formatted for humans.
+    raw = next(r for r in _raw(db, demo["id"]) if r.status == "completed")
+    row = next(r for r in rows[1:] if r[0] == str(raw.id))
+    stored = {a.question_id: a.value for a in raw.answers}
+    name, nps, features, *_ = demo["questions"]
+    labels = {o["id"]: o["label"] for o in features["properties"]["options"]}
+    assert row[1] == "completed"
+    assert row[4] == stored[name["id"]]
+    assert row[5] == f"{stored[nps['id']]}/10"
+    assert row[6] == "; ".join(labels[o] for o in stored.get(features["id"], []))
+    assert sum(r[1] == "partial" for r in rows[1:]) == DEMO["responses"]["partial"]
 
 
 def test_csv_escapes_formulas(client, make_form, add_question):

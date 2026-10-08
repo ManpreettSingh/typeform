@@ -1,19 +1,12 @@
 import type { CSSProperties } from "react";
-import type { ThankYou, Theme } from "@/lib/types";
+import type { Theme } from "@/lib/types";
 
-// Mirrors backend defaults (schemas/form.py) so the UI can offer "Reset to default".
+// Mirrors the backend default theme (schemas/form.py) so the UI can offer "Reset to default".
 export const DEFAULT_THEME: Theme = {
   background: "#FFFFFF",
   text_color: "#262627",
   button_color: "#0445AF",
   font: "Inter",
-};
-
-export const DEFAULT_THANK_YOU: ThankYou = {
-  title: "Thanks for completing this form",
-  message: "Your response has been recorded.",
-  button_text: null,
-  button_url: null,
 };
 
 /** Fonts a creator can pick. Only Inter is downloaded; the rest are system stacks. */
