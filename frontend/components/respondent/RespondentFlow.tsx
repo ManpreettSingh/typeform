@@ -70,9 +70,10 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
 
     submittingRef.current = true;
     dispatch({ type: "submit" });
-    toast.dismiss(SUBMIT_TOAST_ID);
     try {
       await onComplete(answers);
+      // Only now: a dismissal still pending when a fast failure re-creates the same id removes the new toast.
+      toast.dismiss(SUBMIT_TOAST_ID);
       dispatch({ type: "finish" });
     } catch (error) {
       handleSubmitError(error);
@@ -123,6 +124,12 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
     void submit();
   }, [questions, submit]);
 
+  // ↓ only moves between questions; submitting takes an explicit OK / Enter on the last one.
+  const goDown = useCallback(() => {
+    const s = stateRef.current;
+    if (s.step !== "question" || s.index < questions.length - 1) goNext();
+  }, [goNext, questions.length]);
+
   const goPrev = useCallback(() => {
     const s = stateRef.current;
     if (s.step === "question" && s.index > 0 && !s.submitting) dispatch({ type: "go", index: s.index - 1 });
@@ -138,7 +145,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
         goNext();
       } else if (!typing && (e.key === "ArrowDown" || e.key === "PageDown")) {
         e.preventDefault();
-        goNext();
+        goDown();
       } else if (!typing && (e.key === "ArrowUp" || e.key === "PageUp")) {
         e.preventDefault();
         goPrev();
@@ -149,7 +156,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goNext, goPrev]);
+  }, [goDown, goNext, goPrev]);
 
   const shift = reduceMotion ? 0 : SHIFT_PX;
   const variants: Variants = {
@@ -219,7 +226,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete }: Pro
             <NavButton label="Previous question" disabled={state.index === 0 || state.submitting} onClick={goPrev}>
               <ChevronUp className="size-5" aria-hidden />
             </NavButton>
-            <NavButton label={isLast ? "Submit" : "Next question"} disabled={state.submitting} onClick={goNext}>
+            <NavButton label="Next question" disabled={isLast || state.submitting} onClick={goDown}>
               <ChevronDown className="size-5" aria-hidden />
             </NavButton>
           </div>

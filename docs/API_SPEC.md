@@ -26,8 +26,8 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 ## Public (no auth)
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/public/forms/{slug}` | only if published; returns title, theme, thank_you, questions (no internal fields) |
-| POST | `/public/forms/{slug}/responses` | `{answers:{ "<qid>": value }}` → validates all → 201 `{id}` |
+| GET | `/public/forms/{slug}` | only if published (else 404); returns slug, title, description, theme, thank_you, ordered questions `{id,type,title,description,required,properties}` (no internal fields) |
+| POST | `/public/forms/{slug}/responses` | `{answers:{ "<qid>": value }}` → validates all (unknown ids rejected, empty optional answers dropped) → 201 `{id}`; 422 `{detail:{errors:{"<qid>": msg}}}` |
 | POST | `/public/forms/{slug}/responses/start` | bonus: create partial, returns `{response_id}` |
 | PATCH | `/public/responses/{rid}` | bonus: upsert partial answers; `{answers, complete?}` |
 

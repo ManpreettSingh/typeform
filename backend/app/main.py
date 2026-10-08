@@ -8,7 +8,7 @@ from app import models  # noqa: F401  (registers tables on Base.metadata)
 from app.core.config import get_settings
 from app.core.db import Base, engine
 from app.core.errors import register_exception_handlers
-from app.routers import forms, health, questions
+from app.routers import forms, health, public, questions
 
 
 @asynccontextmanager
@@ -30,7 +30,7 @@ def create_app() -> FastAPI:
     )
     register_exception_handlers(app)
 
-    for router in (health.router, forms.router, questions.router):
+    for router in (health.router, forms.router, questions.router, public.router):
         app.include_router(router, prefix=settings.api_prefix)
     return app
 
