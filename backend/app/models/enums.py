@@ -36,3 +36,12 @@ class QuestionType(StrEnum):
 class ResponseStatus(StrEnum):
     PARTIAL = "partial"
     COMPLETED = "completed"
+
+
+class SubscriptionStatus(StrEnum):
+    """Typeform's Subscription status property. `suppressed` is set by the system only, never by hand."""
+
+    SUBSCRIBED = "subscribed"
+    UNSUBSCRIBED = "unsubscribed"
+    NEVER_SUBSCRIBED = "never_subscribed"
+    SUPPRESSED = "suppressed"

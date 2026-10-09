@@ -9,7 +9,7 @@ from app import models  # noqa: F401  (registers tables on Base.metadata)
 from app.core.config import get_settings
 from app.core.db import Base, engine, migrate
 from app.core.errors import register_exception_handlers
-from app.routers import ai, forms, health, public, questions, responses, endings, media, templates, themes, workspaces
+from app.routers import ai, contacts, forms, health, public, questions, responses, endings, media, templates, themes, workspaces
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     # templates.router goes before forms.router so POST /forms/from-template/{slug} is never read as /forms/{form_id}/...
-    for router in (health.router, templates.router, forms.router, questions.router, public.router, responses.router, ai.router, endings.router, media.router, themes.router, workspaces.router):
+    for router in (health.router, templates.router, forms.router, questions.router, public.router, responses.router, ai.router, endings.router, media.router, themes.router, workspaces.router, contacts.router):
         app.include_router(router, prefix=settings.api_prefix)
     return app
 

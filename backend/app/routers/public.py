@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,7 @@ from app.schemas.public import (
     SubmissionOut,
     UploadSignatureOut,
 )
+from app.services import contacts as contact_service
 from app.services import payments
 from app.services import submissions as submission_service
 from app.services.media import generate_upload_signature
@@ -72,9 +73,12 @@ def start_payment(slug: str, data: PaymentOrderIn, db: DB):
 
 
 @router.post("/forms/{slug}/responses", response_model=SubmissionOut, status_code=status.HTTP_201_CREATED)
-def submit_response(slug: str, data: SubmissionIn, db: DB):
+def submit_response(slug: str, data: SubmissionIn, db: DB, background: BackgroundTasks):
     form = submission_service.get_published_form(db, slug)
-    return submission_service.create_submission(db, form, data.answers)
+    response = submission_service.create_submission(db, form, data.answers)
+    # After the respondent has their answer: the contact is recorded in the background and can't hold anything up.
+    background.add_task(contact_service.record_submission, response.id)
+    return response
 
 
 @router.post(
@@ -86,6 +90,9 @@ def start_response(slug: str, db: DB):
 
 
 @router.patch("/responses/{response_id}", response_model=PartialUpdateOut)
-def save_progress(response_id: int, data: PartialUpdateIn, db: DB):
+def save_progress(response_id: int, data: PartialUpdateIn, db: DB, background: BackgroundTasks):
     response = submission_service.get_open_response(db, response_id, data.token)
-    return submission_service.save_progress(db, response, data.answers, data.complete)
+    saved = submission_service.save_progress(db, response, data.answers, data.complete)
+    if data.complete:
+        background.add_task(contact_service.record_submission, response.id)
+    return saved

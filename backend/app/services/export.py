@@ -19,7 +19,7 @@ def format_answer(question: Question, value: Any) -> str:
     return get_spec(question.type).format(value, question.properties)
 
 
-def _safe_cell(text: str) -> str:
+def safe_cell(text: str) -> str:
     return f"'{text}" if text.startswith(_FORMULA_PREFIXES) else text
 
 
@@ -39,10 +39,10 @@ def responses_csv(db: Session, form: Form) -> str:
     out = io.StringIO()
     writer = csv.writer(out)
     writer.writerow(
-        ["Response ID", "Status", "Started at", "Submitted at", *(_safe_cell(q.title or "Untitled question") for q in questions)]
+        ["Response ID", "Status", "Started at", "Submitted at", *(safe_cell(q.title or "Untitled question") for q in questions)]
     )
     for response in responses:
         by_question = {a.question_id: a.value for a in response.answers}
-        cells = [_safe_cell(format_answer(q, by_question[q.id])) if q.id in by_question else "" for q in questions]
+        cells = [safe_cell(format_answer(q, by_question[q.id])) if q.id in by_question else "" for q in questions]
         writer.writerow([response.id, response.status, _iso(response.started_at), _iso(response.submitted_at), *cells])
     return out.getvalue()

@@ -117,7 +117,10 @@ End-to-end browser checks run on an isolated stack (ports 3100/8100, throwaway d
 - **Extras:** a template gallery (18 templates, "Use template" makes a real draft), a Share page (link, QR code, embed code), workspaces, multiple endings, and Typeform AI (Gemini) to draft a form or edit it by chat.
 
 ### Placeholders (“Coming soon”, disabled)
-Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs.
+Integrations and Collaborate under Settings; Automations and Insights tabs.
+
+### Contacts (built, modelled on Typeform's)
+A **Contacts** tab with a persisted contact database: add individually (with the consent step for "Subscribed"), **Add with import** (CSV with column matching), **Auto-add from forms** (and every new submission with an email becomes a contact), search, filters with AND/OR, saved **Contact lists**, editable cells, a detail sidebar (subscription history, sources), bulk delete and CSV export. Limits: one filter group, no custom properties, no data enrichment.
 
 ---
 
