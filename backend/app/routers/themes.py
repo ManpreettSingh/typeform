@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.theme import ThemeGallery
 
-router = APIRouter(prefix="/api/themes", tags=["themes"])
+router = APIRouter(prefix="/themes", tags=["themes"])
 
 @router.get("")
 def list_themes(db: Session = Depends(get_db)):
