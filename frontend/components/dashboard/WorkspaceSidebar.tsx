@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { ChatToCreateBar } from "@/components/ai/ChatToCreateBar";
+import { useAiLauncher } from "@/lib/ai/launcher";
 import { IconButton } from "@/components/ui";
 import { CreateFormButton } from "./CreateFormButton";
 
@@ -22,6 +23,10 @@ export function WorkspaceSidebar({ query, onQueryChange, formCount, totals }: Pr
   // "Ask Typeform AI": the review view for a form that doesn't exist yet; Apply creates it.
   const [ai, setAi] = useState<string | null>(null);
   const router = useRouter();
+  // A request made elsewhere (the onboarding's "Create my first form with AI") opens the same view.
+  const launched = useAiLauncher((s) => s.prompt);
+  const clearLaunched = useAiLauncher((s) => s.clear);
+  const aiPrompt = ai ?? launched;
 
   return (
     <aside aria-label="Workspace" className="hidden w-64 shrink-0 flex-col border-r border-border md:flex">
@@ -86,13 +91,17 @@ export function WorkspaceSidebar({ query, onQueryChange, formCount, totals }: Pr
         )}
         <ChatToCreateBar label="Ask Typeform AI" onSubmit={setAi} className="mt-4" />
       </div>
-      {ai !== null && (
+      {aiPrompt !== null && (
         <AiAssistant
           formId={null}
-          initialPrompt={ai}
-          onClose={() => setAi(null)}
+          initialPrompt={aiPrompt}
+          onClose={() => {
+            setAi(null);
+            clearLaunched();
+          }}
           onApplied={(form) => {
             setAi(null);
+            clearLaunched();
             router.push(`/forms/${form.id}/edit`);
           }}
         />

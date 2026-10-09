@@ -263,3 +263,18 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* First-visit onboarding: two soft lilac glows drifting behind the questions. Stopped for reduced motion. */
+@keyframes onboarding-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(7vw, 5vh, 0) scale(1.18); }
+}
+@keyframes onboarding-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.1); }
+  50% { transform: translate3d(-6vw, -6vh, 0) scale(0.92); }
+}
+.onboarding-glow-a { animation: onboarding-drift-a 19s ease-in-out infinite; }
+.onboarding-glow-b { animation: onboarding-drift-b 23s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-glow-a, .onboarding-glow-b { animation: none; }
+}

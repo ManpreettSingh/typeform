@@ -1,3 +1,5 @@
+> **STALE (since 2026-10-09 evening): read `docs/HANDOFF-NEXT-CHAT.md` instead.** This file describes the state after Task 7 only.
+
 # Handoff: Typeform free-plan parity program (state after Task 7)
 
 Written 2026-10-09 by the session that built Tasks 1–7, so another chat can continue without re-deriving anything.
