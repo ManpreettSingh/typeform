@@ -1,7 +1,10 @@
 "use client";
 
 import { ChevronUp, LayoutGrid, Plus, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AiAssistant } from "@/components/ai/AiAssistant";
+import { ChatToCreateBar } from "@/components/ai/ChatToCreateBar";
 import { IconButton } from "@/components/ui";
 import { CreateFormButton } from "./CreateFormButton";
 
@@ -16,6 +19,9 @@ type Props = {
 /** Typeform's left column: Create form, search, the workspace list and a responses footer. */
 export function WorkspaceSidebar({ query, onQueryChange, formCount, totals }: Props) {
   const [privateOpen, setPrivateOpen] = useState(true);
+  // "Ask Typeform AI": the review view for a form that doesn't exist yet; Apply creates it.
+  const [ai, setAi] = useState<string | null>(null);
+  const router = useRouter();
 
   return (
     <aside aria-label="Workspace" className="hidden w-64 shrink-0 flex-col border-r border-border md:flex">
@@ -78,7 +84,19 @@ export function WorkspaceSidebar({ query, onQueryChange, formCount, totals }: Pr
             <span className="text-xs text-text-muted">completed · {totals.inProgress.toLocaleString("en")} in progress</span>
           </p>
         )}
+        <ChatToCreateBar label="Ask Typeform AI" onSubmit={setAi} className="mt-4" />
       </div>
+      {ai !== null && (
+        <AiAssistant
+          formId={null}
+          initialPrompt={ai}
+          onClose={() => setAi(null)}
+          onApplied={(form) => {
+            setAi(null);
+            router.push(`/forms/${form.id}/edit`);
+          }}
+        />
+      )}
     </aside>
   );
 }

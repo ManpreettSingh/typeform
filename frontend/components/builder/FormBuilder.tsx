@@ -16,9 +16,12 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
+import { toast } from "sonner";
+import { AiAssistant } from "@/components/ai/AiAssistant";
+import { ChatToCreateBar } from "@/components/ai/ChatToCreateBar";
 import { Button, ConfirmDialog, EmptyState, IconButton, Skeleton, Tabs } from "@/components/ui";
 import { pluralize } from "@/lib/format";
-import type { Question } from "@/lib/types";
+import type { Form, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { AddContentModal } from "./AddContentModal";
 import { BuilderTopBar, type BuilderView } from "./BuilderTopBar";
@@ -103,6 +106,11 @@ function BuilderLayout() {
   const [previewing, setPreviewing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [design, setDesign] = useState(false);
+  // Typeform AI's review view; the string is the prompt that opened it.
+  const [ai, setAi] = useState<string | null>(null);
+  const loadForm = useBuilderStore((s) => s.loadForm);
+  const formTheme = useBuilderStore((s) => s.form?.theme);
+  const currentFormId = useBuilderStore((s) => s.form?.id ?? null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [device, setDevice] = useState<CanvasDevice>("desktop");
   // Below lg the three columns don't fit: one at a time, switched from a bar under the top bar.
@@ -121,9 +129,21 @@ function BuilderLayout() {
       setPreviewing(false);
       setConfirming(null);
       setAdding(false);
+      setAi(null);
     },
     [],
   );
+
+  // The AI reads the saved form, so send any pending edits first.
+  const openAi = async (prompt: string) => {
+    await useBuilderStore.getState().flush();
+    setAi(prompt);
+  };
+  const onAiApplied = async (applied: Form) => {
+    setAi(null);
+    await loadForm(applied.id);
+    toast.success("Changes applied to your form");
+  };
 
   // Deleting a question also deletes its answers, so only ask when there are responses to lose.
   const requestDelete = (question: Question) =>
@@ -169,7 +189,7 @@ function BuilderLayout() {
 
           <section
             aria-label="Canvas"
-            className={clsx("min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex", pane === "canvas" ? "flex" : "hidden")}
+            className={clsx("relative min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex", pane === "canvas" ? "flex" : "hidden")}
           >
             <div className="flex h-12 shrink-0 items-center gap-1.5 rounded-card bg-bg-subtle px-2">
               <Button size="sm" leftIcon={<Plus className="size-4" aria-hidden />} onClick={() => setAdding(true)}>
@@ -212,7 +232,12 @@ function BuilderLayout() {
                 className="max-lg:hidden"
               />
             </div>
-            <BuilderCanvas device={device} />
+            <BuilderCanvas device={device} onAskAi={(prompt) => void openAi(prompt)} onStartFromScratch={() => setAdding(true)} />
+            {(hasQuestions || screen !== "question") && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
+                <ChatToCreateBar onSubmit={openAi} className="pointer-events-auto w-full max-w-[420px]" />
+              </div>
+            )}
           </section>
 
           {(panelOpen || pane === "settings") && (
@@ -253,7 +278,10 @@ function BuilderLayout() {
       )}
 
       {previewing && <PreviewOverlay onClose={() => setPreviewing(false)} />}
-      <AddContentModal open={adding} onClose={() => setAdding(false)} />
+      {ai !== null && (
+        <AiAssistant formId={currentFormId} initialPrompt={ai} theme={formTheme} onClose={() => setAi(null)} onApplied={onAiApplied} />
+      )}
+      <AddContentModal open={adding} onClose={() => setAdding(false)} onAskAi={(prompt) => void openAi(prompt)} />
 
       <ConfirmDialog
         open={confirming !== null}

@@ -29,6 +29,8 @@
   --primary-fg: #ffffff;
   --accent: #3c323e;        /* focus rings, links, selected marks */
   --accent-soft: #ededee;
+  --ai-halo: #f9f2fd;       /* Typeform AI prompt box: the lilac halo around it (measured on admin.typeform.com) */
+  --ai-line: #ddb7f0;       /* ... and its inner border */
   --danger: #c0392b;
   --danger-hover: #a5281c;
   --danger-soft: #fdeceb;
@@ -100,6 +102,8 @@
   --primary-fg: #1a171b;
   --accent: #f3f0f3;
   --accent-soft: #353037;
+  --ai-halo: #2c2332;
+  --ai-line: #6f4f80;
   --danger: #f2716a;
   --danger-hover: #f59590;
   --danger-soft: #3b1f1d;
@@ -157,6 +161,8 @@
   --color-primary-fg: var(--primary-fg);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-ai-halo: var(--ai-halo);
+  --color-ai-line: var(--ai-line);
   --color-danger: var(--danger);
   --color-danger-hover: var(--danger-hover);
   --color-danger-soft: var(--danger-soft);

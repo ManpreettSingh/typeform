@@ -147,6 +147,42 @@ def create_themes_table(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.exec_driver_sql(_THEMES_TABLE)
 
+_AI_MEMORY_TABLE = """CREATE TABLE IF NOT EXISTS ai_memory (
+    id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    PRIMARY KEY (id)
+)"""
+
+
+def create_ai_memory_table(engine: Engine) -> None:
+    with engine.begin() as conn:
+        conn.exec_driver_sql(_AI_MEMORY_TABLE)
+
+
+def rename_theme_color_keys(engine: Engine) -> None:
+    """Forms saved before Phase 2 store `text_color` / `button_color`; the strict Theme model now says question, answer, button.
+
+    Without this, one old form made `GET /api/forms` fail for the whole workspace. Themes already in the new shape (or empty)
+    are left alone, and nothing else in the theme is touched.
+    """
+    with engine.begin() as conn:
+        for form_id, raw in conn.exec_driver_sql("SELECT id, theme FROM forms").fetchall():
+            try:
+                theme = json.loads(raw) if isinstance(raw, str) else raw
+            except ValueError:
+                continue
+            if not isinstance(theme, dict) or not {"text_color", "button_color"} & theme.keys():
+                continue
+            text_color = theme.pop("text_color", None)
+            button_color = theme.pop("button_color", None)
+            if text_color is not None:
+                theme.setdefault("question", text_color)
+                theme.setdefault("answer", text_color)
+            if button_color is not None:
+                theme.setdefault("button", button_color)
+            conn.execute(text("UPDATE forms SET theme = :theme WHERE id = :id"), {"theme": json.dumps(theme), "id": form_id})
+
+
 MIGRATIONS: list[tuple[str, Step]] = [
     ("add_forms_views", add_forms_views),
     ("drop_question_type_check", drop_question_type_check),
@@ -154,6 +190,8 @@ MIGRATIONS: list[tuple[str, Step]] = [
     ("add_forms_welcome", add_forms_welcome),
     ("create_endings_from_thank_you", create_endings_from_thank_you),
     ("create_themes_table", create_themes_table),
+    ("create_ai_memory_table", create_ai_memory_table),
+    ("rename_theme_color_keys", rename_theme_color_keys),
 ]
 
 

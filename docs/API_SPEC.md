@@ -67,3 +67,24 @@ Timestamps are ISO-8601 UTC (`...Z`). Create endpoints return 201, deletes 204.
 ```
 - `counts` (multiple_choice, dropdown, yes_no — yes/no use option ids `yes`/`no`) are in option order; multi-select counts can sum past `answered`; answers naming since-removed options are not counted.
 - `recent` (short_text, long_text, email): latest 5, most recent first. `average` is rounded to 2 decimals; `null` (and `min`/`max` null) when nothing was answered.
+
+## Typeform AI chat (`/api/ai`)
+
+Gemini runs on the server (`GEMINI_API_KEY`, `GEMINI_MODEL` in `backend/.env`); the browser never sees the key. `POST /ai/forms` and
+`POST /ai/forms/{id}/questions` (one-shot generation) still exist. The chat never saves anything: only `/ai/apply` does.
+
+- `POST /ai/chat` `{form_id: int|null, messages: [{role: "user"|"assistant", content}], draft?: Proposal|null, memory?: string|null}` →
+  `{reply, proposal: Proposal|null, diff: Diff|null}`. `form_id: null` drafts a form that doesn't exist yet. `draft` is the proposal the
+  creator is reviewing (the next turn builds on it); the diff is always against the *saved* form. The last message must be the creator's
+  (422 otherwise). Errors: 404 unknown form, 503 no key, 502 Gemini failure (friendly message). `proposal` is null when the turn only
+  answered a question, declined a request (design, scoring, logic are "not supported yet") or changed nothing.
+- `POST /ai/apply` `{form_id: int|null, proposal}` → the saved form (`FormOut`). One transaction: invalid proposals (ids from another form,
+  type changes, bad properties, a group removed while its questions stay) return 422 keyed like `questions.3.properties.max` and change
+  nothing; `form_id: null` creates a draft form. Removed questions delete their answers and the jumps that pointed at them.
+- `GET/PUT /ai/memory` `{content}` (≤ 2000 characters; one row, the app has no accounts) → `{content, max_length}`.
+
+`Proposal` = `{welcome: {title, description, button_text, show_time_to_complete, show_submission_count}, questions: [{id|null, type, title,
+description, required, properties, group_id}], endings: [{id|null, title, message, button_text, button_url}]}`: the whole form after the
+change; `id: null` = new. `Diff` = `{to_remove: [..], to_set: [{.., change: "new"|"changed"|"moved", fields, moved}], endings: {to_remove, to_set}, welcome: [field names]}`.
+The model works on a flat view (options as labels, `rating_max`/`rating_shape`); the server keeps every stored property of unchanged questions
+and the ids of surviving choice labels, validates everything like a manual edit, and drops what it can't (with a note in `reply`).

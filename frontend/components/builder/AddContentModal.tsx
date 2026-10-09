@@ -34,11 +34,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
+import { AiPromptBox } from "@/components/ai/AiPromptBox";
 import { Badge, Button, IconButton, Modal } from "@/components/ui";
 import type { QuestionType } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 
-type Tab = "elements" | "import";
+type Tab = "elements" | "import" | "ai";
 
 type Element = { label: string; icon: LucideIcon; type?: QuestionType };
 type Group = { title: string; chip: string; items: Element[] };
@@ -124,7 +125,16 @@ const IMPORT_TITLE_MAX = 1000;
 const IMPORT_MAX = 50;
 
 /** Typeform's "Add content" modal: the element catalogue and "Import questions". */
-export function AddContentModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AddContentModal({
+  open,
+  onClose,
+  onAskAi,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** "Create with AI": the prompt typed in the AI tab; the caller opens Typeform AI's review view. */
+  onAskAi: (prompt: string) => void;
+}) {
   const [tab, setTab] = useState<Tab>("elements");
   // After adding, focus belongs to the new question's title on the canvas, not back on "Add content".
   const [added, setAdded] = useState(false);
@@ -156,6 +166,7 @@ export function AddContentModal({ open, onClose }: { open: boolean; onClose: () 
               [
                 ["elements", "Add form elements"],
                 ["import", "Import questions"],
+                ["ai", "Create with AI"],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -175,16 +186,40 @@ export function AddContentModal({ open, onClose }: { open: boolean; onClose: () 
                 {label}
               </button>
             ))}
-            <span title="Coming in the next step" className="flex h-12 items-center gap-2 text-sm font-medium text-text-muted">
-              Create with AI <Badge variant="accent">Soon</Badge>
-            </span>
           </div>
           <IconButton label="Close" icon={<X className="size-4" />} size="sm" onClick={onClose} />
         </div>
       }
     >
-      {tab === "elements" ? <ElementsTab onDone={done} /> : <ImportTab onDone={done} />}
+      {tab === "elements" ? (
+        <ElementsTab onDone={done} />
+      ) : tab === "import" ? (
+        <ImportTab onDone={done} />
+      ) : (
+        <AiTab
+          onSubmit={(prompt) => {
+            onClose();
+            onAskAi(prompt);
+          }}
+        />
+      )}
     </Modal>
+  );
+}
+
+/** Typeform's "Create with AI" tab: the prompt box under "What would you like to create?". */
+function AiTab({ onSubmit }: { onSubmit: (prompt: string) => void }) {
+  return (
+    <div className="flex flex-col items-center gap-6 px-8 py-14">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <p className="text-sm font-medium text-text-muted">Typeform AI</p>
+        <h3 className="text-2xl/8 font-normal text-text">What would you like to create?</h3>
+      </div>
+      <AiPromptBox autoFocus onSubmit={onSubmit} />
+      <p className="max-w-[460px] text-center text-xs text-text-muted">
+        Typeform AI adds to or edits this form. You review every change before it&rsquo;s applied.
+      </p>
+    </div>
   );
 }
 

@@ -145,6 +145,66 @@ def test_structure_columns_are_added(old_db: Engine) -> None:
         assert conn.execute(text("SELECT group_id FROM questions WHERE id = 1")).scalar() is None
 
 
+def test_ai_memory_step_creates_the_table_and_is_idempotent(old_db: Engine) -> None:
+    from app.core.migrations import create_ai_memory_table
+
+    with old_db.begin() as conn:
+        conn.execute(text("DROP TABLE ai_memory"))
+    create_ai_memory_table(old_db)
+    create_ai_memory_table(old_db)
+    with old_db.begin() as conn:
+        conn.execute(text("INSERT INTO ai_memory (id, content) VALUES (1, 'We run a bakery')"))
+        assert conn.execute(text("SELECT content FROM ai_memory WHERE id = 1")).scalar() == "We run a bakery"
+
+
+def _set_theme(engine: Engine, form_id: int, theme: dict) -> None:
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE forms SET theme = :t WHERE id = :id"), {"t": json.dumps(theme), "id": form_id})
+
+
+def _theme(engine: Engine, form_id: int) -> dict:
+    with engine.connect() as conn:
+        return json.loads(conn.execute(text("SELECT theme FROM forms WHERE id = :id"), {"id": form_id}).scalar())
+
+
+def test_old_theme_keys_are_renamed(old_db: Engine) -> None:
+    """Before Phase 2 a theme had text_color / button_color; the strict schema now says question / answer / button."""
+    _set_theme(old_db, 1, {"background": "#FFFFFF", "text_color": "#262627", "button_color": "#0445AF", "font": "Karla"})
+    apply_migrations(old_db)
+    assert _theme(old_db, 1) == {"background": "#FFFFFF", "question": "#262627", "answer": "#262627", "button": "#0445AF", "font": "Karla"}
+
+
+def test_renamed_themes_load_through_the_current_schema(old_db: Engine) -> None:
+    from app.schemas.form import Theme
+
+    _set_theme(old_db, 1, {"background": "#ffffff", "text_color": "#111111", "button_color": "#222222", "font": "Inter"})
+    apply_migrations(old_db)
+    theme = Theme.model_validate(_theme(old_db, 1))
+    assert (theme.question, theme.answer, theme.button) == ("#111111", "#111111", "#222222")
+
+
+def test_current_and_empty_themes_are_left_alone(old_db: Engine) -> None:
+    current = {"question": "#010101", "answer": "#020202", "button": "#030303", "background": "#FAFAFA", "font": "Inter", "background_image": None}
+    _set_theme(old_db, 1, current)
+    apply_migrations(old_db)
+    assert _theme(old_db, 1) == current
+    assert _theme(old_db, 2) == {}
+
+
+def test_a_theme_with_only_one_old_key_still_converts(old_db: Engine) -> None:
+    _set_theme(old_db, 1, {"background": "#ffffff", "text_color": "#111111", "font": "Inter"})
+    apply_migrations(old_db)
+    assert _theme(old_db, 1) == {"background": "#ffffff", "question": "#111111", "answer": "#111111", "font": "Inter"}
+
+
+def test_theme_rename_is_idempotent(old_db: Engine) -> None:
+    _set_theme(old_db, 1, {"background": "#ffffff", "text_color": "#111111", "button_color": "#222222", "font": "Inter"})
+    apply_migrations(old_db)
+    first = _theme(old_db, 1)
+    apply_migrations(old_db)
+    assert _theme(old_db, 1) == first
+
+
 def test_thank_you_becomes_first_ending(old_db: Engine) -> None:
     apply_migrations(old_db)
     with old_db.connect() as conn:

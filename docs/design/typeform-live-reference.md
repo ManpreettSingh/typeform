@@ -48,3 +48,40 @@ the computed values; most already exist as tokens in `frontend/app/globals.css`.
 - Error page: 48px icon tile (radius 8, bg `#f8e4e3`, icon `#673222`), "Sorry, something went wrong" 24px/32, text 16px/20 muted with underlined muted links ("server status", "contact support"), [Refresh page] large button.
 - Workspace search is a **dialog**: "Search" title (21px, pad 32 32 0), input "Search in {account}" (16px), results grouped under "Forms" (rows h32, radius 8, first highlighted with a 2px inset ring); none: "No results found" / "Try again using other search terms."
 - Workspace rows load with shimmer skeleton cells; rows are white, radius 12, h48.
+
+## Workflow tab: logic, scoring, outcome quiz, variables, URL parameters (measured 2026-10-09, Free plan)
+Measured in the owner's Free account on the scratch draft `DaXKht1o` (3 questions: multiple choice, number, multiple choice;
+2 endings). Nothing was saved from the dialogs; the draft was edited only to add content.
+- **Workflow tab** (`/form/{id}/logic`): toolbar `Logic · Scoring · Tagging [paid] · Outcome quiz | ▷ preview · (x) variables · loop icon · settings`. The
+  **logic map**: left card "Pull data in" (+), then Welcome → question nodes (type chip + number, title, first choices) joined by arrows with a dark
+  circular branch button, endings stacked at the right (an ending nobody reaches shows a yellow warning triangle). Bottom right: zoom out/in, fit, hand
+  tool. Right rail "Actions": Connect, Automations (New), Contacts. Clicking a node opens the **Logic dialog**; the selected node shows a 4-icon toolbar
+  (question display, hide choices, branching, calculations).
+- **Logic dialog** (modal, "Set rules to control how respondents view or progress through your form."): left list of questions (type chip, number, title,
+  badge "N rule set(s)"), right panel with four collapsible sections for the selected question, footer "Delete all rules" (left), Cancel / Save (right).
+  Closing with unsaved edits asks "Unsaved changes" with *Continue without saving* / *Save changes*. Edits in other questions persist while switching.
+  1. **Question display**: "Hide [this question] When …" rules; "All other cases: Show question". Disabled on question 1. Sources: earlier questions only.
+  2. **Hide answer choices**: same pattern, "All other cases: Show all answers".
+  3. **Branching**: an unconditioned "Always go to [question or ending]"; once a rule exists it becomes "All other cases go to [..]" and "+ Add branching rule"
+     appends more. A rule is "Go to [target] / When [source] [operator] [value] / + Add condition / Delete rule". Extra conditions are joined by an
+     `and ▾` / `or` dropdown. Target list (searchable): later questions, then each ending (A, B, …), then **Default end**. Source list (searchable,
+     group "Questions"): the current and earlier questions (variables and URL parameters get their own groups when they exist).
+  4. **Calculations**: "+ Add calculation" → row `[Add ▾] [value ▾] to [variable ▾]` with its own "When" conditions. Operations: **Add, Divide, Subtract,
+     Multiply** (no "set"). Value picker: group "Variables" (score) + "Numbers" free input. Target picker: numeric variables only.
+- **Score quiz dialog** (Scoring tab): "Assign points to answers"; for every choice question a block with each choice (letter chip + label) and a "Score"
+  number input; footer "Delete all rules", Cancel, Save. It writes calculation rules ("add N to score when the answer is X").
+- **Outcome quiz dialog**: info card "Show different quiz endings based on how people answer. Respondents will see the quiz ending that best matches their
+  answers. Each time they select an answer, one point is added to the related ending. The highest-scoring ending will be displayed once they finish the quiz."
+  + "Learn more about matching rules." One card per ending (chip + title + trash) with a "Choose answers" multi-select (searchable; answers grouped under
+  their question); "+ Add Ending"; footer "Delete all rules", Cancel, Save.
+- **Variables dialog** (`(x)`): "Variables let you track, calculate, and update information like scores, prices, or other data. Use them to customize forms
+  by showing updated information as people respond." Sidebar: Default & custom variables · Quiz variables [paid] · Data enrichment variables [paid].
+  "Custom variables" + "Add custom variable" → row `(x) variable_0 = [Number|Text ▾] [starting value (0)] 🗑`. "Default variables": `score` (Number, starting
+  value editable, "For lead scores, quiz results, or anything else you want to score"), `price` (Number, disabled, "Requires a Payment question"), `segment`
+  (Text, disabled). Cancel / Save.
+- **Pull data in** dialog "Pull data in through URL parameters": info card "Track form respondents …"; "Custom URL parameters" + "Add new parameter" (inline
+  text chip with ✕); toggle list **Source tracking**: utm_source, utm_medium, utm_campaign, utm_term, utm_content; **Respondent information**: first_name,
+  last_name, email, phone_number, user_id, product_id, auth_code. Cancel / Save.
+- **Recall**: typing `@` in a title opens "Recall information from…" listing earlier questions (number chip + title).
+- **Endings with no logic**: a respondent sees ending A (the first one); "Default end" is a separate built-in entry in the Go-to list. Endings also show a
+  "Logic" card in their right panel (its contents were not inspected).

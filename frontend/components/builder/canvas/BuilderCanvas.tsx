@@ -2,6 +2,7 @@
 
 import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
+import { AiStartScreen } from "@/components/ai/AiStartScreen";
 import { QuestionRenderer } from "@/components/respondent/QuestionRenderer";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { ThankYouScreen } from "@/components/respondent/ThankYouScreen";
@@ -24,13 +25,28 @@ export type CanvasDevice = "desktop" | "mobile";
  * The builder canvas: whatever is selected (welcome screen, a question, the ending), drawn by the real respondent
  * components in the form's own theme, with the texts editable in place like Typeform.
  */
-export function BuilderCanvas({ device }: { device: CanvasDevice }) {
+export function BuilderCanvas({
+  device,
+  onAskAi,
+  onStartFromScratch,
+}: {
+  device: CanvasDevice;
+  /** A prompt typed on the blank-form start screen. */
+  onAskAi: (prompt: string) => void;
+  /** "Start from scratch" on the blank-form start screen. */
+  onStartFromScratch: () => void;
+}) {
   const screen = useBuilderStore((s) => s.screen);
   const theme = useBuilderStore((s) => s.form!.theme);
   const questions = useBuilderStore((s) => s.questions);
   const selectedId = useBuilderStore((s) => s.selectedId);
   const index = questions.findIndex((q) => q.id === selectedId);
   const question = questions[index];
+
+  // A blank form starts with Typeform AI's "What would you like to create?".
+  if (screen === "question" && questions.length === 0) {
+    return <AiStartScreen onSubmit={onAskAi} onStartFromScratch={onStartFromScratch} />;
+  }
 
   let content: React.ReactNode;
   if (screen === "welcome") content = <CanvasWelcome />;
@@ -46,7 +62,7 @@ export function BuilderCanvas({ device }: { device: CanvasDevice }) {
         canEnd={canEndAfter(questions, index)}
       />
     );
-  } else content = <p className="opacity-60">Add content to start building your form.</p>;
+  } else content = <p className="opacity-60">Select a page to edit it.</p>;
 
   return (
     <div className="flex min-h-0 flex-1 justify-center">
