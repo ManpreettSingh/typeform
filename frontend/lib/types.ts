@@ -141,16 +141,56 @@ export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
 export const OPINION_SCALE_STEPS = { min: 5, max: 11 } as const;
 export const SCALE_LABEL_MAX = 80;
 
-// ---- Branching (schemas/logic.py) ---------------------------------------
+// ---- Logic v2 (schemas/logic.py; docs/superpowers/specs/2026-10-09-phase3-logic-design.md) ----
 
 export type LogicOp = "is" | "is_not" | "contains" | "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
 /** Option id (choice/dropdown), boolean (yes/no), number (number/rating) or text. */
 export type LogicValue = string | number | boolean;
-/** A question id of the same form, or "end" to finish the form. */
-export type LogicTarget = number | "end";
-export type LogicRule = { op: LogicOp; value: LogicValue; to: LogicTarget };
-/** Checked in order once the question is answered; first match wins, otherwise the next question. */
-export type Logic = { rules: LogicRule[] };
+/** What a condition reads: a question's answer, a form variable or a URL parameter. */
+export type ConditionSource = { question: number } | { variable: string } | { param: string };
+export type Condition = { source: ConditionSource; op: LogicOp; value: LogicValue };
+/** 1-10 conditions joined by `match` (the dialog's and/or dropdown). */
+export type ConditionSet = { match: "all" | "any"; conditions: Condition[] };
+/** A later question, a specific ending, or the built-in "Default end". */
+export type LogicTarget = { question: number } | { ending: number } | { end: true };
+export type BranchRule = { to: LogicTarget; when: ConditionSet };
+export type CalcOp = "add" | "subtract" | "multiply" | "divide";
+export type CalcValue = { number: number } | { variable: string };
+export type CalcRule = { op: CalcOp; value: CalcValue; variable: string; when: ConditionSet };
+/**
+ * Per-question logic, evaluated after the question is answered: all matching `calc` rules run in order, then the
+ * first matching `branch.rules` entry decides where to go; otherwise `branch.otherwise`; otherwise the next question.
+ * (The spec's `hide` / `hide_choices` lists are deferred.)
+ */
+export type Logic = {
+  version: 2;
+  branch: { rules: BranchRule[]; otherwise: LogicTarget | null };
+  calc: CalcRule[];
+};
+
+/** `forms.variables`; `score` always exists. Text variables never change (no calculation targets them). */
+export type FormVariable = { name: string; type: "number" | "text"; initial: number | string };
+export type VariableValues = Record<string, number | string>;
+/** Outcome quiz: each entry adds one point to the ending that holds it. */
+export type OutcomeEntry = { question: number; choice: string };
+/** The ending a respondent reached: a specific ending, the built-in Default end, or null (not finished). */
+export type EndingRef = { id: number } | { default: true } | null;
+
+/** Predefined URL parameters (Typeform's "Pull data in" toggles); custom names are free text. */
+export const PREDEFINED_URL_PARAMETERS = {
+  "Source tracking": ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"],
+  "Respondent information": ["first_name", "last_name", "email", "phone_number", "user_id", "product_id", "auth_code"],
+} as const;
+
+/** `PUT /forms/{id}/logic`: everything the Logic / Score / Outcome / Variables / Pull data in dialogs save, atomically. */
+export type LogicBatchIn = {
+  /** Question id (string) → its new logic (null clears it). Questions not listed are untouched. */
+  questions?: Record<string, Logic | null>;
+  /** Ending id (string) → outcome entries. Endings not listed are untouched. */
+  endings?: Record<string, { outcome: OutcomeEntry[] }>;
+  variables?: FormVariable[];
+  url_parameters?: string[];
+};
 
 // ---- Questions ---------------------------------------------------------
 
@@ -162,6 +202,8 @@ export type Ending = MediaProperties & {
   message: string;
   button_text: string | null;
   button_url: string | null;
+  /** Outcome quiz answers that add a point to this ending (creator API; the public API includes it too). */
+  outcome: OutcomeEntry[];
 };
 
 export type Welcome = MediaProperties & {
@@ -307,6 +349,9 @@ export type Form = FormBase & {
   /** Ordered by position. */
   questions: Question[];
   endings: Ending[];
+  variables: FormVariable[];
+  /** Enabled URL parameter names (predefined and custom). */
+  url_parameters: string[];
 };
 
 export type FormCreate = { title?: string; workspace_id?: number };
@@ -320,6 +365,8 @@ export type FormUpdate = {
   theme?: Theme;
   thank_you?: ThankYou;
   welcome?: Welcome;
+  variables?: FormVariable[];
+  url_parameters?: string[];
 };
 
 // ---- Public (respondent) ----------------------------------------------
@@ -337,17 +384,20 @@ export type PublicForm = {
   /** Ordered by position. */
   questions: PublicQuestion[];
   endings: Ending[];
+  variables: FormVariable[];
+  url_parameters: string[];
 };
 
-/** Keys are question ids. Empty optional answers are omitted. */
-export type SubmissionIn = { answers: Record<string, AnswerValue> };
-export type SubmissionOut = { id: number };
+/** Keys are question ids. Empty optional answers are omitted. `params`: declared URL parameters from the link. */
+export type SubmissionIn = { answers: Record<string, AnswerValue>; params?: Record<string, string> };
+/** The server decides the ending and the final variables (authoritative). */
+export type SubmissionOut = { id: number; ending: EndingRef; variables: VariableValues };
 
 /** Bonus partial responses: `POST …/responses/start`, then `PATCH /public/responses/{id}`. */
 export type PartialStartOut = { response_id: number; token: string };
 /** `answers` replaces what's stored; `complete` = final submission (full validation). */
 export type PartialUpdateIn = SubmissionIn & { token: string; complete?: boolean };
-export type PartialUpdateOut = { id: number; status: ResponseStatus };
+export type PartialUpdateOut = { id: number; status: ResponseStatus; ending: EndingRef; variables: VariableValues };
 
 // ---- Results (creator) ------------------------------------------------
 
@@ -359,6 +409,10 @@ type ResponseBase = {
   started_at: ISODateTime;
   /** null while partial. */
   submitted_at: ISODateTime | null;
+  /** Final variable values, URL parameters received and the ending reached (null while partial). */
+  variables: VariableValues | null;
+  params: Record<string, string> | null;
+  ending: EndingRef;
 };
 
 /** Answers keyed by question id; unanswered questions are absent. */

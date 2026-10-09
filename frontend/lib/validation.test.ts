@@ -84,9 +84,49 @@ describe("toSubmission", () => {
     const first = question("yes_no");
     const skipped = question("short_text");
     const last = question("short_text");
-    first.logic = { rules: [{ op: "is", value: true, to: last.id }] };
+    first.logic = {
+      version: 2,
+      branch: {
+        rules: [
+          {
+            to: { question: last.id },
+            when: { match: "all", conditions: [{ source: { question: first.id }, op: "is", value: true }] },
+          },
+        ],
+        otherwise: null,
+      },
+      calc: [],
+    };
     const body = toSubmission([first, skipped, last], { [first.id]: true, [skipped.id]: "hidden", [last.id]: "kept" });
     assert.deepEqual(body, { answers: { [first.id]: true, [last.id]: "kept" } });
+  });
+
+  it("branches on URL parameters and sends the ones received", () => {
+    const first = question("yes_no");
+    const skipped = question("short_text");
+    const last = question("short_text");
+    first.logic = {
+      version: 2,
+      branch: {
+        rules: [
+          {
+            to: { question: last.id },
+            when: { match: "all", conditions: [{ source: { param: "utm_source" }, op: "is", value: "ad" }] },
+          },
+        ],
+        otherwise: null,
+      },
+      calc: [],
+    };
+    const answers = { [first.id]: true, [skipped.id]: "hidden", [last.id]: "kept" };
+    const params = { utm_source: "ad" };
+    assert.deepEqual(toSubmission([first, skipped, last], answers, { params }), {
+      answers: { [first.id]: true, [last.id]: "kept" },
+      params,
+    });
+    assert.deepEqual(toSubmission([first, skipped, last], answers, { params: {} }), {
+      answers: { [first.id]: true, [skipped.id]: "hidden", [last.id]: "kept" },
+    });
   });
 });
 
