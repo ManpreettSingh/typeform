@@ -23,8 +23,10 @@ import {
   ListOrdered,
   Grid3X3,
   Folder,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
+import { UPLOAD_ERROR, validateUploadedFile } from "@/lib/fileUpload";
 import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
 import {
   validateRanking,
@@ -594,7 +596,20 @@ export const QUESTION_TYPE_DEFS: { [T in QuestionType]: QuestionTypeDef<T> } = {
     format: () => "",
     ruleMatches: () => false,
     toSubmission: () => undefined as never,
-  }
+  },
+  file_upload: {
+    label: "File Upload",
+    icon: Upload,
+    chip: "bg-qt-other text-qt-fg",
+    group: "other",
+    answerable: true,
+    requiredMessage: UPLOAD_ERROR,
+    ops: [],
+    validate: (_question, value) => validateUploadedFile(value),
+    format: (_question, value) => (typeof value === "object" && value !== null && "name" in value ? String(value.name) : ""),
+    ruleMatches: () => false,
+    toSubmission: (_question, value) => value,
+  },
 };
 
 /** The definition for a type, for callers that only have the wide `QuestionType`. */

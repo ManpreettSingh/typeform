@@ -29,6 +29,7 @@ class QuestionType(StrEnum):
     RANKING = "ranking"
     MATRIX = "matrix"
     GROUP = "group"
+    FILE_UPLOAD = "file_upload"
 
 
 class ResponseStatus(StrEnum):

@@ -51,7 +51,8 @@ def test_create_validates_properties_against_type(client, make_form):
     res = client.post(url, json={"type": "number", "properties": {"min": 10, "max": 1}})
     assert res.status_code == 422
 
-    assert client.post(url, json={"type": "file_upload"}).status_code == 422
+    # Payment is still a "Coming soon" placeholder, not a type.
+    assert client.post(url, json={"type": "payment"}).status_code == 422
 
 
 def test_create_missing_form_is_404(client):

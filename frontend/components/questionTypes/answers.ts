@@ -6,6 +6,7 @@ import { MultipleChoiceAnswer, YesNoAnswer, PictureChoiceAnswer } from "@/compon
 import { CheckboxAnswer } from "@/components/respondent/answers/CheckboxAnswer";
 import { DateAnswer } from "@/components/respondent/answers/DateAnswer";
 import { DropdownAnswer } from "@/components/respondent/answers/DropdownAnswer";
+import { FileUploadAnswer } from "@/components/respondent/answers/FileUploadAnswer";
 import { LegalAnswer } from "@/components/respondent/answers/LegalAnswer";
 import { NpsAnswer } from "@/components/respondent/answers/NpsAnswer";
 import { OpinionScaleAnswer } from "@/components/respondent/answers/OpinionScaleAnswer";
@@ -47,4 +48,5 @@ export const ANSWER_COMPONENTS = {
   ranking: RankingAnswer,
   matrix: MatrixAnswer,
   group: GroupHeader,
+  file_upload: FileUploadAnswer,
 } satisfies { [T in QuestionType]: ComponentType<AnswerProps<T>> };

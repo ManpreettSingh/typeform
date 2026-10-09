@@ -34,6 +34,7 @@ EXPECTED_OPS = {
     "ranking": {"is", "is_not"},
     "matrix": set(),
     "group": set(),
+    "file_upload": set(),
 }
 CHOICE_PROPS = {"options": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}], "allow_multiple": True}
 

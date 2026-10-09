@@ -6,6 +6,7 @@ import { Button, EmptyState } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { usePublicForm } from "@/lib/queries/public";
 import type { PublicQuestion } from "@/lib/types";
+import { FormSlugContext } from "./FormSlugContext";
 import { RespondentFlow } from "./RespondentFlow";
 import { RespondentTheme } from "./RespondentTheme";
 import { usePartialResponse } from "./usePartialResponse";
@@ -51,14 +52,17 @@ export function PublicFormView() {
     <RespondentTheme theme={form.theme} className="flex h-dvh flex-col">
       <title>{form.title}</title>
       <main className="min-h-0 flex-1">
-        <RespondentFlow
-          questions={form.questions}
-          thankYou={form.thank_you}
-          welcome={description ? { title: form.title, description, ...form.welcome, submission_count: form.submission_count } : null}
-          endings={form.endings}
-          onComplete={complete}
-          onProgress={saveProgress}
-        />
+        {/* File uploads sign against this published form. */}
+        <FormSlugContext.Provider value={slug}>
+          <RespondentFlow
+            questions={form.questions}
+            thankYou={form.thank_you}
+            welcome={description ? { title: form.title, description, ...form.welcome, submission_count: form.submission_count } : null}
+            endings={form.endings}
+            onComplete={complete}
+            onProgress={saveProgress}
+          />
+        </FormSlugContext.Provider>
       </main>
     </RespondentTheme>
   );

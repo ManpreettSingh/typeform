@@ -32,6 +32,7 @@ export const QUESTION_TYPES = [
   "ranking",
   "matrix",
   "group",
+  "file_upload",
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -142,6 +143,7 @@ export type QuestionPropertiesMap = {
   ranking: WithMedia<RankingProperties>;
   matrix: WithMedia<MatrixProperties>;
   group: WithMedia<GroupProperties>;
+  file_upload: WithMedia<EmptyProperties>;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
@@ -263,7 +265,10 @@ export type AnswerValueMap = {
   ranking: string[];
   matrix: Record<string, string | string[]>;
   group: never;
+  file_upload: UploadedFile;
 };
+/** A respondent's upload, stored where Cloudinary put it (question_types/files.py). */
+export type UploadedFile = { url: string; name: string; size: number; type?: string };
 export type AnswerValue = AnswerValueMap[QuestionType];
 /** Answers keyed by question id. */
 export type Answers = Record<number, AnswerValue | undefined>;
@@ -455,7 +460,22 @@ export type MatrixSummary = QuestionSummaryBase & {
   type: "matrix";
   rows: Record<string, ChoiceSummary>;
 };
-export type QuestionSummary = ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary;
+export type FileSummary = QuestionSummaryBase & {
+  type: "file_upload";
+  /** Every uploaded file, most recent first. */
+  files: { name: string; url: string; size: number; submitted_at: ISODateTime }[];
+};
+export type QuestionSummary =
+  | ChoiceSummary
+  | RatingSummary
+  | ScaleSummary
+  | NpsSummary
+  | NumberSummary
+  | TextSummary
+  | CompositeSummary
+  | RankingSummary
+  | MatrixSummary
+  | FileSummary;
 
 export type FormSummary = {
   /** Every response, partial included. */

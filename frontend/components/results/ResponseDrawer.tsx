@@ -6,8 +6,9 @@ import { QuestionTypeChip } from "@/components/builder/QuestionTypeChip";
 import { useLastDefined } from "@/components/dashboard/useLastDefined";
 import { Button, ConfirmDialog, Drawer, IconButton } from "@/components/ui";
 import { formatAnswer } from "@/lib/answerFormat";
+import { formatFileSize, isWebUrl } from "@/lib/fileUpload";
 import { formatDateTime } from "@/lib/format";
-import type { Question, ResponseListItem } from "@/lib/types";
+import type { Question, ResponseListItem, UploadedFile } from "@/lib/types";
 import { StatusBadge } from "./StatusBadge";
 
 type Props = {
@@ -67,6 +68,7 @@ export function ResponseDrawer({ response: current, questions, onClose, onNewer,
             <ol className="flex flex-col gap-5">
               {questions.map((q, i) => {
                 const text = formatAnswer(q, response.answers[q.id]);
+                const file = q.type === "file_upload" ? (response.answers[q.id] as UploadedFile | undefined) : undefined;
                 return (
                   <li key={q.id} className="flex gap-3">
                     <QuestionTypeChip type={q.type} className="mt-0.5" />
@@ -74,7 +76,17 @@ export function ResponseDrawer({ response: current, questions, onClose, onNewer,
                       <p className="text-sm break-words text-text-muted">
                         {i + 1}. {q.title.trim() || "Untitled question"}
                       </p>
-                      {text ? (
+                      {file && isWebUrl(file.url) ? (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1.5 text-base break-all text-accent hover:underline"
+                        >
+                          {file.name}
+                          <span className="text-xs text-text-muted">({formatFileSize(file.size)})</span>
+                        </a>
+                      ) : text ? (
                         <p className="mt-1 text-base break-words whitespace-pre-line text-text">{text}</p>
                       ) : (
                         <p className="mt-1 text-sm text-text-muted">No answer</p>

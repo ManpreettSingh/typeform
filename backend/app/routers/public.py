@@ -5,7 +5,9 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import Response, ResponseStatus
+from app.core.errors import NotFoundError
+from app.models import QuestionType, Response, ResponseStatus
+from app.question_types.files import MAX_FILE_BYTES
 from app.schemas.public import (
     PartialStartOut,
     PartialUpdateIn,
@@ -13,8 +15,10 @@ from app.schemas.public import (
     PublicForm,
     SubmissionIn,
     SubmissionOut,
+    UploadSignatureOut,
 )
 from app.services import submissions as submission_service
+from app.services.media import generate_upload_signature
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -37,6 +41,21 @@ def get_public_form(slug: str, db: DB):
 def record_view(slug: str, db: DB) -> None:
     """Called once per visit by the public page; feeds Results → Form performance → Views."""
     submission_service.record_view(db, submission_service.get_published_form(db, slug))
+
+
+@router.post("/forms/{slug}/uploads", response_model=UploadSignatureOut)
+def sign_file_upload(slug: str, db: DB):
+    """Signs one respondent upload straight to Cloudinary, into the form's own folder.
+
+    Only for published forms that ask for a file, so the signature can't be used as free storage for anything else.
+    The size limit is checked by the respondent's browser and again on the stored answer (question_types/files.py).
+    """
+    form = submission_service.get_published_form(db, slug)
+    if not any(q.type == QuestionType.FILE_UPLOAD for q in form.questions):
+        raise NotFoundError("This form doesn't take file uploads")
+    return UploadSignatureOut(
+        **generate_upload_signature(folder=f"responses/{form.slug}", resource_type="auto"), max_bytes=MAX_FILE_BYTES
+    )
 
 
 @router.post("/forms/{slug}/responses", response_model=SubmissionOut, status_code=status.HTTP_201_CREATED)

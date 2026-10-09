@@ -40,4 +40,5 @@ export const SETTINGS_COMPONENTS = {
   ranking: RankingSettings,
   matrix: MatrixSettings,
   group: GroupSettings,
+  file_upload: null,
 } satisfies { [T in QuestionType]: ComponentType<{ question: QuestionOf<T> }> | null };

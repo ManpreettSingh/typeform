@@ -1,8 +1,10 @@
-import { Heart, Star } from "lucide-react";
+import { FileText, Heart, Star } from "lucide-react";
 import { QuestionTypeChip } from "@/components/builder/QuestionTypeChip";
 import { formatNumber } from "@/lib/answerFormat";
+import { formatFileSize } from "@/lib/fileUpload";
 import type {
   ChoiceSummary,
+  FileSummary,
   MatrixSummary,
   NpsSummary,
   NumberSummary,
@@ -83,6 +85,8 @@ function SummaryBody({
       return <RankingBody summary={summary} />;
     case "matrix":
       return <MatrixBody summary={summary} />;
+    case "file_upload":
+      return <FileBody summary={summary} onShowResponses={onShowResponses} />;
     default:
       return <TextBody summary={summary as TextSummary} onShowResponses={onShowResponses} />;
   }
@@ -248,6 +252,31 @@ function TextBody({ summary, onShowResponses }: { summary: TextSummary; onShowRe
             className="rounded-input bg-bg-subtle px-3 py-2 text-sm break-words whitespace-pre-line text-text"
           >
             {answer.value}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-text-muted">
+        {summary.answered > recent.length ? `Latest ${recent.length} of ${summary.answered}. ` : ""}
+        <button type="button" onClick={onShowResponses} className="font-medium text-accent hover:underline">
+          See all responses
+        </button>
+      </p>
+    </>
+  );
+}
+
+function FileBody({ summary, onShowResponses }: { summary: FileSummary; onShowResponses: () => void }) {
+  const recent = summary.files.slice(0, 5);
+  return (
+    <>
+      <ul className="flex flex-col gap-2">
+        {recent.map((file, i) => (
+          <li key={i} className="flex items-center gap-3 rounded-input bg-bg-subtle px-3 py-2 text-sm text-text">
+            <FileText className="size-4 shrink-0 text-text-muted" aria-hidden />
+            <a href={file.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate font-medium hover:underline">
+              {file.name}
+            </a>
+            <span className="shrink-0 text-xs text-text-muted">{formatFileSize(file.size)}</span>
           </li>
         ))}
       </ul>

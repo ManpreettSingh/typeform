@@ -49,6 +49,17 @@ class SubmissionOut(BaseModel):
     id: int
 
 
+class UploadSignatureOut(BaseModel):
+    """Signed parameters for one upload straight to Cloudinary (the file never passes through this API)."""
+
+    upload_url: str
+    api_key: str
+    timestamp: int
+    signature: str
+    folder: str
+    max_bytes: int
+
+
 class PartialStartOut(BaseModel):
     response_id: int
     # Needed to save progress on this response; keeps others from writing to it.

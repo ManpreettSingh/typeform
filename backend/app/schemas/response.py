@@ -153,8 +153,21 @@ class MatrixSummary(_QuestionSummaryBase):
     rows: dict[str, ChoiceSummary]
 
 
+class FileAnswer(BaseModel):
+    name: str
+    url: str
+    size: int
+    submitted_at: datetime
+
+
+class FileSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.FILE_UPLOAD]
+    # Every uploaded file, most recent first.
+    files: list[FileAnswer]
+
+
 QuestionSummary = Annotated[
-    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary,
+    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary | FileSummary,
     Field(discriminator="type"),
 ]
 
