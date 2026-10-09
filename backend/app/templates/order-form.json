@@ -1,0 +1,84 @@
+{
+  "slug": "order-form",
+  "title": "Order form",
+  "description": "Take product orders with quantity, delivery address and a preferred delivery date.",
+  "tags": {
+    "role": [
+      "sales"
+    ],
+    "goal": [
+      "make-sales"
+    ],
+    "type": [
+      "forms"
+    ]
+  },
+  "theme": "Peach",
+  "welcome": {
+    "button_text": "Order now"
+  },
+  "questions": [
+    {
+      "type": "picture_choice",
+      "title": "Which product would you like?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Classic tote"
+          },
+          {
+            "id": "o2",
+            "label": "Canvas backpack"
+          },
+          {
+            "id": "o3",
+            "label": "Leather wallet"
+          }
+        ]
+      }
+    },
+    {
+      "type": "number",
+      "title": "How many?",
+      "required": true,
+      "properties": {
+        "min": 1,
+        "max": 100
+      }
+    },
+    {
+      "type": "short_text",
+      "title": "Name for the order",
+      "required": true
+    },
+    {
+      "type": "address",
+      "title": "Where should we deliver it?",
+      "required": true
+    },
+    {
+      "type": "phone_number",
+      "title": "Phone number for the courier",
+      "properties": {
+        "default_country": "US"
+      }
+    },
+    {
+      "type": "date",
+      "title": "Preferred delivery date"
+    },
+    {
+      "type": "legal",
+      "title": "Do you accept our terms of sale?",
+      "required": true
+    }
+  ],
+  "endings": [
+    {
+      "title": "Order placed",
+      "message": "We'll email you a confirmation and payment link shortly."
+    }
+  ]
+}

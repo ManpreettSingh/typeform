@@ -1,0 +1,73 @@
+{
+  "slug": "website-feedback-survey",
+  "title": "Website feedback survey",
+  "description": "Learn how visitors experience your website and where they get stuck.",
+  "tags": {
+    "role": [
+      "product",
+      "marketing"
+    ],
+    "goal": [
+      "get-feedback"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Midnight",
+  "questions": [
+    {
+      "type": "rating",
+      "title": "How would you rate our website?",
+      "required": true,
+      "properties": {
+        "max": 5,
+        "shape": "star"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "What brought you here today?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Learning about the product"
+          },
+          {
+            "id": "o2",
+            "label": "Pricing"
+          },
+          {
+            "id": "o3",
+            "label": "Support"
+          },
+          {
+            "id": "o4",
+            "label": "Just browsing"
+          }
+        ],
+        "allow_other": true
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Did you find what you were looking for?"
+    },
+    {
+      "type": "website",
+      "title": "Which page could be better?",
+      "description": "Paste the link if you have it."
+    },
+    {
+      "type": "long_text",
+      "title": "What would you improve?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for the feedback",
+      "message": "We read every response."
+    }
+  ]
+}

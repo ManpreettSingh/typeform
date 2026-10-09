@@ -1,0 +1,81 @@
+{
+  "slug": "event-feedback-survey",
+  "title": "Event feedback survey",
+  "description": "Ask attendees what worked and what to change for your next event.",
+  "tags": {
+    "role": [
+      "marketing"
+    ],
+    "goal": [
+      "plan-events",
+      "get-feedback"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Coral",
+  "questions": [
+    {
+      "type": "rating",
+      "title": "How would you rate the event overall?",
+      "required": true,
+      "properties": {
+        "max": 5,
+        "shape": "heart"
+      }
+    },
+    {
+      "type": "matrix",
+      "title": "How was each part?",
+      "properties": {
+        "rows": [
+          {
+            "id": "o1",
+            "label": "Venue"
+          },
+          {
+            "id": "o2",
+            "label": "Speakers"
+          },
+          {
+            "id": "o3",
+            "label": "Food"
+          },
+          {
+            "id": "o4",
+            "label": "Organisation"
+          }
+        ],
+        "columns": [
+          {
+            "id": "o1",
+            "label": "Poor"
+          },
+          {
+            "id": "o2",
+            "label": "Fine"
+          },
+          {
+            "id": "o3",
+            "label": "Great"
+          }
+        ]
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Would you come again next year?"
+    },
+    {
+      "type": "long_text",
+      "title": "Anything we should change?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for coming!",
+      "message": "We hope to see you at the next one."
+    }
+  ]
+}

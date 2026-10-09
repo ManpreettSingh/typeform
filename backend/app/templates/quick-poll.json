@@ -1,0 +1,58 @@
+{
+  "slug": "quick-poll",
+  "title": "Quick poll",
+  "description": "Ask your audience a quick question and see what they think.",
+  "tags": {
+    "role": [
+      "marketing"
+    ],
+    "goal": [
+      "engage-audience"
+    ],
+    "type": [
+      "polls"
+    ]
+  },
+  "theme": "Berry",
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Which topic should our next blog post cover?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Productivity tips"
+          },
+          {
+            "id": "o2",
+            "label": "Industry trends"
+          },
+          {
+            "id": "o3",
+            "label": "Customer stories"
+          },
+          {
+            "id": "o4",
+            "label": "Product updates"
+          }
+        ]
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Would you read a weekly newsletter on it?"
+    },
+    {
+      "type": "short_text",
+      "title": "Any other topic ideas?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Vote counted",
+      "message": "Thanks for sharing your opinion."
+    }
+  ]
+}

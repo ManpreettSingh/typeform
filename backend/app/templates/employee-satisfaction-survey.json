@@ -1,0 +1,89 @@
+{
+  "slug": "employee-satisfaction-survey",
+  "title": "Employee satisfaction survey",
+  "description": "Check in on how your team feels about their work, managers and the workplace.",
+  "tags": {
+    "role": [
+      "hr"
+    ],
+    "goal": [
+      "get-feedback",
+      "conduct-research"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Sage",
+  "questions": [
+    {
+      "type": "statement",
+      "title": "This survey is anonymous",
+      "description": "Answer honestly: no names are stored with your answers.",
+      "properties": {
+        "button_text": "Let's start"
+      }
+    },
+    {
+      "type": "matrix",
+      "title": "How much do you agree?",
+      "properties": {
+        "rows": [
+          {
+            "id": "o1",
+            "label": "I feel valued at work"
+          },
+          {
+            "id": "o2",
+            "label": "I have the tools I need"
+          },
+          {
+            "id": "o3",
+            "label": "My manager supports me"
+          }
+        ],
+        "columns": [
+          {
+            "id": "o1",
+            "label": "Disagree"
+          },
+          {
+            "id": "o2",
+            "label": "Neutral"
+          },
+          {
+            "id": "o3",
+            "label": "Agree"
+          }
+        ]
+      }
+    },
+    {
+      "type": "opinion_scale",
+      "title": "How is your work-life balance?",
+      "properties": {
+        "steps": 5,
+        "start_at_one": true,
+        "labels": {
+          "left": "Poor",
+          "center": "",
+          "right": "Excellent"
+        }
+      }
+    },
+    {
+      "type": "nps",
+      "title": "How likely are you to recommend working here to a friend?"
+    },
+    {
+      "type": "long_text",
+      "title": "What would make this a better place to work?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thank you",
+      "message": "Results are shared with the team every quarter."
+    }
+  ]
+}

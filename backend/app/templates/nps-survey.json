@@ -1,0 +1,63 @@
+{
+  "slug": "nps-survey",
+  "title": "NPS survey",
+  "description": "Measure customer loyalty with the Net Promoter Score and learn the reasons behind each score.",
+  "tags": {
+    "role": [
+      "customer-success",
+      "product"
+    ],
+    "goal": [
+      "get-feedback"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Sky",
+  "questions": [
+    {
+      "type": "nps",
+      "title": "How likely are you to recommend us to a friend or colleague?",
+      "required": true
+    },
+    {
+      "type": "long_text",
+      "title": "What's the main reason for your score?"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Which of these do you use most?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Web app"
+          },
+          {
+            "id": "o2",
+            "label": "Mobile app"
+          },
+          {
+            "id": "o3",
+            "label": "Integrations"
+          },
+          {
+            "id": "o4",
+            "label": "API"
+          }
+        ]
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Would you be open to a short follow-up call?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thank you!",
+      "message": "Your score helps us decide what to build next."
+    }
+  ]
+}

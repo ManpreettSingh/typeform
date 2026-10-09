@@ -1,0 +1,106 @@
+{
+  "slug": "product-feedback-form",
+  "title": "Product feedback form",
+  "description": "Collect structured feedback on features so your roadmap follows what users need.",
+  "tags": {
+    "role": [
+      "product"
+    ],
+    "goal": [
+      "get-feedback",
+      "conduct-research"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Lavender",
+  "questions": [
+    {
+      "type": "opinion_scale",
+      "title": "How easy is the product to use?",
+      "required": true,
+      "properties": {
+        "steps": 10,
+        "start_at_one": true,
+        "labels": {
+          "left": "Very hard",
+          "center": "",
+          "right": "Very easy"
+        }
+      }
+    },
+    {
+      "type": "ranking",
+      "title": "Rank these features by how much you use them",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Dashboards"
+          },
+          {
+            "id": "o2",
+            "label": "Reports"
+          },
+          {
+            "id": "o3",
+            "label": "Automations"
+          },
+          {
+            "id": "o4",
+            "label": "Integrations"
+          }
+        ]
+      }
+    },
+    {
+      "type": "matrix",
+      "title": "How do you rate each area?",
+      "properties": {
+        "rows": [
+          {
+            "id": "o1",
+            "label": "Speed"
+          },
+          {
+            "id": "o2",
+            "label": "Reliability"
+          },
+          {
+            "id": "o3",
+            "label": "Design"
+          }
+        ],
+        "columns": [
+          {
+            "id": "o1",
+            "label": "Poor"
+          },
+          {
+            "id": "o2",
+            "label": "Okay"
+          },
+          {
+            "id": "o3",
+            "label": "Good"
+          },
+          {
+            "id": "o4",
+            "label": "Great"
+          }
+        ]
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "What's missing that you'd love to see?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Feedback received",
+      "message": "Thanks for helping us shape the product."
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "slug": "candidate-screening-quiz",
+  "title": "Candidate screening quiz",
+  "description": "Screen applicants with a few quick questions before the first interview.",
+  "tags": {
+    "role": [
+      "hr"
+    ],
+    "goal": [
+      "recruit-talent"
+    ],
+    "type": [
+      "quizzes"
+    ]
+  },
+  "theme": "Navy",
+  "questions": [
+    {
+      "type": "short_text",
+      "title": "What's your name?",
+      "required": true
+    },
+    {
+      "type": "number",
+      "title": "Years of professional experience",
+      "properties": {
+        "min": 0,
+        "max": 50
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Are you able to work in our time zone?",
+      "required": true
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Which of these have you used?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "SQL"
+          },
+          {
+            "id": "o2",
+            "label": "Python"
+          },
+          {
+            "id": "o3",
+            "label": "Spreadsheets"
+          },
+          {
+            "id": "o4",
+            "label": "BI dashboards"
+          }
+        ],
+        "allow_multiple": true
+      }
+    },
+    {
+      "type": "opinion_scale",
+      "title": "How confident are you presenting to clients?",
+      "properties": {
+        "steps": 5,
+        "start_at_one": true,
+        "labels": {
+          "left": "Not at all",
+          "center": "",
+          "right": "Very"
+        }
+      }
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for applying",
+      "message": "We'll contact shortlisted candidates within a week."
+    }
+  ]
+}

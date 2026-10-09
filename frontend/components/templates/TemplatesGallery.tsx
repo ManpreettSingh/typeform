@@ -79,14 +79,14 @@ export function TemplatesGallery({ workspaceId = 1 }: { workspaceId?: number }) 
             </div>
           ) : templates?.length === 0 ? (
             <div className="py-20 text-center text-text-muted">
-              No templates found for "{query}".
+              {query ? <>No templates found for &ldquo;{query}&rdquo;.</> : "No templates yet."}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {templates?.map((t) => (
                 <div 
                   key={t.slug} 
-                  className="group relative flex h-64 flex-col rounded-xl border border-border bg-white transition-shadow hover:shadow-md"
+                  className="group relative flex h-64 flex-col rounded-xl border border-border bg-bg transition-shadow hover:shadow-md"
                 >
                   <div className="flex flex-1 flex-col p-5">
                     <h3 className="mb-2 line-clamp-2 text-lg font-medium text-text">{t.title}</h3>
@@ -96,21 +96,17 @@ export function TemplatesGallery({ workspaceId = 1 }: { workspaceId?: number }) 
                     </div>
                   </div>
                   
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-black/50 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                    <Button 
-                      variant="primary" 
-                      loading={createForm.isPending}
+                  {/* Shown on hover, on keyboard focus, and always on touch screens (no hover there). */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-black/50 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:bg-transparent [@media(hover:none)]:opacity-100 [@media(hover:none)]:backdrop-blur-none [@media(hover:none)]:justify-end [@media(hover:none)]:p-4">
+                    <Button
+                      variant="primary"
+                      aria-label={`Use template: ${t.title}`}
+                      loading={createForm.isPending && createForm.variables?.slug === t.slug}
+                      disabled={createForm.isPending}
                       onClick={() => handleCreate(t.slug)}
                     >
                       Use template
                     </Button>
-                    <Link 
-                      href={`/templates/${t.slug}/preview`}
-                      className="text-sm font-medium text-white hover:underline"
-                    >
-                      Preview
-                    </Link>
                   </div>
                 </div>
               ))}

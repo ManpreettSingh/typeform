@@ -1,9 +1,7 @@
 "use client";
 
-import { clsx } from "clsx";
 import { ChevronRight, Link2, PanelsTopLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import { ShareFormModal } from "@/components/dashboard/ShareFormModal";
 import { useCopyLink } from "@/components/dashboard/useCopyLink";
@@ -16,9 +14,6 @@ import { FormTabs } from "./FormTabs";
 
 /** Builder pages under the top tabs: Content (the builder), Workflow (logic), Connect (integrations). */
 export type BuilderView = "content" | "workflow" | "connect";
-type Tab = BuilderView | "share" | "results";
-
-
 
 type Props = {
   view: BuilderView;
@@ -27,7 +22,6 @@ type Props = {
 
 /** Typeform's builder header: breadcrumb with the form title, centered section tabs, save status and Publish. */
 export function BuilderTopBar({ view, onViewChange }: Props) {
-  const router = useRouter();
   const form = useBuilderStore((s) => s.form)!;
   const setTitle = useBuilderStore((s) => s.setTitle);
   const commitTitle = useBuilderStore((s) => s.commitTitle);

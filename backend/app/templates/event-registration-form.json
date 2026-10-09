@@ -1,0 +1,101 @@
+{
+  "slug": "event-registration-form",
+  "title": "Event registration form",
+  "description": "Register attendees, the sessions they'll join and any dietary needs.",
+  "tags": {
+    "role": [
+      "marketing"
+    ],
+    "goal": [
+      "plan-events"
+    ],
+    "type": [
+      "forms"
+    ]
+  },
+  "theme": "Sunset",
+  "welcome": {
+    "button_text": "Register"
+  },
+  "questions": [
+    {
+      "type": "contact_info",
+      "title": "Who's attending?",
+      "required": true
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Which sessions will you join?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Morning keynote"
+          },
+          {
+            "id": "o2",
+            "label": "Product workshop"
+          },
+          {
+            "id": "o3",
+            "label": "Networking lunch"
+          },
+          {
+            "id": "o4",
+            "label": "Afternoon panel"
+          }
+        ],
+        "allow_multiple": true
+      }
+    },
+    {
+      "type": "dropdown",
+      "title": "Any dietary requirements?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "None"
+          },
+          {
+            "id": "o2",
+            "label": "Vegetarian"
+          },
+          {
+            "id": "o3",
+            "label": "Vegan"
+          },
+          {
+            "id": "o4",
+            "label": "Gluten free"
+          },
+          {
+            "id": "o5",
+            "label": "Halal"
+          },
+          {
+            "id": "o6",
+            "label": "Kosher"
+          }
+        ]
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Will you bring a guest?"
+    },
+    {
+      "type": "checkbox",
+      "title": "Photos",
+      "properties": {
+        "label": "I'm happy to appear in event photos"
+      }
+    }
+  ],
+  "endings": [
+    {
+      "title": "You're registered!",
+      "message": "We've saved your spot. See you there."
+    }
+  ]
+}

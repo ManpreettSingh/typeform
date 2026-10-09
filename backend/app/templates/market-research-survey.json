@@ -1,0 +1,129 @@
+{
+  "slug": "market-research-survey",
+  "title": "Market research survey",
+  "description": "Understand your market: who your customers are, what they need and how they choose.",
+  "tags": {
+    "role": [
+      "product",
+      "marketing"
+    ],
+    "goal": [
+      "conduct-research"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Teal",
+  "questions": [
+    {
+      "type": "dropdown",
+      "title": "What's your age range?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Under 18"
+          },
+          {
+            "id": "o2",
+            "label": "18-24"
+          },
+          {
+            "id": "o3",
+            "label": "25-34"
+          },
+          {
+            "id": "o4",
+            "label": "35-44"
+          },
+          {
+            "id": "o5",
+            "label": "45-54"
+          },
+          {
+            "id": "o6",
+            "label": "55+"
+          }
+        ]
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "How do you usually discover new products?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Social media"
+          },
+          {
+            "id": "o2",
+            "label": "Search engines"
+          },
+          {
+            "id": "o3",
+            "label": "Friends and family"
+          },
+          {
+            "id": "o4",
+            "label": "Online reviews"
+          }
+        ],
+        "allow_multiple": true,
+        "allow_other": true
+      }
+    },
+    {
+      "type": "ranking",
+      "title": "What matters most when you buy?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Price"
+          },
+          {
+            "id": "o2",
+            "label": "Quality"
+          },
+          {
+            "id": "o3",
+            "label": "Brand"
+          },
+          {
+            "id": "o4",
+            "label": "Reviews"
+          },
+          {
+            "id": "o5",
+            "label": "Delivery speed"
+          }
+        ]
+      }
+    },
+    {
+      "type": "opinion_scale",
+      "title": "How likely are you to try a new brand this year?",
+      "properties": {
+        "steps": 10,
+        "start_at_one": true,
+        "labels": {
+          "left": "Not likely",
+          "center": "",
+          "right": "Very likely"
+        }
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "What's your biggest frustration with current options?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for taking part",
+      "message": "Your answers help us understand the market."
+    }
+  ]
+}

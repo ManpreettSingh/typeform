@@ -1,0 +1,112 @@
+{
+  "slug": "trivia-quiz",
+  "title": "Trivia quiz",
+  "description": "A fun general-knowledge quiz to engage your audience.",
+  "tags": {
+    "role": [
+      "marketing"
+    ],
+    "goal": [
+      "engage-audience"
+    ],
+    "type": [
+      "quizzes"
+    ]
+  },
+  "theme": "Mustard",
+  "questions": [
+    {
+      "type": "statement",
+      "title": "Ready? Five quick questions",
+      "description": "No time limit, no pressure.",
+      "properties": {
+        "button_text": "Go"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Which planet is closest to the sun?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Venus"
+          },
+          {
+            "id": "o2",
+            "label": "Mercury"
+          },
+          {
+            "id": "o3",
+            "label": "Mars"
+          },
+          {
+            "id": "o4",
+            "label": "Earth"
+          }
+        ]
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "How many continents are there?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "5"
+          },
+          {
+            "id": "o2",
+            "label": "6"
+          },
+          {
+            "id": "o3",
+            "label": "7"
+          },
+          {
+            "id": "o4",
+            "label": "8"
+          }
+        ]
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Who painted the Mona Lisa?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Michelangelo"
+          },
+          {
+            "id": "o2",
+            "label": "Leonardo da Vinci"
+          },
+          {
+            "id": "o3",
+            "label": "Raphael"
+          },
+          {
+            "id": "o4",
+            "label": "Donatello"
+          }
+        ]
+      }
+    },
+    {
+      "type": "short_text",
+      "title": "What's the chemical symbol for gold?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Quiz complete!",
+      "message": "Thanks for playing. Share it with a friend who loves trivia."
+    }
+  ]
+}

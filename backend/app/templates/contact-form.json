@@ -1,0 +1,48 @@
+{
+  "slug": "contact-form",
+  "title": "Contact form",
+  "description": "A simple way for visitors to get in touch with your team.",
+  "tags": {
+    "role": [
+      "sales",
+      "customer-success"
+    ],
+    "goal": [
+      "generate-leads"
+    ],
+    "type": [
+      "forms"
+    ]
+  },
+  "theme": "Default (Light)",
+  "questions": [
+    {
+      "type": "short_text",
+      "title": "What's your name?",
+      "required": true
+    },
+    {
+      "type": "email",
+      "title": "What's your email?",
+      "required": true
+    },
+    {
+      "type": "phone_number",
+      "title": "And your phone number?",
+      "properties": {
+        "default_country": "US"
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "How can we help?",
+      "required": true
+    }
+  ],
+  "endings": [
+    {
+      "title": "Message sent",
+      "message": "We usually reply within a day."
+    }
+  ]
+}

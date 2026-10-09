@@ -1,0 +1,79 @@
+{
+  "slug": "customer-feedback-survey",
+  "title": "Customer feedback survey",
+  "description": "Find out how customers feel about your product and service, and what you could do better.",
+  "tags": {
+    "role": [
+      "customer-success"
+    ],
+    "goal": [
+      "get-feedback"
+    ],
+    "type": [
+      "surveys"
+    ]
+  },
+  "theme": "Ocean",
+  "welcome": {
+    "button_text": "Give feedback"
+  },
+  "questions": [
+    {
+      "type": "rating",
+      "title": "Overall, how satisfied are you with us?",
+      "required": true,
+      "properties": {
+        "max": 5,
+        "shape": "star"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "What do you like most?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Product quality"
+          },
+          {
+            "id": "o2",
+            "label": "Customer support"
+          },
+          {
+            "id": "o3",
+            "label": "Price"
+          },
+          {
+            "id": "o4",
+            "label": "Ease of use"
+          }
+        ],
+        "allow_multiple": true,
+        "allow_other": true
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "What's one thing we could do better?",
+      "properties": {
+        "placeholder": "Be as specific as you like"
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "May we contact you about your feedback?"
+    },
+    {
+      "type": "email",
+      "title": "What's your email?",
+      "description": "Only if you said yes above."
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for your feedback!",
+      "message": "Every answer is read by our team."
+    }
+  ]
+}

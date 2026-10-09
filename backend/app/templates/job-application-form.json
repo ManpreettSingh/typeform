@@ -1,0 +1,103 @@
+{
+  "slug": "job-application-form",
+  "title": "Job application form",
+  "description": "Receive applications with contact details, experience and a link to a portfolio or CV.",
+  "tags": {
+    "role": [
+      "hr"
+    ],
+    "goal": [
+      "recruit-talent"
+    ],
+    "type": [
+      "forms"
+    ]
+  },
+  "theme": "Slate",
+  "welcome": {
+    "button_text": "Apply now"
+  },
+  "questions": [
+    {
+      "type": "short_text",
+      "title": "What's your full name?",
+      "required": true
+    },
+    {
+      "type": "email",
+      "title": "What's your email?",
+      "required": true
+    },
+    {
+      "type": "phone_number",
+      "title": "What's your phone number?",
+      "properties": {
+        "default_country": "US"
+      }
+    },
+    {
+      "type": "dropdown",
+      "title": "Which role are you applying for?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Designer"
+          },
+          {
+            "id": "o2",
+            "label": "Engineer"
+          },
+          {
+            "id": "o3",
+            "label": "Product manager"
+          },
+          {
+            "id": "o4",
+            "label": "Marketing"
+          },
+          {
+            "id": "o5",
+            "label": "Sales"
+          }
+        ]
+      }
+    },
+    {
+      "type": "number",
+      "title": "How many years of relevant experience do you have?",
+      "properties": {
+        "min": 0,
+        "max": 50
+      }
+    },
+    {
+      "type": "website",
+      "title": "Link to your CV, LinkedIn or portfolio"
+    },
+    {
+      "type": "date",
+      "title": "When could you start?",
+      "properties": {
+        "format": "DDMMYYYY",
+        "separator": "/"
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "Why do you want to join us?"
+    },
+    {
+      "type": "legal",
+      "title": "Do you agree to us storing your application for 12 months?",
+      "required": true
+    }
+  ],
+  "endings": [
+    {
+      "title": "Application received",
+      "message": "We'll review it and get back to you within two weeks."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "slug": "feature-request-poll",
+  "title": "Feature request poll",
+  "description": "Let users vote on what you build next.",
+  "tags": {
+    "role": [
+      "product"
+    ],
+    "goal": [
+      "conduct-research",
+      "engage-audience"
+    ],
+    "type": [
+      "polls"
+    ]
+  },
+  "theme": "Charcoal",
+  "questions": [
+    {
+      "type": "ranking",
+      "title": "Rank these upcoming features",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Dark mode"
+          },
+          {
+            "id": "o2",
+            "label": "Offline mode"
+          },
+          {
+            "id": "o3",
+            "label": "Team spaces"
+          },
+          {
+            "id": "o4",
+            "label": "Calendar sync"
+          }
+        ]
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "Which plan are you on?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Free"
+          },
+          {
+            "id": "o2",
+            "label": "Pro"
+          },
+          {
+            "id": "o3",
+            "label": "Business"
+          }
+        ]
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "Anything else we should build?"
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks for voting",
+      "message": "Follow our changelog to see what ships.",
+      "button_text": "View changelog",
+      "button_url": "https://example.com/changelog"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Link as LinkIcon, Smartphone } from "lucide-react";
+import { Copy, Link as LinkIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { Button, IconButton, Skeleton } from "@/components/ui";
@@ -44,9 +44,7 @@ export function FormShare() {
     return qrSvg(url, { size: 160 });
   }, [url]);
 
-  if (form.isPending) return <ShareSkeleton />;
-  if (form.isError || !form.data) return <div>Error loading form</div>;
-
+  // Hooks stay above the early returns: the loading render must call the same hooks as the loaded one.
   const embedCode = useMemo(() => {
     if (!url) return "";
     let base = `<div data-tf-live="${url}"></div>\n<script src="${window.location.origin}/embed.js"></script>`;
@@ -58,8 +56,11 @@ export function FormShare() {
     return base;
   }, [url, embedMode]);
 
+  if (form.isPending) return <ShareSkeleton />;
+  if (form.isError || !form.data) return <div>Error loading form</div>;
+
   return (
-    <div className="flex h-screen flex-col bg-[#f7f7f8]">
+    <div className="flex h-screen flex-col bg-bg-subtle">
       <ShareHeader form={form.data} />
       
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
@@ -70,7 +71,7 @@ export function FormShare() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Link & QR */}
-          <section className="flex flex-col gap-6 rounded-xl border border-border bg-white p-6 shadow-sm">
+          <section className="flex flex-col gap-6 rounded-xl border border-border bg-bg p-6 shadow-sm">
             <div>
               <h3 className="mb-2 text-sm font-semibold text-text">Share link</h3>
               <div className="flex items-center gap-2">
@@ -102,7 +103,7 @@ export function FormShare() {
           </section>
 
           {/* Embed */}
-          <section className="flex flex-col gap-6 rounded-xl border border-border bg-white p-6 shadow-sm">
+          <section className="flex flex-col gap-6 rounded-xl border border-border bg-bg p-6 shadow-sm">
             <div>
               <h3 className="mb-2 text-sm font-semibold text-text">Embed in a web page</h3>
               <p className="mb-4 text-sm text-text-muted">Add this form directly to your website.</p>
@@ -111,10 +112,12 @@ export function FormShare() {
                 {(["standard", "fullpage", "popup"] as const).map((mode) => (
                   <button
                     key={mode}
+                    type="button"
+                    aria-pressed={embedMode === mode}
                     onClick={() => setEmbedMode(mode)}
                     className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                       embedMode === mode 
-                        ? "border-text bg-text text-white" 
+                        ? "border-text bg-text text-bg" 
                         : "border-border text-text-soft hover:bg-bg-subtle"
                     }`}
                   >

@@ -27,6 +27,8 @@ and listed here so nothing is forgotten. Add to this list whenever something is 
 ## Parked work (git stash "parked 2026-10-09: parallel wave 1", `git stash list`)
 Half-built by parallel agents, then stopped on the owner's request to go feature by feature: logic v2 (backend schemas, TS resolver, golden fixture `backend/tests/fixtures/logic_cases.json`, scoring helpers), templates API, share helpers (QR, social). Resume with `git stash pop` on a clean tree, then re-read `docs/superpowers/specs/2026-10-09-phase3-logic-design.md`.
 
+Update 2026-10-09: the stash was applied in commit `1769919`, then `601eafb` rolled logic v2 back to v1 on main. The leftover v2 test (`backend/tests/test_logic_schema.py`) and its golden fixture were removed afterwards because they tested code no longer on main; to resume logic v2, restore them and the rest of v2 from `1769919` (`git show 1769919 --stat`).
+
 ## Not yet started (parent spec §5)
 - [ ] Phase 4: share and embed, results rebuild, form settings and system messages, connect (webhooks/email), templates, workspace parity, version history, accessibility checker.
 - [ ] Phase 6: deployment rehearsal on a production DB copy, Railway variables (Gemini, Cloudinary), push, smoke test.

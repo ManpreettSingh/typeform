@@ -1,0 +1,82 @@
+{
+  "slug": "product-recommendation-quiz",
+  "title": "Product recommendation quiz",
+  "description": "Help visitors find the plan that suits them, and collect their email along the way.",
+  "tags": {
+    "role": [
+      "marketing",
+      "sales"
+    ],
+    "goal": [
+      "engage-audience",
+      "make-sales"
+    ],
+    "type": [
+      "quizzes"
+    ]
+  },
+  "theme": "Plum",
+  "welcome": {
+    "button_text": "Find my plan"
+  },
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "title": "Who will use it?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Just me"
+          },
+          {
+            "id": "o2",
+            "label": "My team"
+          },
+          {
+            "id": "o3",
+            "label": "My whole company"
+          }
+        ]
+      }
+    },
+    {
+      "type": "picture_choice",
+      "title": "Which of these sounds most like you?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Planner"
+          },
+          {
+            "id": "o2",
+            "label": "Explorer"
+          },
+          {
+            "id": "o3",
+            "label": "Builder"
+          }
+        ]
+      }
+    },
+    {
+      "type": "yes_no",
+      "title": "Do you need advanced reporting?"
+    },
+    {
+      "type": "email",
+      "title": "Where should we send your recommendation?",
+      "required": true
+    }
+  ],
+  "endings": [
+    {
+      "title": "Your recommendation is on its way",
+      "message": "Check your inbox in a minute.",
+      "button_text": "See all plans",
+      "button_url": "https://example.com/pricing"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "slug": "lead-generation-form",
+  "title": "Lead generation form",
+  "description": "Capture qualified leads with their contact details, company size and needs.",
+  "tags": {
+    "role": [
+      "sales",
+      "marketing"
+    ],
+    "goal": [
+      "generate-leads"
+    ],
+    "type": [
+      "forms"
+    ]
+  },
+  "theme": "Azure",
+  "welcome": {
+    "button_text": "Get started"
+  },
+  "questions": [
+    {
+      "type": "contact_info",
+      "title": "How can we reach you?",
+      "required": true
+    },
+    {
+      "type": "dropdown",
+      "title": "How big is your company?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Just me"
+          },
+          {
+            "id": "o2",
+            "label": "2-10"
+          },
+          {
+            "id": "o3",
+            "label": "11-50"
+          },
+          {
+            "id": "o4",
+            "label": "51-200"
+          },
+          {
+            "id": "o5",
+            "label": "201-1000"
+          },
+          {
+            "id": "o6",
+            "label": "1000+"
+          }
+        ]
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "title": "What are you looking for?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "A demo"
+          },
+          {
+            "id": "o2",
+            "label": "Pricing"
+          },
+          {
+            "id": "o3",
+            "label": "A partnership"
+          },
+          {
+            "id": "o4",
+            "label": "Something else"
+          }
+        ],
+        "allow_other": true
+      }
+    },
+    {
+      "type": "long_text",
+      "title": "Tell us a bit about your project"
+    },
+    {
+      "type": "legal",
+      "title": "Do you agree to be contacted about our products?",
+      "required": true
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks, we'll be in touch",
+      "message": "Someone from our team will reply within one business day."
+    }
+  ]
+}

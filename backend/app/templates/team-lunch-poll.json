@@ -1,0 +1,75 @@
+{
+  "slug": "team-lunch-poll",
+  "title": "Team lunch poll",
+  "description": "Pick a date and a place for the next team lunch.",
+  "tags": {
+    "role": [
+      "hr"
+    ],
+    "goal": [
+      "plan-events",
+      "engage-audience"
+    ],
+    "type": [
+      "polls"
+    ]
+  },
+  "theme": "Mint",
+  "questions": [
+    {
+      "type": "picture_choice",
+      "title": "What should we eat?",
+      "required": true,
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "Pizza"
+          },
+          {
+            "id": "o2",
+            "label": "Sushi"
+          },
+          {
+            "id": "o3",
+            "label": "Tacos"
+          },
+          {
+            "id": "o4",
+            "label": "Salads"
+          }
+        ]
+      }
+    },
+    {
+      "type": "date",
+      "title": "Which day works best for you?"
+    },
+    {
+      "type": "multiple_choice",
+      "title": "What time?",
+      "properties": {
+        "options": [
+          {
+            "id": "o1",
+            "label": "12:00"
+          },
+          {
+            "id": "o2",
+            "label": "12:30"
+          },
+          {
+            "id": "o3",
+            "label": "13:00"
+          }
+        ]
+      }
+    }
+  ],
+  "endings": [
+    {
+      "title": "Thanks!",
+      "message": "We'll share the result in the team channel."
+    }
+  ]
+}

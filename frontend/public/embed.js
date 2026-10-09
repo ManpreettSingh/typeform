@@ -1,6 +1,4 @@
 (function () {
-  const SCRIPT_ID = "typeform-clone-embed";
-
   function createEmbed(element, options) {
     const url = new URL(options.url);
     url.searchParams.set("embed", "true");
