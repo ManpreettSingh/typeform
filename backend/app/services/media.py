@@ -4,8 +4,9 @@ from typing import Any, Literal
 
 from app.core.config import get_settings
 
-# Cloudinary's resource type in the upload URL: "image" for builder images, "auto" so respondents can upload any file.
-ResourceType = Literal["image", "auto"]
+# Cloudinary's resource type in the upload URL: "image"/"video" for the builder's media, "auto" so respondents can
+# upload any file.
+ResourceType = Literal["image", "video", "auto"]
 
 
 def generate_upload_signature(folder: str = "typeform", resource_type: ResourceType = "image") -> dict[str, Any]:

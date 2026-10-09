@@ -39,7 +39,8 @@ export type QuestionType = (typeof QUESTION_TYPES)[number];
 // ---- Question properties (schemas/properties.py) ------------------------
 
 export type MediaAttachment = {
-  type: "image";
+  /** A video plays muted on a loop, like Typeform's background videos. */
+  type: "image" | "video";
   public_id: string;
   url: string;
   alt: string;
@@ -64,7 +65,13 @@ export type MediaProperties = {
   layout?: MediaLayout | null;
   /** `small`: the mobile layout (stack when unset). */
   viewport_overrides?: { small?: MediaLayout | null } | null;
+  /** Question → Video: the creator's video is the question (shown above it, with controls); the title is optional. */
+  video_question?: boolean | null;
+  video?: QuestionVideo | null;
 };
+
+/** A video question's recording or upload (Cloudinary). */
+export type QuestionVideo = { url: string; public_id: string };
 
 type WithMedia<T> = T & MediaProperties;
 

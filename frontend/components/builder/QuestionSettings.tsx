@@ -1,9 +1,10 @@
 "use client";
 
-import { Minus, MousePointerClick, Trash2, Video } from "lucide-react";
-import type { ComponentType } from "react";
+import { clsx } from "clsx";
+import { Minus, MousePointerClick, Plus, RefreshCw, Trash2, Video } from "lucide-react";
+import { useState, type ComponentType } from "react";
 import { SETTINGS_COMPONENTS } from "@/components/questionTypes/settings";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, IconButton } from "@/components/ui";
 import { QUESTION_TYPE_META, getDef } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
@@ -12,6 +13,7 @@ import { PanelCard, PanelDivider, SwitchRow } from "./panel/PanelCard";
 import { QuestionTypeChip } from "./QuestionTypeChip";
 import { AnswerTypeSelect } from "./settings/AnswerTypeSelect";
 import { MediaSettings } from "./settings/MediaSettings";
+import { VideoQuestionDialog } from "./settings/VideoQuestionDialog";
 
 /**
  * Right panel for the selected question, laid out like Typeform's: a Question card, an Answer card (type,
@@ -43,20 +45,7 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
   return (
     <div className="flex flex-col gap-3">
       <PanelCard title="Question">
-        <div role="group" aria-label="Question format" className="grid grid-cols-2 rounded-field bg-bg-hover p-0.5">
-          <span className="flex h-8 items-center justify-center gap-2 rounded-input bg-bg text-sm text-text-soft shadow-sm">
-            <Minus className="size-4" aria-hidden />
-            Text
-          </span>
-          <span
-            aria-disabled="true"
-            title="Video questions are coming soon"
-            className="flex h-8 cursor-default items-center justify-center gap-2 text-sm text-text-muted"
-          >
-            <Video className="size-4" aria-hidden />
-            Video
-          </span>
-        </div>
+        <QuestionFormat question={question} />
       </PanelCard>
 
       <PanelCard title="Answer">
@@ -100,6 +89,56 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
 
       {answerable && <LogicSettings question={question} />}
     </div>
+  );
+}
+
+/**
+ * Typeform's Text / Video switch. Video makes the creator's video the question (shown above it); switching back to
+ * Text keeps the video, so a mis-click doesn't lose a recording.
+ */
+function QuestionFormat({ question }: { question: Question }) {
+  const updateQuestion = useBuilderStore((s) => s.updateQuestion);
+  const [adding, setAdding] = useState(false);
+  const isVideo = Boolean(question.properties.video_question);
+  const set = (patch: Partial<Question["properties"]>) =>
+    updateQuestion(question.id, { properties: { ...question.properties, ...patch } }, 0);
+
+  const option = (video: boolean, icon: React.ReactNode, label: string) => (
+    <button
+      type="button"
+      aria-pressed={isVideo === video}
+      onClick={() => set({ video_question: video || null })}
+      className={clsx(
+        "flex h-8 items-center justify-center gap-2 rounded-input text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent",
+        isVideo === video ? "bg-bg text-text shadow-sm" : "text-text-muted hover:text-text",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  return (
+    <>
+      <div role="group" aria-label="Question format" className="grid grid-cols-2 rounded-field bg-bg-hover p-0.5">
+        {option(false, <Minus className="size-4" aria-hidden />, "Text")}
+        {option(true, <Video className="size-4" aria-hidden />, "Video")}
+      </div>
+      {isVideo && (
+        <div className="mt-2 flex min-h-10 items-center justify-between gap-2 text-sm text-text-muted">
+          <span>{question.properties.video ? "Video" : "Add video"}</span>
+          {question.properties.video ? (
+            <div className="flex items-center">
+              <IconButton size="sm" label="Change video" icon={<RefreshCw className="size-4" />} onClick={() => setAdding(true)} />
+              <IconButton size="sm" label="Remove video" icon={<Trash2 className="size-4" />} onClick={() => set({ video: null })} />
+            </div>
+          ) : (
+            <IconButton size="sm" label="Add video" icon={<Plus className="size-4" />} onClick={() => setAdding(true)} />
+          )}
+        </div>
+      )}
+      <VideoQuestionDialog open={adding} onClose={() => setAdding(false)} onDone={(video) => set({ video, video_question: true })} />
+    </>
   );
 }
 

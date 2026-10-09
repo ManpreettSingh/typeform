@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button, IconButton, Menu, Textarea } from "@/components/ui";
 import { imageFilter, imagePosition, layoutFor, type ResolvedLayout } from "@/lib/media";
 import type { MediaAttachment, MediaLayout, MediaProperties } from "@/lib/types";
-import { uploadImage } from "@/lib/upload";
+import { uploadImage, uploadMedia } from "@/lib/upload";
 import { PanelDivider } from "../panel/PanelCard";
 
 const ALT_MAX = 125;
@@ -56,17 +56,18 @@ export function MediaSettings({
       const file = e.target.files?.[0];
       e.target.value = "";
       if (!file) return;
+      const kind = file.type.startsWith("video/") ? "video" : "image";
       setUploading(true);
       try {
-        const { url, public_id } = await uploadImage(file);
-        // A new image starts centred at normal brightness; layouts are kept when it's a replacement.
+        const { url, public_id } = kind === "video" ? await uploadMedia(file, "video") : await uploadImage(file);
+        // New media starts centred at normal brightness; layouts are kept when it's a replacement.
         onChange({
-          attachment: { type: "image", public_id, url, alt: "" },
+          attachment: { type: kind, public_id, url, alt: "" },
           layout: media.layout ?? { type: "stack", placement: null },
         });
       } catch (err) {
         console.error(err);
-        toast.error("Couldn't upload the image.");
+        toast.error(err instanceof Error && err.message.includes("too big") ? err.message : `Couldn't upload the ${kind}.`);
       } finally {
         setUploading(false);
       }
@@ -84,18 +85,24 @@ export function MediaSettings({
           <Loader2 className="mr-2 size-4 animate-spin" aria-label="Uploading" />
         ) : attachment ? (
           <div className="flex items-center">
-            <IconButton size="sm" label="Change image" icon={<ImageUp className="size-4" />} onClick={() => inputRef.current?.click()} />
+            <IconButton size="sm" label="Change image or video" icon={<ImageUp className="size-4" />} onClick={() => inputRef.current?.click()} />
             <IconButton
               size="sm"
-              label="Remove image"
+              label="Remove image or video"
               icon={<Trash2 className="size-4" />}
               onClick={() => onChange({ attachment: null, layout: null, viewport_overrides: null })}
             />
           </div>
         ) : (
-          <IconButton size="sm" label="Add image" icon={<Plus className="size-4" />} onClick={() => inputRef.current?.click()} />
+          <IconButton size="sm" label="Add image or video" icon={<Plus className="size-4" />} onClick={() => inputRef.current?.click()} />
         )}
-        <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={handleFile} />
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
+          className="hidden"
+          onChange={handleFile}
+        />
       </div>
 
       {attachment && (
@@ -266,8 +273,19 @@ function FocalPoint({
         onKeyDown={onKeyDown}
         className="relative cursor-crosshair touch-none overflow-hidden rounded-input bg-bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- user upload thumbnail */}
-        <img src={attachment.url} alt="" draggable={false} className="block max-h-40 w-full object-contain" style={{ filter: imageFilter(attachment.brightness) }} />
+        {attachment.type === "video" ? (
+          <video
+            src={attachment.url}
+            muted
+            playsInline
+            draggable={false}
+            className="pointer-events-none block max-h-40 w-full object-contain"
+            style={{ filter: imageFilter(attachment.brightness) }}
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- user upload thumbnail
+          <img src={attachment.url} alt="" draggable={false} className="block max-h-40 w-full object-contain" style={{ filter: imageFilter(attachment.brightness) }} />
+        )}
         <span
           aria-hidden
           className="pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"

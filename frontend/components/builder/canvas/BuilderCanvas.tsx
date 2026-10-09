@@ -3,8 +3,10 @@
 import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { AiStartScreen } from "@/components/ai/AiStartScreen";
+import { Plus } from "lucide-react";
 import { MediaCanvas } from "@/components/respondent/MediaCanvas";
-import { QuestionRenderer } from "@/components/respondent/QuestionRenderer";
+import { QuestionRenderer, QuestionVideoPlayer } from "@/components/respondent/QuestionRenderer";
+import { VideoQuestionDialog } from "../settings/VideoQuestionDialog";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { ThankYouScreen } from "@/components/respondent/ThankYouScreen";
 import { canEndAfter } from "@/lib/logic";
@@ -113,7 +115,10 @@ function CanvasQuestion({
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
   // Creators can click around to try the answer; nothing is saved.
   const [value, setValue] = useState<AnswerValue | undefined>();
+  const [addingVideo, setAddingVideo] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  const isVideoQuestion = Boolean(question.properties.video_question);
+  const video = question.properties.video;
 
   // A freshly added question starts untitled: put the cursor straight into its title.
   useEffect(() => {
@@ -138,7 +143,7 @@ function CanvasQuestion({
             ref={titleRef}
             fit
             aria-label="Question"
-            placeholder="Your question here."
+            placeholder={isVideoQuestion ? "Your question or title here (optional)" : "Your question here."}
             value={question.title}
             maxLength={QUESTION_TITLE_MAX}
             onChange={(title) => updateQuestion(question.id, { title })}
@@ -156,6 +161,32 @@ function CanvasQuestion({
           onChange={(description) => updateQuestion(question.id, { description: description || null })}
           className="mt-2 text-base opacity-70 sm:text-lg"
         />
+      }
+      videoSlot={
+        isVideoQuestion ? (
+          <>
+            {video ? (
+              <QuestionVideoPlayer url={video.url} />
+            ) : (
+              // Typeform's empty video question: a grey stage with "+ Add video".
+              <div className="flex aspect-video max-h-[45vh] w-full items-center justify-center rounded-resp-button bg-resp-text/10">
+                <button
+                  type="button"
+                  onClick={() => setAddingVideo(true)}
+                  className="inline-flex items-center gap-1.5 rounded-resp-button bg-resp-text px-3 py-1.5 text-sm font-medium text-resp-bg"
+                >
+                  <Plus className="size-4" aria-hidden />
+                  Add video
+                </button>
+              </div>
+            )}
+            <VideoQuestionDialog
+              open={addingVideo}
+              onClose={() => setAddingVideo(false)}
+              onDone={(v) => updateQuestion(question.id, { properties: { ...question.properties, video: v, video_question: true } }, 0)}
+            />
+          </>
+        ) : undefined
       }
       answerSlot={
         question.type === "multiple_choice" ? (

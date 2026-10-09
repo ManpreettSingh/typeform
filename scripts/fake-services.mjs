@@ -26,6 +26,22 @@ const server = http.createServer((req, res) => {
     );
   }
 
+  if (req.method === "POST" && req.url.includes("/video/upload")) {
+    req.resume();
+    req.on("end", () => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          // A real, small, public sample so the player has something to play in checks.
+          secure_url: "https://res.cloudinary.com/demo/video/upload/dog.mp4",
+          public_id: "test_video",
+          resource_type: "video",
+        })
+      );
+    });
+    return;
+  }
+
   if (req.method === "POST" && req.url.includes("/auto/upload")) {
     // Respondent file uploads ("auto" resource type): the file's real name and size, like Cloudinary reports them.
     const chunks = [];

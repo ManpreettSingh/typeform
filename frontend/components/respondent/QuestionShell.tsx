@@ -21,6 +21,8 @@ type Props = {
   /** Builder canvas: editable fields shown in place of the title and description. */
   titleSlot?: ReactNode;
   descriptionSlot?: ReactNode;
+  /** Video questions: the video that asks the question, above everything else. Its title is then optional. */
+  video?: ReactNode;
   children: ReactNode;
 };
 
@@ -40,12 +42,14 @@ export function QuestionShell({
   hint,
   titleSlot,
   descriptionSlot,
+  video,
   children,
 }: Props) {
   // Stack layout: the image sits between the question text and the answer.
   const media = useStackedMedia();
   return (
     <div className="w-full max-w-2xl">
+      {video && <div className="mb-6 sm:mb-8">{video}</div>}
       <div className="flex items-start gap-2 sm:gap-3">
         {/* Typeform's current badge: a small square in the question color with the number knocked out. */}
         <span
@@ -63,7 +67,8 @@ export function QuestionShell({
           {titleSlot ?? (
             <h2 id={titleId} className="text-xl leading-snug break-words sm:text-[26px] sm:leading-[34px]">
               <span className="sr-only">Question {number}: </span>
-              {title.trim() || <span className="opacity-50">Your question here.</span>}
+              {title.trim() ||
+                (video ? <span className="sr-only">Video question</span> : <span className="opacity-50">Your question here.</span>)}
               {required && (
                 <span aria-label="required">
                   {" "}

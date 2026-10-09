@@ -107,13 +107,30 @@ export function MediaCanvas({ attachment, layout, viewport_overrides, small, inl
 }
 
 function Picture({ attachment, className }: { attachment: MediaAttachment; className: string }) {
+  const style = { filter: imageFilter(attachment.brightness), objectPosition: imagePosition(attachment.focal_point) };
+  if (attachment.type === "video") {
+    // Decorative, like Typeform's background videos: muted, looping, no controls.
+    return (
+      <video
+        src={attachment.url}
+        aria-label={attachment.alt || undefined}
+        aria-hidden={attachment.alt ? undefined : true}
+        className={className}
+        style={style}
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+    );
+  }
   return (
     // eslint-disable-next-line @next/next/no-img-element -- user uploads from any host; next/image needs known sizes
     <img
       src={attachment.url}
       alt={attachment.alt}
       className={className}
-      style={{ filter: imageFilter(attachment.brightness), objectPosition: imagePosition(attachment.focal_point) }}
+      style={style}
     />
   );
 }

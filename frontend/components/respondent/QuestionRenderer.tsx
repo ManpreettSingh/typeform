@@ -28,7 +28,23 @@ export type QuestionRendererProps = {
   titleSlot?: React.ReactNode;
   descriptionSlot?: React.ReactNode;
   answerSlot?: React.ReactNode;
+  /** Builder canvas: what to show for a video question instead of the player (e.g. an "Add video" placeholder). */
+  videoSlot?: React.ReactNode;
 };
+
+/** A video question's video: the creator asking the question, played with controls (sound on, unlike media videos). */
+export function QuestionVideoPlayer({ url, labelledBy }: { url: string; labelledBy?: string }) {
+  return (
+    <video
+      src={url}
+      controls
+      playsInline
+      preload="metadata"
+      aria-labelledby={labelledBy}
+      className="aspect-video max-h-[45vh] w-full rounded-resp-button bg-black object-contain"
+    />
+  );
+}
 
 /** One question as respondents see it. Used by the live flow, the full preview and the builder canvas. */
 export function QuestionRenderer({
@@ -46,8 +62,13 @@ export function QuestionRenderer({
   titleSlot,
   descriptionSlot,
   answerSlot,
+  videoSlot,
 }: QuestionRendererProps) {
   const titleId = useId();
+  const { video_question: isVideoQuestion, video } = question.properties;
+  const videoBlock = isVideoQuestion
+    ? (videoSlot ?? (video ? <QuestionVideoPlayer url={video.url} labelledBy={titleId} /> : null))
+    : null;
   const live = mode === "live";
   const common = { onSubmit, live, autoAdvance: live && !isLast && !canEnd, labelledBy: titleId };
 
@@ -70,6 +91,7 @@ export function QuestionRenderer({
       onSubmit={onSubmit}
       titleSlot={titleSlot}
       descriptionSlot={descriptionSlot}
+      video={videoBlock}
       hint={
         question.type === "long_text" ? (
           <>

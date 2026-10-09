@@ -313,7 +313,7 @@ function QuestionRow({ question, number, selected }: { question: Question; numbe
         <span className="tabular-nums">{number}</span>
       </span>
       <span className={clsx("truncate", !question.title.trim() && "text-text-muted italic")}>
-        {question.title.trim() || "Untitled question"}
+        {question.title.trim() || (question.properties.video_question ? "(Video question)" : "Untitled question")}
       </span>
       {question.logic && (
         <span className="ml-auto shrink-0 text-text-muted" title="Has logic jumps">
