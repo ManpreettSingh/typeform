@@ -89,10 +89,11 @@ export function FormShare() {
             <div>
               <h3 className="mb-4 text-sm font-semibold text-text">QR Code</h3>
               <div className="flex items-start gap-6">
-                <div 
-                  className="overflow-hidden rounded-xl border border-border bg-white p-2"
-                  dangerouslySetInnerHTML={{ __html: qrHtml }} 
-                />
+                <div className="overflow-hidden rounded-xl border border-border bg-white p-2">
+                  {qrHtml ? (
+                    <img src={`data:image/svg+xml;utf8,${encodeURIComponent(qrHtml)}`} alt="QR Code" width={160} height={160} className="block" />
+                  ) : null}
+                </div>
                 <div className="flex flex-col gap-2 text-sm text-text-muted">
                   <p>Download or screenshot this QR code so respondents can open the form on their phone.</p>
                 </div>
