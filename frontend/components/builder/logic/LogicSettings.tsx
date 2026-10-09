@@ -3,8 +3,9 @@
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { IconButton, Input, Select, type SelectOption } from "@/components/ui";
-import { OPS_BY_TYPE, OP_LABELS } from "@/lib/logic";
+import { OPS_BY_TYPE, opLabel } from "@/lib/logic";
 import { optionLetter } from "@/lib/questionTypes";
+import { NPS_RANGE, scaleRange } from "@/lib/questionTypes/scales";
 import type { LogicOp, LogicRule, LogicTarget, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { PanelCard } from "../panel/PanelCard";
@@ -96,6 +97,13 @@ function newRule(question: Question, to: LogicTarget): LogicRule {
       return { op, value: true, to };
     case "rating":
       return { op, value: question.properties.max, to };
+    case "opinion_scale":
+      return { op, value: scaleRange(question.properties)[1], to };
+    case "nps":
+      return { op, value: NPS_RANGE[1], to };
+    case "legal":
+    case "checkbox":
+      return { op, value: true, to };
     case "number":
       return { op, value: 0, to };
     default:
@@ -141,7 +149,7 @@ function RuleEditor({ number, rule, question, questions, index, onChange, onRemo
         <Select<LogicOp>
           aria-label="Condition"
           value={rule.op}
-          options={ops.map((op) => ({ value: op, label: OP_LABELS[op] }))}
+          options={ops.map((op) => ({ value: op, label: opLabel(question.type, op) }))}
           onChange={(op) => onChange({ op })}
         />
       )}
@@ -203,6 +211,35 @@ function ValueEditor({
           onChange={(value) => onChange({ value: value === "true" })}
         />
       );
+    case "legal":
+      return (
+        <Select<string>
+          aria-label="Answer"
+          value={String(rule.value)}
+          options={[
+            { value: "true", label: "Accepted" },
+            { value: "false", label: "Declined" },
+          ]}
+          onChange={(value) => onChange({ value: value === "true" })}
+        />
+      );
+    case "checkbox":
+      // An untouched box is a skipped question, which matches no rule, so only "checked" can be tested.
+      return (
+        <Select<string> aria-label="Answer" value="true" options={[{ value: "true", label: "Checked" }]} onChange={() => {}} />
+      );
+    case "opinion_scale":
+    case "nps": {
+      const [low, high] = question.type === "nps" ? NPS_RANGE : scaleRange(question.properties);
+      return (
+        <Select<number>
+          aria-label="Score"
+          value={Number(rule.value)}
+          options={Array.from({ length: high - low + 1 }, (_, i) => ({ value: low + i, label: String(low + i) }))}
+          onChange={(value) => onChange({ value })}
+        />
+      );
+    }
     case "rating":
       return (
         <Select<number>
@@ -229,6 +266,16 @@ function ValueEditor({
             // Keep the raw text while it isn't a number yet; it isn't saved until it is.
             onChange({ value: raw.trim() !== "" && Number.isFinite(n) ? n : raw });
           }}
+        />
+      );
+    case "date":
+      return (
+        <Input
+          aria-label="Date"
+          type="date"
+          value={String(rule.value)}
+          error={isCompleteRule("date", rule) ? undefined : "Choose a date"}
+          onChange={(e) => onChange({ value: e.target.value })}
         />
       );
     default:

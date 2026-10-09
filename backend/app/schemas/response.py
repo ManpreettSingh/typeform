@@ -59,7 +59,13 @@ class OptionCount(BaseModel):
 
 
 class ChoiceSummary(_QuestionSummaryBase):
-    type: Literal[QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN, QuestionType.YES_NO]
+    type: Literal[
+        QuestionType.MULTIPLE_CHOICE,
+        QuestionType.DROPDOWN,
+        QuestionType.YES_NO,
+        QuestionType.LEGAL,
+        QuestionType.CHECKBOX,
+    ]
     # In option order. Multi-select counts can sum to more than `answered`.
     counts: list[OptionCount]
 
@@ -70,6 +76,34 @@ class RatingSummary(_QuestionSummaryBase):
     average: float | None
     # "1".."max" → count, every step present.
     distribution: dict[str, int]
+
+
+class ScaleSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.OPINION_SCALE]
+    # The scale's first and last step as it is configured now.
+    min: int
+    max: int
+    average: float | None
+    # "min".."max" → count, every step present.
+    distribution: dict[str, int]
+
+
+class NpsGroup(BaseModel):
+    count: int
+    # Share of the answers, 0–100 with one decimal.
+    percent: float
+
+
+class NpsSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.NPS]
+    average: float | None
+    # "0".."10" → count, every step present.
+    distribution: dict[str, int]
+    promoters: NpsGroup  # 9–10
+    passives: NpsGroup  # 7–8
+    detractors: NpsGroup  # 0–6
+    # Net Promoter Score: % promoters − % detractors as a whole number (−100…100); None without answers.
+    score: int | None
 
 
 class NumberSummary(_QuestionSummaryBase):
@@ -85,13 +119,20 @@ class TextAnswer(BaseModel):
 
 
 class TextSummary(_QuestionSummaryBase):
-    type: Literal[QuestionType.SHORT_TEXT, QuestionType.LONG_TEXT, QuestionType.EMAIL]
+    type: Literal[
+        QuestionType.SHORT_TEXT,
+        QuestionType.LONG_TEXT,
+        QuestionType.EMAIL,
+        QuestionType.WEBSITE,
+        QuestionType.PHONE_NUMBER,
+        QuestionType.DATE,
+    ]
     # Every answer, most recent first (Typeform lists them all, with a search box).
     answers: list[TextAnswer]
 
 
 QuestionSummary = Annotated[
-    ChoiceSummary | RatingSummary | NumberSummary | TextSummary,
+    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary,
     Field(discriminator="type"),
 ]
 

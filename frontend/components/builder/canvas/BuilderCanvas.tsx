@@ -8,6 +8,7 @@ import { ThankYouScreen } from "@/components/respondent/ThankYouScreen";
 import { canEndAfter } from "@/lib/logic";
 import type { AnswerValue, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { CanvasCheckbox } from "./CanvasCheckbox";
 import { CanvasChoices } from "./CanvasChoices";
 import { InlineText } from "./InlineText";
 
@@ -121,7 +122,13 @@ function CanvasQuestion({
           className="mt-2 text-base opacity-70 sm:text-lg"
         />
       }
-      answerSlot={question.type === "multiple_choice" ? <CanvasChoices question={question} /> : undefined}
+      answerSlot={
+        question.type === "multiple_choice" ? (
+          <CanvasChoices question={question} />
+        ) : question.type === "checkbox" ? (
+          <CanvasCheckbox question={question} />
+        ) : undefined
+      }
     />
   );
 }

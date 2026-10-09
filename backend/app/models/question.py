@@ -6,8 +6,6 @@ from sqlalchemy import JSON, Boolean, CheckConstraint, ForeignKey, Integer, Stri
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
-from app.models.base import check_in
-from app.models.enums import QuestionType
 
 if TYPE_CHECKING:
     from app.models.form import Form
@@ -16,7 +14,7 @@ if TYPE_CHECKING:
 class Question(Base):
     __tablename__ = "questions"
     __table_args__ = (
-        CheckConstraint(check_in("type", QuestionType), name="ck_questions_type"),
+        # No CHECK on `type`: the QuestionType enum validates it, so a new type needs no table rebuild.
         CheckConstraint("position >= 0", name="ck_questions_position"),
         # Also serves as the questions(form_id, position) index.
         UniqueConstraint("form_id", "position", name="uq_questions_form_position"),
@@ -32,5 +30,7 @@ class Question(Base):
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     properties: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     logic: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    # Set on the questions inside a group; points at the group's header row (type "group").
+    group_id: Mapped[int | None] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"))
 
     form: Mapped[Form] = relationship(back_populates="questions")

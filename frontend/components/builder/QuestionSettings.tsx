@@ -1,6 +1,8 @@
 "use client";
 
 import { Minus, MousePointerClick, Trash2, Video } from "lucide-react";
+import type { ComponentType } from "react";
+import { SETTINGS_COMPONENTS } from "@/components/questionTypes/settings";
 import { Button, EmptyState } from "@/components/ui";
 import { QUESTION_TYPE_META } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
@@ -8,10 +10,6 @@ import { useBuilderStore } from "@/store/builderStore";
 import { LogicSettings } from "./logic/LogicSettings";
 import { PanelCard, PanelDivider, SwitchRow } from "./panel/PanelCard";
 import { QuestionTypeChip } from "./QuestionTypeChip";
-import { ChoiceSettings } from "./settings/ChoiceSettings";
-import { NumberSettings } from "./settings/NumberSettings";
-import { RatingSettings } from "./settings/RatingSettings";
-import { TextSettings } from "./settings/TextSettings";
 
 /**
  * Right panel for the selected question, laid out like Typeform's: a Question card, an Answer card (type,
@@ -91,21 +89,9 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
 }
 
 function TypeSettings({ question }: { question: Question }) {
-  switch (question.type) {
-    case "multiple_choice":
-    case "dropdown":
-      return <ChoiceSettings question={question} />;
-    case "rating":
-      return <RatingSettings question={question} />;
-    case "number":
-      return <NumberSettings question={question} />;
-    case "short_text":
-    case "long_text":
-      return <TextSettings question={question} />;
-    case "email":
-    case "yes_no":
-      return null;
-  }
+  // components/questionTypes/settings.ts guarantees every type has an entry (null = no extra settings).
+  const Settings = SETTINGS_COMPONENTS[question.type] as unknown as ComponentType<{ question: Question }> | null;
+  return Settings ? <Settings question={question} /> : null;
 }
 
 /** Welcome screen panel: what it is and when respondents see it. */

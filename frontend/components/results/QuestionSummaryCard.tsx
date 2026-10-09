@@ -1,7 +1,16 @@
 import { Heart, Star } from "lucide-react";
 import { QuestionTypeChip } from "@/components/builder/QuestionTypeChip";
 import { formatNumber } from "@/lib/answerFormat";
-import type { ChoiceSummary, NumberSummary, Question, QuestionSummary, RatingSummary, TextSummary } from "@/lib/types";
+import type {
+  ChoiceSummary,
+  NpsSummary,
+  NumberSummary,
+  Question,
+  QuestionSummary,
+  RatingSummary,
+  ScaleSummary,
+  TextSummary,
+} from "@/lib/types";
 import { BarList } from "./BarList";
 
 type Props = {
@@ -56,9 +65,15 @@ function SummaryBody({
     case "multiple_choice":
     case "dropdown":
     case "yes_no":
+    case "legal":
+    case "checkbox":
       return <ChoiceBody summary={summary} multiple={question?.type === "multiple_choice" && question.properties.allow_multiple} />;
     case "rating":
       return <RatingBody summary={summary} shape={question?.type === "rating" ? question.properties.shape : "number"} />;
+    case "opinion_scale":
+      return <ScaleBody summary={summary} />;
+    case "nps":
+      return <NpsBody summary={summary} />;
     case "number":
       return <NumberBody summary={summary} />;
     default:
@@ -99,6 +114,65 @@ function RatingBody({ summary, shape }: { summary: RatingSummary; shape: "star" 
   return (
     <div className="grid gap-6 sm:grid-cols-[10rem_1fr]">
       <Figure label={`Average out of ${summary.max}`} value={summary.average === null ? "–" : summary.average.toFixed(1)} />
+      <BarList items={items} total={summary.answered} />
+    </div>
+  );
+}
+
+/** Every step of an opinion scale with its count, highest first, and the average. */
+function ScaleBody({ summary }: { summary: ScaleSummary }) {
+  const items = Array.from({ length: summary.max - summary.min + 1 }, (_, i) => summary.max - i).map((step) => ({
+    key: String(step),
+    label: <span className="tabular-nums">{step}</span>,
+    count: summary.distribution[String(step)] ?? 0,
+  }));
+  return (
+    <div className="grid gap-6 sm:grid-cols-[10rem_1fr]">
+      <Figure label="Average" value={summary.average === null ? "–" : summary.average.toFixed(1)} />
+      <BarList items={items} total={summary.answered} />
+    </div>
+  );
+}
+
+const NPS_GROUPS = [
+  { key: "promoters", label: "Promoters", range: "9–10", bar: "bg-success" },
+  { key: "passives", label: "Passives", range: "7–8", bar: "bg-border-strong" },
+  { key: "detractors", label: "Detractors", range: "0–6", bar: "bg-danger" },
+] as const;
+
+/** The score, the three groups (as a split bar and as counts) and how many picked each step. */
+function NpsBody({ summary }: { summary: NpsSummary }) {
+  const items = Array.from({ length: 11 }, (_, i) => 10 - i).map((step) => ({
+    key: String(step),
+    label: <span className="tabular-nums">{step}</span>,
+    count: summary.distribution[String(step)] ?? 0,
+  }));
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
+        <Figure label="Net Promoter Score" value={summary.score === null ? "–" : String(summary.score)} />
+        <div className="flex flex-col justify-center gap-3">
+          <div aria-hidden className="flex h-3 overflow-hidden rounded-r-input bg-bg-subtle">
+            {NPS_GROUPS.map(({ key, bar }) => (
+              <div key={key} className={bar} style={{ width: `${summary[key].percent}%` }} />
+            ))}
+          </div>
+          <ul className="grid grid-cols-3 gap-3 text-sm">
+            {NPS_GROUPS.map(({ key, label, range, bar }) => (
+              <li key={key} className="flex flex-col">
+                <span className="flex items-center gap-1.5 text-text-muted">
+                  <span aria-hidden className={`size-2 rounded-full ${bar}`} />
+                  {label} <span className="tabular-nums">({range})</span>
+                </span>
+                <span className="font-semibold text-text tabular-nums">{summary[key].percent}%</span>
+                <span className="text-xs text-text-muted tabular-nums">
+                  {summary[key].count} {summary[key].count === 1 ? "response" : "responses"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <BarList items={items} total={summary.answered} />
     </div>
   );

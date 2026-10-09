@@ -1,4 +1,5 @@
 import { optionLetter } from "@/lib/questionTypes";
+import { formatDate } from "@/lib/questionTypes/dates";
 import type { LogicRule, LogicValue, Question, QuestionType } from "@/lib/types";
 
 export const questionLabel = (questions: Question[], id: number) => {
@@ -21,6 +22,12 @@ export function valueLabel(question: Question, value: LogicValue): string {
     }
     case "yes_no":
       return value ? "Yes" : "No";
+    case "legal":
+      return value ? "Accepted" : "Declined";
+    case "checkbox":
+      return value ? "Checked" : "Unchecked";
+    case "date":
+      return formatDate(value, question.properties);
     case "short_text":
     case "long_text":
     case "email":
@@ -51,8 +58,12 @@ export function isCompleteRule(type: QuestionType, rule: LogicRule): boolean {
   switch (type) {
     case "number":
     case "rating":
+    case "opinion_scale":
+    case "nps":
       return typeof rule.value === "number" && Number.isFinite(rule.value);
     case "yes_no":
+    case "legal":
+    case "checkbox":
       return typeof rule.value === "boolean";
     default:
       return typeof rule.value === "string" && rule.value.trim() !== "";

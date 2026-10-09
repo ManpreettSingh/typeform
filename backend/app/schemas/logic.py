@@ -10,26 +10,14 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import QuestionType
+from app.question_types import SPECS
 
 MAX_RULES = 20
-RULE_TEXT_MAX = 500
 
 LogicOp = Literal["is", "is_not", "contains", "eq", "neq", "lt", "lte", "gt", "gte"]
 
-_CHOICE_OPS = frozenset({"is", "is_not"})
-_NUMBER_OPS = frozenset({"eq", "neq", "lt", "lte", "gt", "gte"})
-_TEXT_OPS = frozenset({"is", "is_not", "contains"})
-
-OPS_BY_TYPE: dict[QuestionType, frozenset[str]] = {
-    QuestionType.MULTIPLE_CHOICE: _CHOICE_OPS,
-    QuestionType.DROPDOWN: _CHOICE_OPS,
-    QuestionType.YES_NO: frozenset({"is"}),
-    QuestionType.NUMBER: _NUMBER_OPS,
-    QuestionType.RATING: _NUMBER_OPS,
-    QuestionType.SHORT_TEXT: _TEXT_OPS,
-    QuestionType.LONG_TEXT: _TEXT_OPS,
-    QuestionType.EMAIL: _TEXT_OPS,
-}
+# Which conditions each type supports comes from its spec (app/question_types).
+OPS_BY_TYPE: dict[QuestionType, frozenset[str]] = {t: s.logic_ops for t, s in SPECS.items() if s.answerable}
 
 
 class LogicRule(BaseModel):
@@ -64,15 +52,8 @@ class Logic(BaseModel):
 
 
 def _value_error(qtype: QuestionType, value: Any) -> str | None:
-    if qtype in (QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN):
-        return None if isinstance(value, str) and value else "Choose an option"
-    if qtype == QuestionType.YES_NO:
-        return None if isinstance(value, bool) else "Choose Yes or No"
-    if qtype in (QuestionType.NUMBER, QuestionType.RATING):
-        return None if isinstance(value, int | float) and not isinstance(value, bool) else "Enter a number"
-    if not isinstance(value, str) or not value.strip():
-        return "Enter some text"
-    return None if len(value) <= RULE_TEXT_MAX else f"Keep it under {RULE_TEXT_MAX} characters"
+    check = SPECS[qtype].logic_value_error
+    return check(value) if check else None
 
 
 def rule_errors(qtype: QuestionType, logic: Logic) -> dict[str, str]:

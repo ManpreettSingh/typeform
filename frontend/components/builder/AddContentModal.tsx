@@ -22,6 +22,7 @@ import {
   Phone,
   Scale,
   Search,
+  SlidersHorizontal,
   SquareCheck,
   Star,
   Upload,
@@ -49,9 +50,9 @@ const GROUPS: Group[] = [
     items: [
       { label: "Contact Info", icon: UserRound },
       { label: "Email", icon: Mail, type: "email" },
-      { label: "Phone Number", icon: Phone },
+      { label: "Phone Number", icon: Phone, type: "phone_number" },
       { label: "Address", icon: MapPin },
-      { label: "Website", icon: Globe },
+      { label: "Website", icon: Globe, type: "website" },
     ],
   },
   {
@@ -62,15 +63,16 @@ const GROUPS: Group[] = [
       { label: "Dropdown", icon: ChevronDown, type: "dropdown" },
       { label: "Picture Choice", icon: Image },
       { label: "Yes/No", icon: CircleSlash, type: "yes_no" },
-      { label: "Legal", icon: Scale },
-      { label: "Checkbox", icon: SquareCheck },
+      { label: "Legal", icon: Scale, type: "legal" },
+      { label: "Checkbox", icon: SquareCheck, type: "checkbox" },
     ],
   },
   {
     title: "Rating & ranking",
     chip: "bg-qt-rating",
     items: [
-      { label: "Net Promoter Score®", icon: Gauge },
+      { label: "Net Promoter Score®", icon: Gauge, type: "nps" },
+      { label: "Opinion Scale", icon: SlidersHorizontal, type: "opinion_scale" },
       { label: "Rating", icon: Star, type: "rating" },
       { label: "Ranking", icon: ListOrdered },
       { label: "Matrix", icon: Grid3x3 },
@@ -90,7 +92,7 @@ const GROUPS: Group[] = [
     chip: "bg-qt-other",
     items: [
       { label: "Number", icon: Hash, type: "number" },
-      { label: "Date", icon: Calendar },
+      { label: "Date", icon: Calendar, type: "date" },
       { label: "Payment", icon: CreditCard },
       { label: "File Upload", icon: Upload },
       { label: "Scheduler", icon: CalendarClock },

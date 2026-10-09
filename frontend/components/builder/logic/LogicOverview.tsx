@@ -2,7 +2,7 @@
 
 import { AlertTriangle, ArrowRight, GitBranch } from "lucide-react";
 import { Button, EmptyState } from "@/components/ui";
-import { OP_LABELS } from "@/lib/logic";
+import { opLabel } from "@/lib/logic";
 import { useBuilderStore } from "@/store/builderStore";
 import { questionLabel, ruleProblem, targetLabel, valueLabel } from "./ruleText";
 
@@ -51,7 +51,7 @@ export function LogicOverview({ onEditQuestion }: { onEditQuestion: (id: number)
                   return (
                     <li key={i} className="flex flex-col gap-1 text-sm text-text">
                       <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-text-muted">If the answer {OP_LABELS[rule.op]}</span>
+                        <span className="text-text-muted">If the answer {opLabel(question.type, rule.op)}</span>
                         <span className="font-medium">{valueLabel(question, rule.value)}</span>
                         <ArrowRight className="size-3.5 text-text-muted" aria-label="then go to" />
                         <span className="font-medium">{targetLabel(questions, rule.to)}</span>

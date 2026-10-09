@@ -15,6 +15,13 @@ class QuestionType(StrEnum):
     NUMBER = "number"
     YES_NO = "yes_no"
     RATING = "rating"
+    WEBSITE = "website"
+    PHONE_NUMBER = "phone_number"
+    DATE = "date"
+    LEGAL = "legal"
+    CHECKBOX = "checkbox"
+    OPINION_SCALE = "opinion_scale"
+    NPS = "nps"
 
 
 class ResponseStatus(StrEnum):

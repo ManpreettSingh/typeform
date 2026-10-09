@@ -2,24 +2,15 @@
 //
 // Only forward jumps are followed: a rule whose target is missing or not after the current question is
 // skipped, so every path is finite (no cycles) even after questions are reordered.
+import { QUESTION_TYPE_DEFS, getDef } from "@/lib/questionTypes";
+import { QUESTION_TYPES } from "@/lib/types";
 import type { AnswerValue, Answers, LogicOp, LogicRule, PublicQuestion, QuestionType } from "@/lib/types";
 import { isEmptyAnswer } from "@/lib/validation";
 
-const CHOICE_OPS: LogicOp[] = ["is", "is_not"];
-const NUMBER_OPS: LogicOp[] = ["eq", "neq", "lt", "lte", "gt", "gte"];
-const TEXT_OPS: LogicOp[] = ["is", "is_not", "contains"];
-
-/** Conditions available per question type, in menu order (matches OPS_BY_TYPE on the server). */
-export const OPS_BY_TYPE: Record<QuestionType, LogicOp[]> = {
-  multiple_choice: CHOICE_OPS,
-  dropdown: CHOICE_OPS,
-  yes_no: ["is"],
-  number: NUMBER_OPS,
-  rating: NUMBER_OPS,
-  short_text: TEXT_OPS,
-  long_text: TEXT_OPS,
-  email: TEXT_OPS,
-};
+/** Conditions available per question type, in menu order (matches the server's `logic_ops`). */
+export const OPS_BY_TYPE = Object.fromEntries(
+  QUESTION_TYPES.map((type) => [type, QUESTION_TYPE_DEFS[type].ops]),
+) as Record<QuestionType, LogicOp[]>;
 
 export const OP_LABELS: Record<LogicOp, string> = {
   is: "is",
@@ -33,47 +24,15 @@ export const OP_LABELS: Record<LogicOp, string> = {
   gte: "is at least",
 };
 
-function toNumber(value: unknown): number | null {
-  if (typeof value === "boolean") return null;
-  const n = typeof value === "number" ? value : Number(String(value).trim());
-  return Number.isFinite(n) ? n : null;
-}
-
 /** Whether `rule` applies to `value`. Unanswered questions match no rule. */
 export function ruleMatches(type: QuestionType, rule: LogicRule, value: AnswerValue | undefined): boolean {
   if (value === undefined || isEmptyAnswer(value)) return false;
-  const { op, value: expected } = rule;
+  return getDef(type).ruleMatches(rule, value);
+}
 
-  switch (type) {
-    case "multiple_choice":
-    case "dropdown": {
-      const picked = Array.isArray(value) ? value : [value];
-      return picked.includes(expected as string) === (op === "is");
-    }
-    case "yes_no":
-      return value === expected;
-    case "number":
-    case "rating": {
-      const a = toNumber(value);
-      const b = toNumber(expected);
-      if (a === null || b === null) return false;
-      const results: Partial<Record<LogicOp, boolean>> = {
-        eq: a === b,
-        neq: a !== b,
-        lt: a < b,
-        lte: a <= b,
-        gt: a > b,
-        gte: a >= b,
-      };
-      return results[op] ?? false;
-    }
-    default: {
-      const a = String(value).trim().toLowerCase();
-      const b = String(expected).trim().toLowerCase();
-      const results: Partial<Record<LogicOp, boolean>> = { is: a === b, is_not: a !== b, contains: a.includes(b) };
-      return results[op] ?? false;
-    }
-  }
+/** The wording of a condition for a question type (dates say "is before", numbers "is less than"). */
+export function opLabel(type: QuestionType, op: LogicOp): string {
+  return QUESTION_TYPE_DEFS[type].opLabels?.[op] ?? OP_LABELS[op];
 }
 
 /** Index of the question after `questions[index]` given `answers`, or null for the end of the form. */

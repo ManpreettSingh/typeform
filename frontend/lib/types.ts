@@ -18,6 +18,13 @@ export const QUESTION_TYPES = [
   "number",
   "yes_no",
   "rating",
+  "website",
+  "phone_number",
+  "date",
+  "legal",
+  "checkbox",
+  "opinion_scale",
+  "nps",
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -36,6 +43,21 @@ export type NumberProperties = { min?: number; max?: number };
 export type RatingShape = "star" | "heart" | "number";
 export type RatingProperties = { max: number; shape: RatingShape };
 export type EmptyProperties = Record<string, never>;
+export type WebsiteProperties = EmptyProperties;
+/** `default_country` is an ISO 3166 alpha-2 code used to read numbers typed without a "+" country code. */
+export type PhoneProperties = { default_country: string };
+export type DateFormat = "MMDDYYYY" | "DDMMYYYY" | "YYYYMMDD";
+export type DateSeparator = "/" | "-" | ".";
+/** Limits are ISO dates (YYYY-MM-DD); absent when not set. */
+export type DateProperties = { format: DateFormat; separator: DateSeparator; start_date?: string; end_date?: string };
+
+/** Captions under the left end, middle and right end of a scale; any may be empty. */
+export type ScaleLabels = { left: string; center: string; right: string };
+/** A scale of `steps` boxes starting at 1 (or at 0 when `start_at_one` is off). */
+export type OpinionScaleProperties = { steps: number; start_at_one: boolean; labels: ScaleLabels };
+export type NpsProperties = { labels: ScaleLabels };
+/** The text beside the box; the question title stays above it. */
+export type CheckboxProperties = { label: string };
 
 export type QuestionPropertiesMap = {
   short_text: TextProperties;
@@ -46,9 +68,18 @@ export type QuestionPropertiesMap = {
   number: NumberProperties;
   yes_no: EmptyProperties;
   rating: RatingProperties;
+  website: WebsiteProperties;
+  phone_number: PhoneProperties;
+  date: DateProperties;
+  legal: EmptyProperties;
+  checkbox: CheckboxProperties;
+  opinion_scale: OpinionScaleProperties;
+  nps: NpsProperties;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
+export const OPINION_SCALE_STEPS = { min: 5, max: 11 } as const;
+export const SCALE_LABEL_MAX = 80;
 
 // ---- Branching (schemas/logic.py) ---------------------------------------
 
@@ -125,6 +156,18 @@ export type AnswerValueMap = {
   multiple_choice: string | string[];
   /** option id */
   dropdown: string;
+  website: string;
+  /** E.164, e.g. "+12015550123" */
+  phone_number: string;
+  /** "YYYY-MM-DD" */
+  date: string;
+  /** true = accepted */
+  legal: boolean;
+  /** true = ticked; an untouched box has no answer */
+  checkbox: boolean;
+  opinion_scale: number;
+  /** 0..10 */
+  nps: number;
 };
 export type AnswerValue = AnswerValueMap[QuestionType];
 /** Answers keyed by question id. */
@@ -247,7 +290,7 @@ type QuestionSummaryBase = {
 };
 
 export type ChoiceSummary = QuestionSummaryBase & {
-  type: "multiple_choice" | "dropdown" | "yes_no";
+  type: "multiple_choice" | "dropdown" | "yes_no" | "legal" | "checkbox";
   /** In option order. Multi-select counts can sum to more than `answered`. */
   counts: OptionCount[];
 };
@@ -258,6 +301,27 @@ export type RatingSummary = QuestionSummaryBase & {
   /** "1".."max" → count. */
   distribution: Record<string, number>;
 };
+export type ScaleSummary = QuestionSummaryBase & {
+  type: "opinion_scale";
+  /** First and last step of the scale as it is configured now. */
+  min: number;
+  max: number;
+  average: number | null;
+  /** "min".."max" → count. */
+  distribution: Record<string, number>;
+};
+export type NpsGroup = { count: number; /** 0–100, one decimal */ percent: number };
+export type NpsSummary = QuestionSummaryBase & {
+  type: "nps";
+  average: number | null;
+  /** "0".."10" → count. */
+  distribution: Record<string, number>;
+  promoters: NpsGroup;
+  passives: NpsGroup;
+  detractors: NpsGroup;
+  /** % promoters − % detractors as a whole number (−100…100); null without answers. */
+  score: number | null;
+};
 export type NumberSummary = QuestionSummaryBase & {
   type: "number";
   min: number | null;
@@ -266,11 +330,11 @@ export type NumberSummary = QuestionSummaryBase & {
 };
 export type TextAnswer = { value: string; submitted_at: ISODateTime };
 export type TextSummary = QuestionSummaryBase & {
-  type: "short_text" | "long_text" | "email";
+  type: "short_text" | "long_text" | "email" | "website" | "phone_number" | "date";
   /** Every answer, most recent first. */
   answers: TextAnswer[];
 };
-export type QuestionSummary = ChoiceSummary | RatingSummary | NumberSummary | TextSummary;
+export type QuestionSummary = ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary;
 
 export type FormSummary = {
   /** Every response, partial included. */

@@ -11,6 +11,7 @@ from app.models.base import UTCDateTime, check_in, utcnow
 from app.models.enums import FormStatus
 
 if TYPE_CHECKING:
+    from app.models.ending import Ending
     from app.models.question import Question
     from app.models.response import Response
 
@@ -27,6 +28,8 @@ class Form(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default=FormStatus.DRAFT)
     theme: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     thank_you: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    # Welcome screen options: button_text, show_time_to_complete, show_submission_count.
+    welcome: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict, server_default="{}")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=utcnow, onupdate=utcnow)
     published_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
@@ -37,6 +40,12 @@ class Form(Base):
     questions: Mapped[list[Question]] = relationship(
         back_populates="form",
         order_by="Question.position",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    endings: Mapped[list[Ending]] = relationship(
+        back_populates="form",
+        order_by="Ending.position",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )

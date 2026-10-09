@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.errors import BadGatewayError, ServiceUnavailableError
 from app.models import Form, QuestionType
+from app.question_types import SPECS
 from app.schemas.form import FormCreate
 from app.schemas.properties import new_option_id
 from app.schemas.question import QuestionCreate
@@ -26,10 +27,12 @@ logger = logging.getLogger(__name__)
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 MAX_QUESTIONS = 15
 DEFAULT_TITLE = FormCreate().title
+# Only types that take an answer: the registry decides, so a new type reaches the AI by being registered.
+ANSWERABLE_TYPES = [t.value for t, spec in SPECS.items() if spec.answerable]
 
 INSTRUCTIONS = f"""You design online forms for Typeform. Turn the creator's request into a short, friendly form.
 Rules:
-- Use only these question types: {", ".join(t.value for t in QuestionType)}.
+- Use only these question types: {", ".join(ANSWERABLE_TYPES)}.
 - Ask one thing per question, in the order a person would naturally answer. 3 to 10 questions unless asked otherwise.
 - Titles are conversational and end with "?" when they are questions. Keep them under 120 characters.
 - multiple_choice and dropdown need 2 to 8 options; set allow_multiple when several can apply.
@@ -50,7 +53,7 @@ RESPONSE_SCHEMA = {
             "items": {
                 "type": "OBJECT",
                 "properties": {
-                    "type": {"type": "STRING", "enum": [t.value for t in QuestionType]},
+                    "type": {"type": "STRING", "enum": ANSWERABLE_TYPES},
                     "title": {"type": "STRING"},
                     "description": {"type": "STRING"},
                     "required": {"type": "BOOLEAN"},

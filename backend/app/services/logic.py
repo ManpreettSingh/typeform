@@ -7,32 +7,16 @@ skipped. That keeps every path finite (no cycles) even after the creator reorder
 from collections.abc import Sequence
 from typing import Any
 
-from app.models import Question, QuestionType
+from app.models import Question
+from app.question_types import get_spec
 
 
-def _number(value: Any) -> float | None:
-    return value if isinstance(value, int | float) and not isinstance(value, bool) else None
-
-
-def rule_matches(qtype: str, rule: dict[str, Any], value: Any) -> bool:
+def rule_matches(qtype: str, rule: dict[str, Any], value: Any, props: dict[str, Any] | None = None) -> bool:
     """Whether `rule` applies to the validated answer `value`. Unanswered questions (None) match no rule."""
     if value is None or value == "" or value == []:
         return False
-    op, expected = rule["op"], rule["value"]
-
-    if qtype in (QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN):
-        picked = value if isinstance(value, list) else [value]
-        return (expected in picked) == (op == "is")
-    if qtype == QuestionType.YES_NO:
-        return value is expected
-    if qtype in (QuestionType.NUMBER, QuestionType.RATING):
-        a, b = _number(value), _number(expected)
-        if a is None or b is None:
-            return False
-        return {"eq": a == b, "neq": a != b, "lt": a < b, "lte": a <= b, "gt": a > b, "gte": a >= b}.get(op, False)
-
-    a, b = str(value).strip().casefold(), str(expected).strip().casefold()
-    return {"is": a == b, "is_not": a != b, "contains": b in a}.get(op, False)
+    spec = get_spec(qtype)
+    return bool(spec.logic_match and spec.logic_match(rule["op"], rule["value"], value, props or {}))
 
 
 def next_index(questions: Sequence[Question], index: int, answers: dict[int, Any]) -> int | None:
@@ -45,7 +29,7 @@ def next_index(questions: Sequence[Question], index: int, answers: dict[int, Any
     if rules:
         positions = {q.id: i for i, q in enumerate(questions)}
         for rule in rules:
-            if not rule_matches(question.type, rule, answers.get(question.id)):
+            if not rule_matches(question.type, rule, answers.get(question.id), question.properties):
                 continue
             if rule["to"] == "end":
                 return None

@@ -7,7 +7,8 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Form, Question, QuestionType, Response
+from app.models import Form, Question, Response
+from app.question_types import get_spec
 
 # Spreadsheet apps run cells starting with these as formulas (CSV injection).
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
@@ -15,18 +16,7 @@ _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
 def format_answer(question: Question, value: Any) -> str:
     """Display text for a stored answer; mirrors frontend/lib/answerFormat.ts."""
-    qtype = QuestionType(question.type)
-    if qtype == QuestionType.YES_NO:
-        return "Yes" if value else "No"
-    if qtype in (QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN):
-        labels = {o["id"]: o["label"] or "(untitled choice)" for o in question.properties["options"]}
-        ids = value if isinstance(value, list) else [value]
-        return "; ".join(labels.get(i, "(removed choice)") for i in ids)
-    if qtype == QuestionType.RATING:
-        return f"{value}/{question.properties['max']}"
-    if isinstance(value, float) and value.is_integer():
-        return str(int(value))
-    return str(value)
+    return get_spec(question.type).format(value, question.properties)
 
 
 def _safe_cell(text: str) -> str:

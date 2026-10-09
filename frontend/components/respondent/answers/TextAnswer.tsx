@@ -1,29 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import type { AnswerProps } from "../types";
-
-const FIELD =
-  // Thin underline that thickens on focus (box-shadow, so the text doesn't shift), like Typeform.
-  "w-full border-b border-resp-accent/30 bg-transparent pb-2 text-2xl font-light text-resp-accent " +
-  "placeholder:text-resp-accent/40 focus:border-resp-accent focus:shadow-[0_1px_0_var(--resp-accent)] focus:outline-none " +
-  "sm:text-3xl";
-
-function useAutofocus<T extends HTMLElement>(live: boolean) {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    if (live) ref.current?.focus({ preventScroll: true });
-  }, [live]);
-  return ref;
-}
-
-function submitOnEnter(onSubmit: () => void) {
-  return (e: KeyboardEvent) => {
-    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
-    e.preventDefault(); // handled here; the flow's global Enter listener skips prevented events
-    onSubmit();
-  };
-}
+import { FIELD, submitOnEnter, useAutofocus } from "./shared";
 
 export function ShortTextAnswer({ question, value, onChange, onSubmit, live, labelledBy }: AnswerProps<"short_text">) {
   const ref = useAutofocus<HTMLInputElement>(live);
