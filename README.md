@@ -4,6 +4,8 @@
 
 A functional clone of [Typeform](https://www.typeform.com): build a form, publish it, share a public link, collect answers one question at a time, and review the results. Built for the SDE Fullstack assignment with **Next.js + TypeScript**, **FastAPI** and **SQLite**.
 
+**Live demo:** https://typeform-mu-seven.vercel.app (frontend on Vercel) · API: https://typeform-production-3059.up.railway.app/api (Railway, OpenAPI docs at [`/docs`](https://typeform-production-3059.up.railway.app/docs)). No login: a default creator is assumed.
+
 | Dashboard | Builder (with logic jumps) |
 |---|---|
 | ![Dashboard](docs/screenshots/01-dashboard.png) | ![Builder](docs/screenshots/02-builder-logic.png) |
@@ -67,11 +69,14 @@ Responses are generated from a fixed random seed, so every machine gets the same
 
 ### Checks
 ```bash
-npm run test:backend     # pytest: 347 tests on a temporary database
+npm run test:backend     # pytest: 501 tests on a temporary database
+npm --prefix frontend test   # node:test: 127 tests (validation, logic, media layouts, caches…)
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build:frontend   # next build
 ```
+
+End-to-end browser checks run on an isolated stack (ports 3100/8100, throwaway database) so they never touch your data: `npm run e2e:start -- --seed`, then `node docs/superpowers/browser-checks/assignment-smoke.mjs` (the assignment checklist through the UI, 28 checks; needs `playwright-core` and Microsoft Edge), then `npm run e2e:stop`.
 
 ---
 
@@ -80,9 +85,10 @@ npm run build:frontend   # next build
 ### Must-haves
 - **Form management:** card dashboard with status, response count and last update. Search and sort. Create, rename, duplicate, delete with confirm. Publish / unpublish, a share modal and copy link. Everything is persisted.
 - **Builder:**
-  - Inline form title.
-  - The 8 question types: short text, long text, multiple choice (single or multi), dropdown, email, number (min/max), yes/no, rating (3–10; stars, hearts or numbers).
-  - Per-question title, description and *required* toggle, plus type-specific settings.
+  - Inline form title, welcome screen and endings edited on the canvas.
+  - The 8 required question types: short text, long text, multiple choice (single or multi), dropdown, email, number (min/max), yes/no, rating (3–10; stars, hearts, numbers…). Also: picture choice, website, phone, date, legal, checkbox, opinion scale, NPS, statement, contact info, address, ranking, matrix and question groups.
+  - Per-question title, description and *required* toggle, plus type-specific settings. The answer type can be changed later (after a confirmation).
+  - Images on questions, the welcome screen and endings, laid out like Typeform (stack, float/split left or right, wallpaper; separate mobile layout; focal point, brightness, alt text).
   - Drag-and-drop reordering, with keyboard and screen-reader support.
   - A live canvas preview built from the real respondent components, and a full-screen preview.
   - Autosave with a *Saving… / Saved* indicator. Failed saves roll back with a toast.
@@ -103,9 +109,10 @@ npm run build:frontend   # next build
 - **Custom themes:** background, text and button colors plus font, applied to the builder preview and the public form.
 - **Dark mode:** a Light / Dark / System switch for the dashboard, builder and results. Forms keep their own theme.
 - **CSV export** of all responses: readable values, opens correctly in Excel, protected against formula injection.
+- **Extras:** a template gallery (18 templates, "Use template" makes a real draft), a Share page (link, QR code, embed code), workspaces, multiple endings, and Typeform AI (Gemini) to draft a form or edit it by chat.
 
 ### Placeholders (“Coming soon”, disabled)
-Integrations and Collaborate under Settings. Payment and File upload in the *Add question* menu.
+Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs. Payment and File upload in the *Add content* menu (file upload is the one bonus not built).
 
 ---
 
@@ -125,15 +132,19 @@ Integrations and Collaborate under Settings. Payment and File upload in the *Add
 backend/app/
   main.py          app factory, CORS, routers, error handlers
   core/            settings, DB session (SQLite FK pragma), {detail} error format
-  models/          SQLAlchemy models: Form, Question, Response, Answer
-  schemas/         Pydantic request/response models; per-type question properties; logic rules
-  routers/         forms · questions · public · responses (thin: parse → service → schema)
-  services/        business logic: forms, questions (renumbering), validation, logic (branching),
-                   submissions (incl. partial), responses, stats, export (CSV)
+  core/migrations  ordered, idempotent schema migrations run at startup (existing SQLite files upgrade in place)
+  models/          SQLAlchemy models: Workspace, Form, Question, Ending, Response, Answer, ThemeGallery, AiMemory
+  schemas/         Pydantic request/response models; per-type question properties; media; logic rules
+  routers/         forms · questions · endings · public · responses · templates · themes · workspaces · media · ai
+                   (thin: parse → service → schema)
+  services/        business logic: forms, questions (renumbering under a write lock), endings, validation,
+                   logic (branching), submissions (incl. partial), responses, stats, export (CSV), templates, AI
+  templates/       the template gallery, one JSON file per template
   seed.py
 frontend/
-  app/             routes: /forms (dashboard) · /forms/[id]/edit · /forms/[id]/results · /f/[slug] (public)
-  components/      ui/ (primitives) · dashboard/ · builder/ · respondent/ · results/
+  app/             routes: /forms (dashboard) · /forms/[id]/edit · /forms/[id]/share · /forms/[id]/results ·
+                   /templates · /f/[slug] (public)
+  components/      ui/ (primitives) · dashboard/ · builder/ · respondent/ · results/ · share/ · templates/ · ai/
   lib/             api client, types (mirror the API), validation + logic (mirror the server), queries
   store/           builder store + per-key debounced autosave queue
 ```
@@ -165,19 +176,31 @@ More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ```mermaid
 erDiagram
+    workspaces ||--o{ forms : contains
     forms ||--o{ questions : "has (ordered by position)"
+    forms ||--o{ endings : "has (ordered by position)"
     forms ||--o{ responses : receives
+    questions ||--o{ questions : "groups (group_id)"
     responses ||--o{ answers : contains
     questions ||--o{ answers : "answered by"
 
+    workspaces {
+        int id PK
+        text name
+        datetime created_at
+        datetime updated_at
+    }
     forms {
         int id PK
+        int workspace_id FK "set null"
         text slug UK "public link id"
         text title
         text description "welcome screen (optional)"
-        text status "draft | published"
+        text status "draft | published (CHECK)"
         json theme "colors + font"
-        json thank_you "title, message, button"
+        json thank_you "legacy single ending"
+        json welcome "button text, image, layout"
+        int views "public page views"
         datetime created_at
         datetime updated_at
         datetime published_at
@@ -185,13 +208,26 @@ erDiagram
     questions {
         int id PK
         int form_id FK "cascade"
-        text type "14 types (CHECK)"
+        int group_id FK "parent group question (nullable)"
+        text type "22 types"
         text title
         text description
         bool required
         int position "0-based; UNIQUE(form_id, position)"
-        json properties "per-type config"
+        json properties "per-type config + image/layout"
         json logic "branching rules (nullable)"
+    }
+    endings {
+        int id PK
+        int form_id FK "cascade"
+        int position "UNIQUE(form_id, position)"
+        text title
+        text message
+        text button_text
+        text button_url
+        json attachment "image (nullable)"
+        json layout "desktop layout"
+        json viewport_overrides "mobile layout"
     }
     responses {
         int id PK
@@ -209,9 +245,11 @@ erDiagram
     }
 ```
 
-- CHECK constraints on `type` and `status`. `UNIQUE(response_id, question_id)` on answers.
-- Indexes on `questions(form_id, position)`, `responses(form_id, status)`, `answers(question_id)` and `forms(slug)`.
-- Deleting a form cascades to its questions, responses and answers. Deleting a question deletes its answers and removes jumps that point to it.
+- Two small standalone tables: `themes` (the theme gallery: name + theme JSON) and `ai_memory` (notes Typeform AI keeps between chats).
+- CHECK constraints on form and response `status` and on question `position`. `UNIQUE(response_id, question_id)` on answers.
+- Indexes on `questions(form_id, position)`, `endings(form_id, position)`, `responses(form_id, status)`, `answers(question_id)` and `forms(slug)`.
+- Deleting a form cascades to its questions, endings, responses and answers. Deleting a question deletes its answers and removes jumps that point to it.
+- Schema changes ship as ordered, idempotent steps in `backend/app/core/migrations.py`, run at startup, so an existing `app.db` upgrades in place.
 - Value formats, `properties` per type and the logic format are in [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md).
 
 ## API summary
@@ -219,10 +257,15 @@ Base path `/api`. Errors are always `{"detail": "message"}`. Validation errors (
 
 | Area | Endpoints |
 |---|---|
-| Forms | `GET /forms` · `POST /forms` · `GET/PATCH/DELETE /forms/{id}` · `POST /forms/{id}/duplicate` · `POST /forms/{id}/publish` · `POST /forms/{id}/unpublish` |
+| Forms | `GET /forms?workspace_id` · `POST /forms` · `GET/PATCH/DELETE /forms/{id}` · `POST /forms/{id}/duplicate` · `POST /forms/{id}/publish` · `POST /forms/{id}/unpublish` |
 | Questions | `POST /forms/{id}/questions` · `PATCH/DELETE /questions/{qid}` · `PUT /forms/{id}/questions/order` |
-| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
-| Results | `GET /forms/{id}/responses?page&page_size&status` · `GET/DELETE /forms/{id}/responses/{rid}` · `GET /forms/{id}/summary` · `GET /forms/{id}/responses/export.csv` |
+| Endings | `GET/POST /forms/{id}/endings` · `PATCH/DELETE /endings/{eid}` · `PUT /forms/{id}/endings/order` |
+| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/views` · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
+| Results | `GET /forms/{id}/responses?page&page_size&status` · `GET/DELETE /forms/{id}/responses/{rid}` · `POST /forms/{id}/responses/test` · `GET /forms/{id}/summary` · `GET /forms/{id}/responses/export.csv` |
+| Templates | `GET /templates?role&goal&type&q` · `GET /templates/{slug}` · `POST /forms/from-template/{slug}` |
+| Workspace & design | `GET/POST /workspaces` · `PATCH/DELETE /workspaces/{wid}` · `GET /themes` · `POST /media/sign` (signed image upload) |
+| Typeform AI | `POST /ai/forms` · `POST /ai/forms/{id}/questions` · `POST /ai/chat` · `POST /ai/apply` · `GET/PUT /ai/memory` |
+| Health | `GET /health` |
 
 Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the live OpenAPI docs at `/docs`.
 
@@ -230,7 +273,7 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 - **No auth.** Everything belongs to a single default creator. Builder and results URLs use the numeric form id. Only the public form is meant to be shared.
 - **Deletes cascade.** Deleting a form removes its questions, responses and answers. Deleting a question removes its answers, and the builder asks first when the form has responses.
 - **Response counts and stats cover completed responses only.** Partial responses appear in the totals, the completion rate and the table.
-- **A question's type is immutable.** To change it, delete the question and add a new one.
+- **Changing a question's answer type keeps the question but not answers of the old type.** The builder asks for confirmation first.
 - **Empty optional answers aren't stored.** Text is trimmed.
 - **Answers to questions that a jump skipped are dropped.**
 - **Branching is forward-only.** If a reorder makes a rule point backwards, the rule is skipped at fill time and the builder flags it.
@@ -239,15 +282,14 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 - **The last question never auto-submits.** Neither does any question whose answer can end the form. Submitting always takes OK or Enter.
 
 ## Known limitations
-- No field for the form description (the welcome screen) in the builder. It can be set through the API, and the seeded forms have one.
 - The builder is desktop-first. Below 1024 px its three columns become one pane at a time (Pages / Canvas / Settings), and the section tabs (Workflow, Share, Results…) are hidden below 768 px.
-- A question's type can't be changed after it's added (delete it and add another).
-- The redesign (Typeform look, in progress) covers the workspace and builder; the create flow with Gemini “Create with AI”, the Share page with its publish animation, results and respondent screens are next. See `docs/design/`.
-- Logic rules can't be reordered.
+- The builder canvas draws a slide at the canvas's own width; Typeform draws a fixed 16:9 slide and scales it down.
+- No file-upload question type (placeholder only), no image gallery (Unsplash, video, icons) or image editor; images are uploaded files.
+- Logic rules can't be reordered. A richer logic model (v2: conditions on several answers, variables, scoring) is designed but deferred (`docs/superpowers/DEFERRED.md`).
+- Template cards have no preview yet.
 - Abandoned partial responses are kept. Reloading mid-form starts a new partial response.
 - The same browser can submit a form more than once.
 - The responses table has no status filter in the UI (the API supports `?status=`). The drawer's newer/older buttons stay within the current page.
-- No migrations (Alembic). After a schema change, delete `backend/app.db` and re-seed.
 
 ## Project docs
 Specs, design notes and the phase-by-phase build log are in [`docs/`](docs/README.md). [`docs/PROGRESS.md`](docs/PROGRESS.md) records decisions, verification runs and known issues.
