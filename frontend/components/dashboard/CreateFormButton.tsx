@@ -52,14 +52,19 @@ export function CreateFormButton({ size = "md", className, activeWorkspace = 1 }
         onClose={() => !createForm.isPending && setOpen(false)}
         title="Create a new form"
         footer={
-          <>
-            <Button variant="secondary" onClick={() => setOpen(false)} disabled={createForm.isPending}>
-              Cancel
+          <div className="flex w-full items-center justify-between">
+            <Button variant="secondary" onClick={() => router.push("/templates")}>
+              Use a template
             </Button>
-            <Button type="submit" form={formId} loading={createForm.isPending}>
-              Create
-            </Button>
-          </>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setOpen(false)} disabled={createForm.isPending}>
+                Cancel
+              </Button>
+              <Button type="submit" form={formId} loading={createForm.isPending}>
+                Create
+              </Button>
+            </div>
+          </div>
         }
       >
         <form id={formId} onSubmit={onSubmit}>
