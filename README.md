@@ -73,7 +73,7 @@ Responses are generated from a fixed random seed, so every machine gets the same
 ### Checks
 ```bash
 npm run test:backend     # pytest: 638 tests on a temporary database
-npm --prefix frontend test   # node:test: 177 tests (validation, logic, media layouts, caches…)
+npm --prefix frontend test   # node:test: 183 tests (validation, logic, media layouts, caches…)
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build:frontend   # next build

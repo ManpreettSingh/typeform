@@ -1,10 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { RespondentFlow } from "@/components/respondent/RespondentFlow";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { completedProfile, type SavedOnboarding } from "@/lib/onboarding";
+import { clearOnboardingPending, isOnboardingPending } from "@/lib/onboardingScript";
 import type { Answers } from "@/lib/types";
 import { OnboardingDone } from "./OnboardingDone";
 import { ONBOARDING_QUESTIONS, ONBOARDING_THEME, ONBOARDING_WELCOME, Q_GOALS, Q_NAME, Q_ROLE } from "./onboardingQuestions";
@@ -42,6 +43,14 @@ export function OnboardingExperience({
 }) {
   const reduced = useReducedMotion();
   const [profile, setProfile] = useState<SavedOnboarding | null>(null);
+  // A first-time visitor arrives with the dashboard already hidden behind the intro's colour, so the intro appears
+  // at once instead of fading in over it. Replayed from the account menu, it fades in over the dashboard as before.
+  const [arrivedHidden] = useState(isOnboardingPending);
+
+  // Opaque and in place: the dashboard may be shown behind it again.
+  useLayoutEffect(() => {
+    clearOnboardingPending();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -61,7 +70,7 @@ export function OnboardingExperience({
       role="dialog"
       aria-modal="true"
       aria-label="Welcome"
-      initial={{ opacity: 0 }}
+      initial={arrivedHidden ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: reduced ? 0 : 0.5, ease: [0.23, 1, 0.32, 1] }}
       className="fixed inset-0 z-[60] overflow-hidden bg-[#1d1722]"

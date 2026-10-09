@@ -264,6 +264,11 @@ body {
   }
 }
 
+/* A first-time visitor is heading for the full-screen intro (lib/onboardingScript.ts marks <html> before first paint):
+   hold the dashboard back and show the intro's own colour, so nothing flashes before it takes over. */
+html[data-onboarding="unseen"] [data-workspace-shell] { background: #1d1722; }
+html[data-onboarding="unseen"] [data-workspace-shell] > :not([role="dialog"]) { visibility: hidden; }
+
 /* First-visit onboarding: two soft lilac glows drifting behind the questions. Stopped for reduced motion. */
 @keyframes onboarding-drift-a {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
