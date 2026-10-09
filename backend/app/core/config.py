@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     # "Create with AI" (Typeform AI). Without a key the AI endpoints answer 503 with setup instructions.
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.5-flash-lite"
+    
+    cloudinary_cloud_name: str = ""
+    cloudinary_api_key: str = ""
+    cloudinary_api_secret: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

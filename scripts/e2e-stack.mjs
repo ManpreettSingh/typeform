@@ -152,7 +152,10 @@ async function start(seed) {
     NEXT_DIST_DIR: ".next-e2e",
     NEXT_TELEMETRY_DISABLED: "1",
   });
-  writeFileSync(stateFile, JSON.stringify({ api, web, db: dbFile }));
+  const fake = launch("fake", process.execPath, [join(root, "scripts", "fake-services.mjs")], root, {
+    FAKE_PORT: "8101",
+  });
+  writeFileSync(stateFile, JSON.stringify({ api, web, fake, db: dbFile }));
 
   try {
     await waitFor(`${API}/api/health`, "API", 60_000);
@@ -171,7 +174,7 @@ function stop() {
     console.log("The test stack isn't running.");
     return;
   }
-  for (const pid of [state.web, state.api]) if (pid) killTree(pid);
+  for (const pid of [state.web, state.api, state.fake]) if (pid) killTree(pid);
   rmSync(stateFile, { force: true });
   console.log("Test stack stopped.");
 }
@@ -183,7 +186,7 @@ function status() {
     return;
   }
   const mark = (pid) => (alive(pid) ? `running (pid ${pid})` : "not running");
-  console.log(`web  ${WEB}  ${mark(state.web)}\napi  ${API}/api  ${mark(state.api)}\ndb   ${state.db}`);
+  console.log(`web  ${WEB}  ${mark(state.web)}\napi  ${API}/api  ${mark(state.api)}\nfake 8101  ${mark(state.fake)}\ndb   ${state.db}`);
 }
 
 const [command, ...flags] = process.argv.slice(2);

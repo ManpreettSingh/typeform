@@ -6,4 +6,6 @@ from app.models.form import Form
 from app.models.question import Question
 from app.models.response import Response
 
-__all__ = ["Answer", "Ending", "Form", "FormStatus", "Question", "QuestionType", "Response", "ResponseStatus"]
+from app.models.theme import ThemeGallery
+
+__all__ = ["Answer", "Ending", "Form", "FormStatus", "Question", "QuestionType", "Response", "ResponseStatus", "ThemeGallery"]

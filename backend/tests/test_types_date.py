@@ -70,7 +70,7 @@ def test_messages_show_dates_in_the_questions_own_format() -> None:
 
 
 def test_properties_reject_bad_formats_dates_and_reversed_limits() -> None:
-    assert DateProperties().model_dump() == {"format": "MMDDYYYY", "separator": "/", "start_date": None, "end_date": None}
+    assert DateProperties().model_dump(exclude_none=True) == {"format": "MMDDYYYY", "separator": "/"}
     for bad in (
         {"format": "MM-DD"},
         {"separator": "|"},

@@ -13,6 +13,7 @@ export const QUESTION_TYPES = [
   "short_text",
   "long_text",
   "multiple_choice",
+  "picture_choice",
   "dropdown",
   "email",
   "number",
@@ -36,7 +37,30 @@ export type QuestionType = (typeof QUESTION_TYPES)[number];
 
 // ---- Question properties (schemas/properties.py) ------------------------
 
-export type ChoiceOption = { id: string; label: string };
+export type MediaAttachment = {
+  type: "image";
+  public_id: string;
+  url: string;
+  alt: string;
+  focal_point?: Record<string, unknown> | null;
+  brightness?: number | null;
+  scale?: number | null;
+};
+
+export type MediaLayout = {
+  type: "stack" | "split" | "float" | "wallpaper";
+  placement: "left" | "right" | null;
+};
+
+export type MediaProperties = {
+  attachment?: MediaAttachment | null;
+  layout?: MediaLayout | null;
+  viewport_overrides?: Record<string, unknown> | null;
+};
+
+type WithMedia<T> = T & MediaProperties;
+
+export type ChoiceOption = WithMedia<{ id: string; label: string }>;
 
 export type TextProperties = { placeholder?: string; max_length?: number };
 export type MultipleChoiceProperties = {
@@ -47,6 +71,10 @@ export type MultipleChoiceProperties = {
   randomize: boolean;
   min_selections?: number;
   max_selections?: number;
+};
+export type PictureChoiceProperties = MultipleChoiceProperties & {
+  show_labels: boolean;
+  supersized: boolean;
 };
 export type DropdownProperties = { 
   options: ChoiceOption[];
@@ -85,27 +113,28 @@ export type MatrixProperties = { rows: ChoiceOption[]; columns: ChoiceOption[]; 
 export type GroupProperties = { button_text: string };
 
 export type QuestionPropertiesMap = {
-  short_text: TextProperties;
-  long_text: TextProperties;
-  multiple_choice: MultipleChoiceProperties;
-  dropdown: DropdownProperties;
-  email: EmptyProperties;
-  number: NumberProperties;
-  yes_no: EmptyProperties;
-  rating: RatingProperties;
-  website: WebsiteProperties;
-  phone_number: PhoneProperties;
-  date: DateProperties;
-  legal: EmptyProperties;
-  checkbox: CheckboxProperties;
-  opinion_scale: OpinionScaleProperties;
-  nps: NpsProperties;
-  statement: StatementProperties;
-  contact_info: ContactInfoProperties;
-  address: AddressProperties;
-  ranking: RankingProperties;
-  matrix: MatrixProperties;
-  group: GroupProperties;
+  short_text: WithMedia<TextProperties>;
+  long_text: WithMedia<TextProperties>;
+  multiple_choice: WithMedia<MultipleChoiceProperties>;
+  picture_choice: WithMedia<PictureChoiceProperties>;
+  dropdown: WithMedia<DropdownProperties>;
+  email: WithMedia<EmptyProperties>;
+  number: WithMedia<NumberProperties>;
+  yes_no: WithMedia<EmptyProperties>;
+  rating: WithMedia<RatingProperties>;
+  website: WithMedia<WebsiteProperties>;
+  phone_number: WithMedia<PhoneProperties>;
+  date: WithMedia<DateProperties>;
+  legal: WithMedia<EmptyProperties>;
+  checkbox: WithMedia<CheckboxProperties>;
+  opinion_scale: WithMedia<OpinionScaleProperties>;
+  nps: WithMedia<NpsProperties>;
+  statement: WithMedia<StatementProperties>;
+  contact_info: WithMedia<ContactInfoProperties>;
+  address: WithMedia<AddressProperties>;
+  ranking: WithMedia<RankingProperties>;
+  matrix: WithMedia<MatrixProperties>;
+  group: WithMedia<GroupProperties>;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
@@ -125,7 +154,7 @@ export type Logic = { rules: LogicRule[] };
 
 // ---- Questions ---------------------------------------------------------
 
-export type Ending = {
+export type Ending = MediaProperties & {
   id: number;
   form_id: number;
   position: number;
@@ -135,7 +164,7 @@ export type Ending = {
   button_url: string | null;
 };
 
-export type Welcome = {
+export type Welcome = MediaProperties & {
   button_text: string;
   show_time_to_complete: boolean;
   show_submission_count: boolean;
@@ -206,6 +235,7 @@ export type AnswerValueMap = {
   yes_no: boolean;
   /** option id, or option ids when allow_multiple */
   multiple_choice: string | string[];
+  picture_choice: string | string[];
   /** option id */
   dropdown: string;
   website: string;
@@ -234,10 +264,12 @@ export type Answers = Record<number, AnswerValue | undefined>;
 // ---- Forms -------------------------------------------------------------
 
 export type Theme = {
+  question: string;
+  answer: string;
+  button: string;
   background: string;
-  text_color: string;
-  button_color: string;
   font: string;
+  background_image: string | null;
 };
 
 export type ThankYou = {

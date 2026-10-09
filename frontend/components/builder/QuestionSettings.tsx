@@ -11,6 +11,7 @@ import { LogicSettings } from "./logic/LogicSettings";
 import { PanelCard, PanelDivider, SwitchRow } from "./panel/PanelCard";
 import { QuestionTypeChip } from "./QuestionTypeChip";
 import { AnswerTypeSelect } from "./settings/AnswerTypeSelect";
+import { MediaSettings } from "./settings/MediaSettings";
 
 /**
  * Right panel for the selected question, laid out like Typeform's: a Question card, an Answer card (type,
@@ -56,6 +57,18 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
             Video
           </span>
         </div>
+      </PanelCard>
+
+      <PanelCard title="Image or video">
+        <MediaSettings
+          attachment={question.properties.attachment}
+          layout={question.properties.layout}
+          onChange={(patch) =>
+            updateQuestion(question.id, {
+              properties: { ...question.properties, ...patch },
+            })
+          }
+        />
       </PanelCard>
 
       <PanelCard title="Answer">

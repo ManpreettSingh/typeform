@@ -185,7 +185,7 @@ erDiagram
     questions {
         int id PK
         int form_id FK "cascade"
-        text type "13 types (CHECK)"
+        text type "14 types (CHECK)"
         text title
         text description
         bool required

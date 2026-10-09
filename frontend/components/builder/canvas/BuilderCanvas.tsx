@@ -10,6 +10,7 @@ import type { AnswerValue, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { CanvasCheckbox } from "./CanvasCheckbox";
 import { CanvasChoices } from "./CanvasChoices";
+import { CanvasPictureChoices } from "./CanvasPictureChoices";
 import { InlineText } from "./InlineText";
 
 // Mirrors backend limits (schemas/question.py, schemas/form.py).
@@ -125,6 +126,8 @@ function CanvasQuestion({
       answerSlot={
         question.type === "multiple_choice" ? (
           <CanvasChoices question={question} />
+        ) : question.type === "picture_choice" ? (
+          <CanvasPictureChoices question={question} />
         ) : question.type === "checkbox" ? (
           <CanvasCheckbox question={question} />
         ) : undefined

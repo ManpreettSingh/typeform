@@ -11,7 +11,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from app.models.enums import QuestionType
 
 
-class _Props(BaseModel):
+from app.schemas.media import MediaAttachment, MediaLayout, MediaPropertiesMixin
+
+class _Props(MediaPropertiesMixin):
     model_config = ConfigDict(extra="forbid")
 
 
@@ -52,6 +54,11 @@ class MultipleChoiceProperties(_Props):
             if ma is not None and ma > num_opts:
                 raise ValueError("max_selections cannot exceed number of options")
         return self
+
+
+class PictureChoiceProperties(MultipleChoiceProperties):
+    show_labels: bool = True
+    supersized: bool = False
 
 
 class DropdownProperties(_Props):

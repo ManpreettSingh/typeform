@@ -10,6 +10,7 @@ class QuestionType(StrEnum):
     SHORT_TEXT = "short_text"
     LONG_TEXT = "long_text"
     MULTIPLE_CHOICE = "multiple_choice"
+    PICTURE_CHOICE = "picture_choice"
     DROPDOWN = "dropdown"
     EMAIL = "email"
     NUMBER = "number"

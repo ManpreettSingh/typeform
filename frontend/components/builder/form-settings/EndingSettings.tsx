@@ -1,5 +1,6 @@
 import { useBuilderStore } from "@/store/builderStore";
 import { Input, Textarea } from "@/components/ui";
+import { MediaSettings } from "../settings/MediaSettings";
 
 export function EndingSettings() {
   const form = useBuilderStore((s) => s.form);
@@ -49,6 +50,14 @@ export function EndingSettings() {
           value={ending.button_url || ""}
           onChange={(e) => updateEnding(ending.id, { button_url: e.target.value || null })}
           placeholder="https://"
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-medium text-text-subtle">Image or video</label>
+        <MediaSettings
+          attachment={ending.attachment}
+          layout={ending.layout}
+          onChange={(patch) => updateEnding(ending.id, patch)}
         />
       </div>
     </div>

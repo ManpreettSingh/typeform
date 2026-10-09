@@ -1,6 +1,7 @@
 // The builder-side half of the question-type registry: the type-specific rows of the Answer card in the right panel.
 import type { ComponentType } from "react";
 import { ChoiceSettings } from "@/components/builder/settings/ChoiceSettings";
+import { PictureChoiceSettings } from "@/components/builder/settings/PictureChoiceSettings";
 import { DateSettings } from "@/components/builder/settings/DateSettings";
 import { NpsSettings } from "@/components/builder/settings/NpsSettings";
 import { NumberSettings } from "@/components/builder/settings/NumberSettings";
@@ -22,6 +23,7 @@ export const SETTINGS_COMPONENTS = {
   email: null,
   number: NumberSettings,
   multiple_choice: ChoiceSettings,
+  picture_choice: PictureChoiceSettings,
   dropdown: ChoiceSettings,
   yes_no: null,
   rating: RatingSettings,

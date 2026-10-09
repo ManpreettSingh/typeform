@@ -3,14 +3,16 @@ from pydantic import ConfigDict, Field
 from app.schemas.common import PatchModel, StrictModel
 
 
-class EndingCreate(StrictModel):
+from app.schemas.media import MediaPropertiesMixin
+
+class EndingCreate(StrictModel, MediaPropertiesMixin):
     title: str = Field(default="Thanks for completing this form", max_length=200)
     message: str = Field(default="Your response has been recorded.", max_length=1000)
     button_text: str | None = Field(default=None, max_length=50)
     button_url: str | None = Field(default=None, max_length=2000, pattern=r"^https?://")
 
 
-class EndingUpdate(PatchModel):
+class EndingUpdate(PatchModel, MediaPropertiesMixin):
     NON_NULLABLE = ("title", "message")
 
     title: str | None = Field(default=None, max_length=200)

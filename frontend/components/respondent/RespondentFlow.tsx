@@ -6,13 +6,14 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, type ReactNode, type RefObject } from "react";
 import { toast } from "sonner";
 import { ApiError, getErrorMessage } from "@/lib/api";
-import type { Answers, PublicQuestion, ThankYou, Ending } from "@/lib/types";
+import type { Answers, PublicQuestion, ThankYou, Ending, MediaAttachment, MediaLayout } from "@/lib/types";
 import { canEndAfter, nextIndex, visitedPath } from "@/lib/logic";
 import { isEmptyAnswer, validateAnswer } from "@/lib/validation";
 import { flowReducer, initialFlowState } from "./flowState";
 import { QuestionRenderer } from "./QuestionRenderer";
 import { ThankYouScreen } from "./ThankYouScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { MediaCanvas } from "./MediaCanvas";
 
 type Props = {
   questions: PublicQuestion[];
@@ -25,6 +26,8 @@ type Props = {
     show_time_to_complete?: boolean;
     show_submission_count?: boolean;
     submission_count?: number | null;
+    attachment?: MediaAttachment | null;
+    layout?: MediaLayout | null;
   } | null;
   endings?: Ending[];
   /**
@@ -187,10 +190,18 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
 
   const slideKey = step === "question" ? current.id : step;
   let content: ReactNode;
+  let attachment = null;
+  let layout = null;
+
   if (step === "welcome" && welcome) {
     content = <WelcomeScreen {...welcome} onStart={goNext} />;
+    attachment = welcome.attachment;
+    layout = welcome.layout;
   } else if (step === "done") {
-    content = <ThankYouScreen thankYou={endings?.[0] || thankYou} />;
+    const endScreen = endings?.[0] || thankYou;
+    content = <ThankYouScreen thankYou={endScreen} />;
+    attachment = "attachment" in endScreen ? (endScreen as Ending).attachment : null;
+    layout = "attachment" in endScreen ? (endScreen as Ending).layout : null;
   } else {
     content = (
       <QuestionRenderer
@@ -207,7 +218,11 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
         submitting={state.submitting}
       />
     );
+    attachment = current.properties?.attachment;
+    layout = current.properties?.layout;
   }
+
+  content = <MediaCanvas attachment={attachment} layout={layout}>{content}</MediaCanvas>;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -286,7 +301,7 @@ function Slide({
       initial="enter"
       animate="center"
       exit="exit"
-      className="flex flex-1 items-center justify-center overflow-y-auto px-6 pt-16 pb-20 outline-none sm:px-10"
+      className="flex flex-1 outline-none overflow-y-auto"
     >
       {children}
     </motion.div>

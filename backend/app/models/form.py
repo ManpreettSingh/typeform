@@ -15,6 +15,10 @@ if TYPE_CHECKING:
     from app.models.question import Question
     from app.models.response import Response
 
+def _get_default_theme() -> dict[str, Any]:
+    from app.schemas.form import Theme
+    return Theme().model_dump()
+
 
 class Form(Base):
     __tablename__ = "forms"
@@ -26,7 +30,7 @@ class Form(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False, default="New form")
     description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default=FormStatus.DRAFT)
-    theme: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    theme: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=lambda: _get_default_theme())
     thank_you: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     # Welcome screen options: button_text, show_time_to_complete, show_submission_count.
     welcome: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict, server_default="{}")

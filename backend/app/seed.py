@@ -158,7 +158,7 @@ EVENT: dict[str, Any] = {
     "slug": "demo-event",
     "title": "Event Registration — Frontend Summit",
     "description": "Two days of talks and workshops in Lisbon, 14–15 November. Grab your spot below.",
-    "theme": {"background": "#0F2D25", "text_color": "#F3F1EA", "button_color": "#E8B04B", "font": "Georgia"},
+    "theme": {"background": "#0F2D25", "question": "#F3F1EA", "answer": "#F3F1EA", "button": "#E8B04B", "font": "Georgia", "background_image": None},
     "thank_you": {
         "title": "You're on the list 🎉",
         "message": "We've saved your spot. Your ticket and venue details are on their way.",
@@ -305,20 +305,78 @@ def _seed_responses(db: Session, form: Form, spec: dict[str, Any]) -> int:
     return config["count"]
 
 
-def seed() -> tuple[int, int]:
-    """Returns (forms created, responses created)."""
+def _seed_themes(db: Session) -> int:
+    from app.models.theme import ThemeGallery
+    from app.schemas.form import Theme
+    if db.scalar(select(func.count(ThemeGallery.id))) >= 30:
+        return 0
+    
+    themes_data = [
+        ("Default (Light)", "#2A222B", "#2A222B", "#2A222B", "#FAFAFA", "Inter"),
+        ("Midnight", "#FFFFFF", "#FFFFFF", "#4D3DF7", "#1E1E1E", "System"),
+        ("Sunset", "#4A154B", "#4A154B", "#E01E5A", "#FCECD4", "Georgia"),
+        ("Ocean", "#004D40", "#004D40", "#009688", "#E0F2F1", "Inter"),
+        ("Forest", "#1B5E20", "#1B5E20", "#4CAF50", "#E8F5E9", "Courier"),
+        ("Rose", "#880E4F", "#880E4F", "#E91E63", "#FCE4EC", "System"),
+        ("Lavender", "#4A148C", "#4A148C", "#9C27B0", "#F3E5F5", "Inter"),
+        ("Coffee", "#3E2723", "#3E2723", "#795548", "#EFEBE9", "Georgia"),
+        ("Sky", "#01579B", "#01579B", "#03A9F4", "#E1F5FE", "Inter"),
+        ("Mustard", "#F57F17", "#F57F17", "#FFB300", "#FFFDE7", "System"),
+        ("Slate", "#263238", "#263238", "#607D8B", "#ECEFF1", "Courier"),
+        ("Mint", "#004D40", "#004D40", "#26A69A", "#E0F2F1", "Inter"),
+        ("Peach", "#BF360C", "#BF360C", "#FF5722", "#FBE9E7", "Georgia"),
+        ("Plum", "#4A148C", "#4A148C", "#AB47BC", "#F3E5F5", "Inter"),
+        ("Coral", "#E65100", "#E65100", "#FF7043", "#FFF3E0", "System"),
+        ("Teal", "#006064", "#006064", "#00BCD4", "#E0F7FA", "Inter"),
+        ("Olive", "#33691E", "#33691E", "#8BC34A", "#F1F8E9", "Courier"),
+        ("Berry", "#880E4F", "#880E4F", "#D81B60", "#FCE4EC", "System"),
+        ("Azure", "#0D47A1", "#0D47A1", "#1976D2", "#E3F2FD", "Inter"),
+        ("Brick", "#B71C1C", "#B71C1C", "#F44336", "#FFEBEE", "Georgia"),
+        ("Sand", "#3E2723", "#3E2723", "#8D6E63", "#EFEBE9", "System"),
+        ("Sage", "#1B5E20", "#1B5E20", "#81C784", "#E8F5E9", "Inter"),
+        ("Lilac", "#4A148C", "#4A148C", "#BA68C8", "#F3E5F5", "Courier"),
+        ("Bronze", "#E65100", "#E65100", "#FF9800", "#FFF3E0", "Georgia"),
+        ("Moss", "#33691E", "#33691E", "#AED581", "#F1F8E9", "Inter"),
+        ("Ruby", "#B71C1C", "#B71C1C", "#E53935", "#FFEBEE", "System"),
+        ("Charcoal", "#212121", "#212121", "#424242", "#FAFAFA", "Inter"),
+        ("Navy", "#1A237E", "#1A237E", "#3F51B5", "#E8EAF6", "Georgia"),
+        ("Cyan", "#006064", "#006064", "#00ACC1", "#E0F7FA", "Courier"),
+        ("Gold", "#F57F17", "#F57F17", "#FBC02D", "#FFFDE7", "System")
+    ]
+    
+    count = 0
+    for name, q, a, b, bg, font in themes_data:
+        theme_obj = ThemeGallery(
+            name=name,
+            theme=Theme(
+                question=q,
+                answer=a,
+                button=b,
+                background=bg,
+                font=font
+            ).model_dump()
+        )
+        db.add(theme_obj)
+        count += 1
+    return count
+
+def seed() -> tuple[int, int, int]:
+    """Returns (forms created, responses created, themes created)."""
     Base.metadata.create_all(engine)
-    forms = responses = 0
+    from app.core.migrations import apply_migrations
+    apply_migrations(engine)
+    forms = responses = themes = 0
     with SessionLocal() as db:
+        themes += _seed_themes(db)
         for spec in SEED_FORMS:
             form = _seed_form(db, spec)
             forms += form is not None
             form = form or db.scalar(select(Form).where(Form.slug == spec["slug"]))
             responses += _seed_responses(db, form, spec)
         db.commit()
-    return forms, responses
+    return forms, responses, themes
 
 
 if __name__ == "__main__":
-    forms, responses = seed()
-    print(f"Seeded {forms} new form(s) and {responses} response(s).")
+    forms, responses, themes = seed()
+    print(f"Seeded {forms} new form(s), {responses} response(s), and {themes} theme(s).")

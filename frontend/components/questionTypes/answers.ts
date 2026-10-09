@@ -2,7 +2,7 @@
 // Kept apart from the builder's settings map so the public form never bundles builder code.
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
-import { MultipleChoiceAnswer, YesNoAnswer } from "@/components/respondent/answers/ChoiceAnswer";
+import { MultipleChoiceAnswer, YesNoAnswer, PictureChoiceAnswer } from "@/components/respondent/answers/ChoiceAnswer";
 import { CheckboxAnswer } from "@/components/respondent/answers/CheckboxAnswer";
 import { DateAnswer } from "@/components/respondent/answers/DateAnswer";
 import { DropdownAnswer } from "@/components/respondent/answers/DropdownAnswer";
@@ -30,6 +30,7 @@ export const ANSWER_COMPONENTS = {
   email: EmailAnswer,
   number: NumberAnswer,
   multiple_choice: MultipleChoiceAnswer,
+  picture_choice: PictureChoiceAnswer,
   dropdown: DropdownAnswer,
   yes_no: YesNoAnswer,
   rating: RatingAnswer,

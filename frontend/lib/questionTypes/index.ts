@@ -158,7 +158,7 @@ function parsePhone(value: unknown, defaultCountry?: string) {
 }
 
 type TextQuestion = PublicQuestionOf<"short_text"> | PublicQuestionOf<"long_text">;
-type ChoiceQuestion = PublicQuestionOf<"multiple_choice"> | PublicQuestionOf<"dropdown">;
+type ChoiceQuestion = PublicQuestionOf<"multiple_choice"> | PublicQuestionOf<"picture_choice"> | PublicQuestionOf<"dropdown">;
 
 function validateText(question: TextQuestion, value: AnswerValue): string | null {
   const max = question.properties.max_length;
@@ -189,7 +189,7 @@ function validateYesNo(_question: PublicQuestionOf<"yes_no">, value: AnswerValue
   return typeof value === "boolean" ? null : "Please choose Yes or No";
 }
 
-function validateMultipleChoice(question: PublicQuestionOf<"multiple_choice">, value: AnswerValue): string | null {
+function validateMultipleChoice(question: PublicQuestionOf<"multiple_choice"> | PublicQuestionOf<"picture_choice">, value: AnswerValue): string | null {
   const ids = new Set(question.properties.options.map((o) => o.id));
   const picked = Array.isArray(value) ? value : [value];
   if (!question.properties.allow_multiple && picked.length > 1) return "Please choose one option";
@@ -353,6 +353,18 @@ export const QUESTION_TYPE_DEFS: { [T in QuestionType]: QuestionTypeDef<T> } = {
   multiple_choice: {
     label: "Multiple Choice",
     icon: ListChecks,
+    chip: "bg-qt-choice text-qt-fg",
+    group: "choice",
+    answerable: true,
+    ops: CHOICE_OPS,
+    validate: validateMultipleChoice,
+    format: formatChoice,
+    ruleMatches: matchChoice,
+    toSubmission: trimmed,
+  },
+  picture_choice: {
+    label: "Picture Choice",
+    icon: Grid3X3,
     chip: "bg-qt-choice text-qt-fg",
     group: "choice",
     answerable: true,

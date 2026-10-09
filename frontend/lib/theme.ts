@@ -3,10 +3,12 @@ import type { Theme } from "@/lib/types";
 
 // Mirrors the backend default theme (schemas/form.py) so the UI can offer "Reset to default".
 export const DEFAULT_THEME: Theme = {
+  question: "#2A222B",
+  answer: "#2A222B",
+  button: "#2A222B",
   background: "#FAFAFA",
-  text_color: "#2A222B",
-  button_color: "#2A222B",
   font: "Inter",
+  background_image: null,
 };
 
 /** Fonts a creator can pick. Only Inter is downloaded; the rest are system stacks. */
@@ -35,16 +37,22 @@ function luminance(hex: string): number {
 /** CSS variables that re-skin everything under components/respondent for one form. */
 export function themeStyle(theme: Theme): CSSProperties {
   const safe = (color: string, fallback: string) => (HEX_COLOR.test(color) ? color : fallback);
-  const button = safe(theme.button_color, DEFAULT_THEME.button_color);
-  return {
+  const button = safe(theme.button, DEFAULT_THEME.button);
+  const styles = {
     "--resp-bg": safe(theme.background, DEFAULT_THEME.background),
-    "--resp-text": safe(theme.text_color, DEFAULT_THEME.text_color),
+    "--resp-text": safe(theme.question, DEFAULT_THEME.question),
+    "--resp-answer": safe(theme.answer, DEFAULT_THEME.answer),
     "--resp-accent": button,
-    // Keep button labels readable on light button colors. --ink/--paper don't change with the app's dark mode:
-    // a form looks the same whatever theme the creator's UI is in.
     "--resp-accent-fg": luminance(button) > 0.5 ? "var(--ink)" : "var(--paper)",
     "--resp-font": fontStack(theme.font),
-    // Native controls (scrollbars, the dropdown's list) follow the form's background, not the app theme.
     colorScheme: luminance(safe(theme.background, DEFAULT_THEME.background)) > 0.4 ? "light" : "dark",
   } as CSSProperties;
+  
+  if (theme.background_image) {
+    styles.backgroundImage = `url(${theme.background_image})`;
+    styles.backgroundSize = "cover";
+    styles.backgroundPosition = "center";
+  }
+
+  return styles;
 }

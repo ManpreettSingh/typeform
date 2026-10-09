@@ -14,6 +14,7 @@ TEXT_OPS = {"is", "is_not", "contains"}
 # The branching conditions each type offers. A new type adds its row here, so its ops are pinned by a test.
 EXPECTED_OPS = {
     "multiple_choice": {"is", "is_not"},
+    "picture_choice": {"is", "is_not"},
     "dropdown": {"is", "is_not"},
     "yes_no": {"is"},
     "number": NUMBER_OPS,

@@ -1,5 +1,6 @@
 import { useBuilderStore } from "@/store/builderStore";
 import { Toggle, Input } from "@/components/ui";
+import { MediaSettings } from "../settings/MediaSettings";
 
 export function WelcomeSettings() {
   const form = useBuilderStore((s) => s.form);
@@ -42,6 +43,14 @@ export function WelcomeSettings() {
         <Toggle
           checked={form.welcome.show_submission_count || false}
           onChange={(c: boolean) => updateForm({ welcome: { ...form.welcome!, show_submission_count: c } })}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-medium text-text-subtle">Image or video</label>
+        <MediaSettings
+          attachment={form.welcome.attachment}
+          layout={form.welcome.layout}
+          onChange={(patch) => updateForm({ welcome: { ...form.welcome!, ...patch } })}
         />
       </div>
     </div>

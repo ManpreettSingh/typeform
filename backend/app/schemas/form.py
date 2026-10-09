@@ -11,10 +11,12 @@ FORM_DESCRIPTION_MAX = 2000
 
 class Theme(StrictModel):
     # Typeform's current default: monochrome (light canvas, ink text and buttons).
+    question: HexColor = "#2A222B"
+    answer: HexColor = "#2A222B"
+    button: HexColor = "#2A222B"
     background: HexColor = "#FAFAFA"
-    text_color: HexColor = "#2A222B"
-    button_color: HexColor = "#2A222B"
     font: str = Field(default="Inter", min_length=1, max_length=64)
+    background_image: str | None = None
 
 
 class ThankYou(StrictModel):
@@ -29,7 +31,9 @@ class FormCreate(StrictModel):
     title: Title = "New form"
 
 
-class Welcome(StrictModel):
+from app.schemas.media import MediaPropertiesMixin
+
+class Welcome(StrictModel, MediaPropertiesMixin):
     button_text: str = Field(default="Start", max_length=24)
     show_time_to_complete: bool = False
     show_submission_count: bool = False

@@ -13,6 +13,7 @@ from app.schemas.properties import (
     DropdownProperties,
     EmptyProperties,
     MultipleChoiceProperties,
+    PictureChoiceProperties,
     new_option_id,
 )
 from app.schemas.response import ChoiceSummary, OptionCount
@@ -181,7 +182,7 @@ def _two_default_options() -> list[ChoiceOption]:
 
 
 def _convert_choice(old_type: QuestionType, old_props: Properties) -> dict:
-    if old_type in (QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN):
+    if old_type in (QuestionType.MULTIPLE_CHOICE, QuestionType.PICTURE_CHOICE, QuestionType.DROPDOWN):
         return {"options": old_props.get("options", _two_default_options())}
     return {"options": _two_default_options()}
 
@@ -191,6 +192,20 @@ SPECS = [
         properties_model=MultipleChoiceProperties,
         answerable=True,
         defaults=lambda: MultipleChoiceProperties(options=_two_default_options()).model_dump(exclude_none=True),
+        validate=_validate_multiple_choice,
+        format=_format_choice,
+        summarize=_summarize_choice,
+        sample=_sample_multiple_choice,
+        logic_ops=_CHOICE_OPS,
+        logic_match=_match_choice,
+        logic_value_error=_choice_rule_error,
+        convert=_convert_choice,
+    ),
+    QuestionTypeSpec(
+        key=QuestionType.PICTURE_CHOICE,
+        properties_model=PictureChoiceProperties,
+        answerable=True,
+        defaults=lambda: PictureChoiceProperties(options=_two_default_options()).model_dump(exclude_none=True),
         validate=_validate_multiple_choice,
         format=_format_choice,
         summarize=_summarize_choice,

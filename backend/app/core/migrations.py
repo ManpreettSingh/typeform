@@ -135,12 +135,25 @@ def create_endings_from_thank_you(engine: Engine) -> None:
             )
 
 
+_THEMES_TABLE = """
+CREATE TABLE IF NOT EXISTS themes (
+    id INTEGER NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    theme JSON NOT NULL,
+    PRIMARY KEY (id)
+)"""
+
+def create_themes_table(engine: Engine) -> None:
+    with engine.begin() as conn:
+        conn.exec_driver_sql(_THEMES_TABLE)
+
 MIGRATIONS: list[tuple[str, Step]] = [
     ("add_forms_views", add_forms_views),
     ("drop_question_type_check", drop_question_type_check),
     ("add_questions_group_id", add_questions_group_id),
     ("add_forms_welcome", add_forms_welcome),
     ("create_endings_from_thank_you", create_endings_from_thank_you),
+    ("create_themes_table", create_themes_table),
 ]
 
 
