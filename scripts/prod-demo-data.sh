@@ -7,7 +7,11 @@
 # form already exists. To remove old test forms, see the DELETE commands in the answer / README ("Demo data").
 set -euo pipefail
 
-API="${API:-http://localhost:8000/api}"
+# No default on purpose: a bare run must never write into whatever happens to be on localhost:8000 (your own data).
+if [[ -z "${API:-}" ]]; then
+  echo "Set API first, e.g.:  API=https://typeform-production-3059.up.railway.app/api bash scripts/prod-demo-data.sh" >&2
+  exit 1
+fi
 TITLE="Product Launch Feedback"
 
 # call METHOD PATH [JSON] -> sets BODY; stops on any non-2xx.
