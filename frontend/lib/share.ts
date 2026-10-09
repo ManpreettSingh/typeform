@@ -4,7 +4,8 @@ export function publicFormPath(slug: string): string {
 }
 
 export function publicFormUrl(slug: string): string {
-  return `${window.location.origin}${publicFormPath(slug)}`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}${publicFormPath(slug)}`;
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {

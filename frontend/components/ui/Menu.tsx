@@ -11,6 +11,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -52,15 +53,30 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
   // Next's <Activity> keeps hidden routes mounted; don't come back to an open menu.
   useLayoutEffect(() => () => setOpen(false), []);
 
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
   useEffect(() => {
     if (!open) return;
+    if (rootRef.current) setRect(rootRef.current.getBoundingClientRect());
+    
     const onPointerDown = (e: PointerEvent) => {
+      // Allow clicking inside the portal
+      const portalEl = document.getElementById(menuId);
+      if (portalEl?.contains(e.target as Node)) return;
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
+    const onScroll = () => setOpen(false);
+    
     document.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("scroll", onScroll, { capture: true });
+    
     itemRefs.current.find((el) => el && !el.disabled)?.focus();
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+    
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("scroll", onScroll, { capture: true });
+    };
+  }, [open, menuId]);
 
   function close({ restoreFocus }: { restoreFocus: boolean }) {
     setOpen(false);
@@ -92,6 +108,62 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
     }
   }
 
+  const menuContent = (
+    <AnimatePresence>
+      {open && rect && (
+        <motion.div
+          id={menuId}
+          role="menu"
+          className={clsx(
+            "fixed z-50 mt-1 min-w-48 rounded-field border border-border-strong bg-bg p-1 shadow-popover",
+            align === "end" ? "origin-top-right" : "origin-top-left",
+          )}
+          style={{
+            top: rect.bottom + 4,
+            left: align === "start" ? rect.left : undefined,
+            right: align === "end" ? window.innerWidth - rect.right : undefined,
+            maxHeight: window.innerHeight - rect.bottom - 16,
+            overflowY: "auto"
+          }}
+          initial={{ opacity: 0, transform: "scale(0.95)" }}
+          animate={{ opacity: 1, transform: "scale(1)", transition: { duration: 0.18, ease: EASE_OUT } }}
+          exit={{ opacity: 0, transform: "scale(0.95)", transition: { duration: 0.135, ease: EASE_OUT } }}
+        >
+          {items.map((item, i) => (
+            <div key={item.label}>
+              {item.separatorBefore && <div role="separator" className="my-1 border-t border-border" />}
+              <button
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
+                type="button"
+                role="menuitem"
+                disabled={item.disabled}
+                onClick={() => {
+                  close({ restoreFocus: true });
+                  item.onSelect();
+                }}
+                className={clsx(
+                  "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
+                  "rounded-input hover:bg-bg-hover focus:bg-bg-hover focus:outline-none",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                  item.danger ? "text-danger" : "text-text",
+                )}
+              >
+                {item.icon}
+                <span className="flex flex-1 flex-col">
+                  {item.label}
+                  {item.description && <span className="text-xs text-text-muted">{item.description}</span>}
+                </span>
+                {item.hint}
+              </button>
+            </div>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <div ref={rootRef} className={clsx("relative inline-block", className)} onKeyDown={onKeyDown}>
       {trigger({
@@ -100,54 +172,7 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
         "aria-expanded": open,
         "aria-controls": menuId,
       })}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id={menuId}
-            role="menu"
-            className={clsx(
-              "absolute z-40 mt-1 min-w-48 rounded-field border border-border-strong bg-bg p-1 shadow-popover",
-              align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left",
-            )}
-            // Grows from its trigger corner: 180ms in, ~75% of that out (motion review, round 4).
-            initial={{ opacity: 0, transform: "scale(0.95)" }}
-            animate={{ opacity: 1, transform: "scale(1)", transition: { duration: 0.18, ease: EASE_OUT } }}
-            exit={{ opacity: 0, transform: "scale(0.95)", transition: { duration: 0.135, ease: EASE_OUT } }}
-          >
-            {items.map((item, i) => (
-              <div key={item.label}>
-                {item.separatorBefore && <div role="separator" className="my-1 border-t border-border" />}
-                <button
-                  ref={(el) => {
-                    itemRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="menuitem"
-                  disabled={item.disabled}
-                  onClick={() => {
-                    // Restore focus first so a dialog opened by onSelect returns focus to the trigger.
-                    close({ restoreFocus: true });
-                    item.onSelect();
-                  }}
-                  className={clsx(
-                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
-                    "rounded-input hover:bg-bg-hover focus:bg-bg-hover focus:outline-none",
-                    "disabled:cursor-not-allowed disabled:opacity-50",
-                    item.danger ? "text-danger" : "text-text",
-                  )}
-                >
-                  {item.icon}
-                  <span className="flex flex-1 flex-col">
-                    {item.label}
-                    {item.description && <span className="text-xs text-text-muted">{item.description}</span>}
-                  </span>
-                  {item.hint}
-                </button>
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" ? createPortal(menuContent, document.body) : null}
     </div>
   );
 }
