@@ -1,6 +1,6 @@
 # Handoff for the next chat (written 2026-10-09, evening)
 
-Read this first. It replaces `docs/superpowers/HANDOFF-parity-program.md`, which is stale (it still says "after Task 7").
+Read this first.
 
 ## 1. The project and the goal
 A **Typeform clone** for the owner's 24-hour assignment: it must look and behave like **admin.typeform.com on the free plan**
