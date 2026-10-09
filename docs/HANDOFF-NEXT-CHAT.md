@@ -6,7 +6,7 @@ Read this first. It replaces `docs/superpowers/HANDOFF-parity-program.md`, which
 A **Typeform clone** for the owner's 24-hour assignment: it must look and behave like **admin.typeform.com on the free plan**
 (features, UI, motion), plus one thing Typeform doesn't have in this form: a **first-visit onboarding** stored in localStorage
 (no accounts, no sign-up). Stack: Next.js 16 (`frontend/`, App Router; read `frontend/AGENTS.md`, this Next has breaking changes),
-FastAPI + SQLite (`backend/`). Deployed: web https://typeform-mu-seven.vercel.app, API
+FastAPI + SQLite (`backend/`). Deployed: web https://forms.preet.cloud, API
 https://typeform-production-3059.up.railway.app/api, repo `ManpreettSingh/typeform`, branch `main` auto-deploys both.
 
 ## 2. The owner's rules (they have said these, follow them)

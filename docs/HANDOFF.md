@@ -6,7 +6,7 @@ Updated 2026-10-09.
 Typeform clone for an SDE assignment, at `C:\Users\HP\OneDrive\Desktop\typeform`.
 - **Stack:** Next.js 16 (TypeScript) in `frontend/`, FastAPI with SQLite in `backend/`.
 - **Repo:** github.com/ManpreettSingh/typeform, branch `main`.
-- **Live:** frontend https://typeform-mu-seven.vercel.app, API https://typeform-production-3059.up.railway.app/api. Both deploy automatically from `main`.
+- **Live:** frontend https://forms.preet.cloud, API https://typeform-production-3059.up.railway.app/api. Both deploy automatically from `main`.
 - `SEED_DEMO_DATA=true` is set on Railway, so the live demo has its sample forms (`demo-feedback`, `demo-event`). Cloudinary is configured on the live API.
 
 ## Owner's rules

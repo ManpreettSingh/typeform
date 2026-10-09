@@ -4,7 +4,7 @@
 
 A functional clone of [Typeform](https://www.typeform.com): build a form, publish it, share a public link, collect answers one question at a time, and review the results. Built for the SDE Fullstack assignment with **Next.js + TypeScript**, **FastAPI** and **SQLite**.
 
-**Live demo:** https://typeform-mu-seven.vercel.app (frontend on Vercel) · API: https://typeform-production-3059.up.railway.app/api (Railway, OpenAPI docs at [`/docs`](https://typeform-production-3059.up.railway.app/docs)). No login: a default creator is assumed.
+**Live demo:** https://forms.preet.cloud (frontend on Vercel) · API: https://typeform-production-3059.up.railway.app/api (Railway, OpenAPI docs at [`/docs`](https://typeform-production-3059.up.railway.app/docs)). No login: a default creator is assumed.
 
 | Dashboard | Builder (with logic jumps) |
 |---|---|
@@ -64,7 +64,7 @@ Responses are generated from a fixed random seed, so every machine gets the same
 | File | Variable | Default |
 |---|---|---|
 | `backend/.env` | `DATABASE_URL` | `sqlite:///./app.db` (relative to `backend/`) |
-| `backend/.env` | `CORS_ORIGINS` | `http://localhost:3000` (comma-separated) |
+| `backend/.env` | `CORS_ORIGINS` | `http://localhost:3000` (comma-separated). The hosted API must list the frontend's origin too, `https://forms.preet.cloud` |
 | `backend/.env` | `SEED_DEMO_DATA` | `false`. `true` seeds the demo forms at startup when they're missing (used by the hosted demo; never duplicates) |
 | `backend/.env` | `CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET` | empty: image and file uploads go to a local fake server |
 | `backend/.env` | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | empty: a payment question builds, but paying says "Payments aren't set up yet". Use **test-mode** keys (`rzp_test_…`) from the Razorpay dashboard. The secret stays on the server |
@@ -72,8 +72,8 @@ Responses are generated from a fixed random seed, so every machine gets the same
 
 ### Checks
 ```bash
-npm run test:backend     # pytest: 525 tests on a temporary database
-npm --prefix frontend test   # node:test: 133 tests (validation, logic, media layouts, caches…)
+npm run test:backend     # pytest: 638 tests on a temporary database
+npm --prefix frontend test   # node:test: 177 tests (validation, logic, media layouts, caches…)
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build:frontend   # next build
@@ -114,6 +114,7 @@ End-to-end browser checks run on an isolated stack (ports 3100/8100, throwaway d
 - **CSV export** of all responses: readable values, opens correctly in Excel, protected against formula injection.
 - **File upload question:** drag-and-drop or choose a file (10MB limit), with upload progress; the file goes straight to Cloudinary and results link to it.
 - **Payment question (Razorpay):** the respondent types an amount (within the creator's minimum and maximum, optionally pre-filled) and pays in Razorpay Checkout; the creator picks the currency (INR, USD, EUR, GBP), business name and description. The server opens the order, then re-checks the payment with Razorpay when the response is submitted (signature, paid, same amount, made for that question, not used by another response). Results show the amount and payment id, plus the total collected.
+- **Partial Submit Point:** a block you add from *Add content* (respondents never see it). When a respondent moves past the question before it, their answers so far count as a submission, even if they never finish. They can carry on, and the final submit completes that same response (required questions after the point are still enforced then). The contact is added as soon as the point is reached.
 - **Extras:** a template gallery (18 templates, "Use template" makes a real draft), a Share page (link, QR code, embed code), workspaces, multiple endings, and Typeform AI (Gemini) to draft a form or edit it by chat.
 
 ### Placeholders (“Coming soon”, disabled)
@@ -175,8 +176,9 @@ Request flow for a respondent:
 1. `GET /api/public/forms/{slug}` loads the form.
 2. On the first move forward, `POST …/responses/start` creates a partial response.
 3. Every later move sends `PATCH /api/public/responses/{id}` with the answers so far.
-4. On the last question, the same `PATCH` with `complete: true` makes the server validate the respondent's path and mark the response completed.
-5. The thank-you screen shows.
+4. Passing the question before a Partial Submit Point (if the form has one) sends that `PATCH` with `partial_submit: true`, which marks the response completed with the answers so far while keeping it open.
+5. On the last question, the same `PATCH` with `complete: true` makes the server validate the respondent's path and mark the response completed.
+6. The thank-you screen shows.
 
 More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -217,7 +219,7 @@ erDiagram
         int id PK
         int form_id FK "cascade"
         int group_id FK "parent group question (nullable)"
-        text type "22 types"
+        text type "25 types"
         text title
         text description
         bool required
@@ -280,7 +282,7 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 ## Assumptions
 - **No auth.** Everything belongs to a single default creator. Builder and results URLs use the numeric form id. Only the public form is meant to be shared.
 - **Deletes cascade.** Deleting a form removes its questions, responses and answers. Deleting a question removes its answers, and the builder asks first when the form has responses.
-- **Response counts and stats cover completed responses only.** Partial responses appear in the totals, the completion rate and the table.
+- **Response counts and stats cover completed responses only.** Partial responses appear in the totals, the completion rate and the table. A response that reached a Partial Submit Point counts as completed.
 - **Changing a question's answer type keeps the question but not answers of the old type.** The builder asks for confirmation first.
 - **Empty optional answers aren't stored.** Text is trimmed.
 - **Answers to questions that a jump skipped are dropped.**
