@@ -89,6 +89,9 @@ class PartialUpdateIn(StrictModel):
     answers: dict[str, Any]
     # true = final submission: full validation, response becomes completed.
     complete: bool = False
+    # true = the respondent reached the form's Partial Submit Point: the response counts as submitted with the answers
+    # so far, and stays open for the rest. Ignored when the form has no such point.
+    partial_submit: bool = False
 
 
 class PartialUpdateOut(BaseModel):

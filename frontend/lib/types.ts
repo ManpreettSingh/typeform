@@ -34,6 +34,7 @@ export const QUESTION_TYPES = [
   "group",
   "file_upload",
   "payment",
+  "partial_submit",
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -168,6 +169,7 @@ export type QuestionPropertiesMap = {
   group: WithMedia<GroupProperties>;
   file_upload: WithMedia<EmptyProperties>;
   payment: WithMedia<PaymentProperties>;
+  partial_submit: EmptyProperties;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
@@ -212,6 +214,8 @@ type QuestionFields = {
   group_id?: number | null;
   /** Branching rules; null when the question always goes to the next one. */
   logic: Logic | null;
+  /** Set client-side by `toRespondentQuestions`: a Partial Submit Point follows, so moving on counts as a submission. */
+  partial_submit_after?: boolean;
 };
 
 /** A question as respondents see it (public API). Discriminated on `type`, so `properties` narrows. */
@@ -291,6 +295,7 @@ export type AnswerValueMap = {
   group: never;
   file_upload: UploadedFile;
   payment: PaymentAnswer;
+  partial_submit: never;
 };
 /** A respondent's upload, stored where Cloudinary put it (question_types/files.py). */
 export type UploadedFile = { url: string; name: string; size: number; type?: string };
@@ -392,7 +397,7 @@ export type SubmissionOut = { id: number };
 /** Bonus partial responses: `POST …/responses/start`, then `PATCH /public/responses/{id}`. */
 export type PartialStartOut = { response_id: number; token: string };
 /** `answers` replaces what's stored; `complete` = final submission (full validation). */
-export type PartialUpdateIn = SubmissionIn & { token: string; complete?: boolean };
+export type PartialUpdateIn = SubmissionIn & { token: string; complete?: boolean; partial_submit?: boolean };
 export type PartialUpdateOut = { id: number; status: ResponseStatus };
 
 // ---- Results (creator) ------------------------------------------------

@@ -602,6 +602,18 @@ export const QUESTION_TYPE_DEFS: { [T in QuestionType]: QuestionTypeDef<T> } = {
     ruleMatches: () => false,
     toSubmission: () => undefined as never,
   },
+  partial_submit: {
+    label: "Partial Submit Point",
+    icon: CircleSlash,
+    chip: "bg-qt-screen text-qt-fg",
+    group: "structure",
+    answerable: false,
+    ops: [],
+    validate: () => null,
+    format: () => "",
+    ruleMatches: () => false,
+    toSubmission: () => undefined as never,
+  },
   file_upload: {
     label: "File Upload",
     icon: Upload,

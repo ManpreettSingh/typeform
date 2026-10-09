@@ -8,7 +8,8 @@ import { toSubmission } from "@/lib/validation";
 
 /**
  * Partial responses (bonus): the first move forward starts a response, every later one saves a snapshot of the
- * answers, and the final submit completes that same response.
+ * answers, and the final submit completes that same response. Moving past the question before a Partial Submit Point
+ * (`partialSubmit`) makes the server count the response as submitted already.
  *
  * Saving progress is best-effort and silent: if it fails, the respondent isn't bothered and the final submit
  * falls back to a plain `POST …/responses`.
@@ -27,13 +28,15 @@ export function usePartialResponse(slug: string, questions: PublicQuestion[]) {
   }, [slug]);
 
   const saveProgress = useCallback(
-    (answers: Answers) => {
+    (answers: Answers, partialSubmit = false) => {
       const body = toSubmission(questions, answers);
       const pending = ensureStarted();
       chain.current = chain.current.then(async () => {
         const response = await pending;
         if (!response) return;
-        await publicApi.saveProgress(response.response_id, { ...body, token: response.token }).catch(() => {});
+        await publicApi
+          .saveProgress(response.response_id, { ...body, token: response.token, ...(partialSubmit && { partial_submit: true }) })
+          .catch(() => {});
       });
     },
     [ensureStarted, questions],

@@ -107,7 +107,7 @@ const GROUPS: Group[] = [
     chip: "bg-qt-screen",
     items: [
       { label: "Welcome Screen", icon: AlignLeft, action: "welcome" },
-      { label: "Partial Submit Point", icon: CircleSlash }, // Soon
+      { label: "Partial Submit Point", icon: CircleSlash, type: "partial_submit" },
       { label: "Statement", icon: Quote, type: "statement" },
       { label: "Question Group", icon: Grid3X3, type: "group" },
       { label: "End Screen", icon: AlignLeft, action: "ending" },

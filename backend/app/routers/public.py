@@ -92,7 +92,8 @@ def start_response(slug: str, db: DB):
 @router.patch("/responses/{response_id}", response_model=PartialUpdateOut)
 def save_progress(response_id: int, data: PartialUpdateIn, db: DB, background: BackgroundTasks):
     response = submission_service.get_open_response(db, response_id, data.token)
-    saved = submission_service.save_progress(db, response, data.answers, data.complete)
-    if data.complete:
+    saved = submission_service.save_progress(db, response, data.answers, data.complete, data.partial_submit)
+    # A response counts as submitted when it is completed, or when it has just reached a Partial Submit Point.
+    if data.complete or (data.partial_submit and saved.status == ResponseStatus.COMPLETED):
         background.add_task(contact_service.record_submission, response.id)
     return saved

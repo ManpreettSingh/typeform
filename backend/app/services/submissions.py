@@ -5,7 +5,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
-from app.models import Answer, Form, FormStatus, Response, ResponseStatus
+from app.models import Answer, Form, FormStatus, QuestionType, Response, ResponseStatus
 from app.models.base import utcnow
 from app.services import payments
 from app.services.validation import validate_answers
@@ -66,15 +66,26 @@ def get_open_response(db: Session, response_id: int, token: str) -> Response:
         or response.form.status != FormStatus.PUBLISHED
     ):
         raise NotFoundError("Response not found")
-    if response.status == ResponseStatus.COMPLETED:
+    meta = response.meta or {}
+    # A response submitted at a Partial Submit Point stays open until the respondent finishes the form.
+    still_open = meta.get("partial_submitted") and not meta.get("final")
+    if response.status == ResponseStatus.COMPLETED and not still_open:
         raise ConflictError("This response was already submitted.")
     return response
 
 
-def save_progress(db: Session, response: Response, answers: dict[str, Any], complete: bool) -> Response:
-    """Replaces the stored answers. `complete` validates like a full submission and marks it completed."""
+def save_progress(
+    db: Session, response: Response, answers: dict[str, Any], complete: bool, partial_submit: bool = False
+) -> Response:
+    """Replaces the stored answers. `complete` validates like a full submission and marks it completed.
+
+    `partial_submit` (the respondent reached a Partial Submit Point) also marks it completed, with the answers so far
+    and the usual leniency about required questions further on; the response stays open for the rest of the form.
+    """
+    # The flag means nothing for a form without a point (it may have been removed since the page loaded).
+    reached_point = partial_submit and not complete and any(q.type == QuestionType.PARTIAL_SUBMIT for q in response.form.questions)
     cleaned = validate_answers(response.form.questions, answers, partial=not complete)
-    if complete:
+    if complete or reached_point:
         payments.verify_submission(db, response.form, cleaned, response_id=response.id)
 
     # Update rows in place: replacing the collection could insert before deleting and hit the unique key.
@@ -91,5 +102,10 @@ def save_progress(db: Session, response: Response, answers: dict[str, Any], comp
     if complete:
         response.status = ResponseStatus.COMPLETED
         response.submitted_at = utcnow()
+        response.meta = {**(response.meta or {}), "final": True}
+    elif reached_point and response.status != ResponseStatus.COMPLETED:
+        response.status = ResponseStatus.COMPLETED
+        response.submitted_at = utcnow()
+        response.meta = {**(response.meta or {}), "partial_submitted": True}
     db.commit()
     return response

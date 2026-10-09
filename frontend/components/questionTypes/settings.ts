@@ -43,4 +43,5 @@ export const SETTINGS_COMPONENTS = {
   group: GroupSettings,
   file_upload: null,
   payment: PaymentSettings,
+  partial_submit: null,
 } satisfies { [T in QuestionType]: ComponentType<{ question: QuestionOf<T> }> | null };

@@ -18,6 +18,7 @@ import { CompositeAnswer } from "@/components/respondent/answers/CompositeAnswer
 import { RankingAnswer } from "@/components/respondent/answers/RankingAnswer";
 import { MatrixAnswer } from "@/components/respondent/answers/MatrixAnswer";
 import { StatementScreen } from "@/components/respondent/StatementScreen";
+import { PartialSubmitNote } from "@/components/respondent/PartialSubmitNote";
 import { GroupHeader } from "@/components/respondent/GroupHeader";
 import type { AnswerProps } from "@/components/respondent/types";
 import type { QuestionType } from "@/lib/types";
@@ -51,4 +52,5 @@ export const ANSWER_COMPONENTS = {
   group: GroupHeader,
   file_upload: FileUploadAnswer,
   payment: PaymentAnswer,
+  partial_submit: PartialSubmitNote,
 } satisfies { [T in QuestionType]: ComponentType<AnswerProps<T>> };

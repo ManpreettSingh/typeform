@@ -94,7 +94,8 @@ def create_question(db: Session, form: Form, data: QuestionCreate) -> Question:
     question = Question(
         form_id=form.id,
         type=data.type,
-        title=data.title,
+        # A point has nothing to type a title into, so it gets a name for the page list.
+        title=data.title or ("Partial submit point" if data.type == QuestionType.PARTIAL_SUBMIT else ""),
         description=data.description,
         required=data.required if spec.answerable else False,
         properties=properties,

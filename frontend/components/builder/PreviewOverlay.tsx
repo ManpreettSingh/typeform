@@ -2,11 +2,12 @@
 
 import { clsx } from "clsx";
 import { Monitor, Smartphone, RotateCcw, X } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { RespondentFlow } from "@/components/respondent/RespondentFlow";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { Badge, Button, IconButton } from "@/components/ui";
+import { toRespondentQuestions } from "@/lib/partialSubmit";
 import { useBuilderStore } from "@/store/builderStore";
 
 const noopSubscribe = () => () => {};
@@ -14,7 +15,8 @@ const noopSubscribe = () => () => {};
 /** Full-screen, non-persisting run of the form exactly as respondents will see it. */
 export function PreviewOverlay({ onClose }: { onClose: () => void }) {
   const form = useBuilderStore((s) => s.form!);
-  const questions = useBuilderStore((s) => s.questions);
+  const builderQuestions = useBuilderStore((s) => s.questions);
+  const questions = useMemo(() => toRespondentQuestions(builderQuestions), [builderQuestions]);
   const [run, setRun] = useState(0);
   const mounted = useSyncExternalStore(
     noopSubscribe,

@@ -31,6 +31,7 @@ class QuestionType(StrEnum):
     GROUP = "group"
     FILE_UPLOAD = "file_upload"
     PAYMENT = "payment"
+    PARTIAL_SUBMIT = "partial_submit"
 
 
 class ResponseStatus(StrEnum):

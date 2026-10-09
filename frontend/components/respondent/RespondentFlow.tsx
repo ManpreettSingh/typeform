@@ -33,8 +33,11 @@ type Props = {
    * to send the respondent back to the offending question. Omit for a local, non-persisting run.
    */
   onComplete?: (answers: Answers) => Promise<void>;
-  /** Called with all answers each time the respondent moves forward to another question (partial responses). */
-  onProgress?: (answers: Answers) => void;
+  /**
+   * Called with all answers each time the respondent moves forward to another question (partial responses).
+   * `partialSubmit` is true when they just passed the question before a Partial Submit Point.
+   */
+  onProgress?: (answers: Answers, partialSubmit?: boolean) => void;
 };
 
 const EASE_OUT_CUBIC = [0.33, 1, 0.68, 1] as const;
@@ -144,7 +147,7 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
     if (error) return dispatch({ type: "reject", errors: { [question.id]: error } });
     const next = nextIndex(questions, s.index, s.answers);
     if (next === null) return void submit();
-    onProgress?.(s.answers);
+    onProgress?.(s.answers, question.partial_submit_after);
     dispatch({ type: "go", index: next });
   }, [onProgress, questions, submit]);
 

@@ -2,8 +2,10 @@
 
 import { AlertTriangle, FileQuestion, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import { Button, EmptyState } from "@/components/ui";
 import { ApiError } from "@/lib/api";
+import { toRespondentQuestions } from "@/lib/partialSubmit";
 import { usePublicForm } from "@/lib/queries/public";
 import type { PublicQuestion } from "@/lib/types";
 import { FormSlugContext } from "./FormSlugContext";
@@ -18,7 +20,9 @@ export function PublicFormView() {
   const { slug } = useParams<{ slug: string }>();
   const { data: form, error, isPending, refetch, isRefetching } = usePublicForm(slug);
 
-  const { saveProgress, complete } = usePartialResponse(slug, form?.questions ?? NO_QUESTIONS);
+  // Partial Submit Points aren't shown to respondents; they only mark where a response starts to count.
+  const questions = useMemo(() => (form ? toRespondentQuestions(form.questions) : NO_QUESTIONS), [form]);
+  const { saveProgress, complete } = usePartialResponse(slug, questions);
 
   if (isPending) return <PublicFormLoading />;
 
@@ -55,7 +59,7 @@ export function PublicFormView() {
         {/* File uploads sign against this published form. */}
         <FormSlugContext.Provider value={slug}>
           <RespondentFlow
-            questions={form.questions}
+            questions={questions}
             thankYou={form.thank_you}
             welcome={description ? { title: form.title, description, ...form.welcome, submission_count: form.submission_count } : null}
             endings={form.endings}
