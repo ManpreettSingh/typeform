@@ -65,12 +65,14 @@ Responses are generated from a fixed random seed, so every machine gets the same
 |---|---|---|
 | `backend/.env` | `DATABASE_URL` | `sqlite:///./app.db` (relative to `backend/`) |
 | `backend/.env` | `CORS_ORIGINS` | `http://localhost:3000` (comma-separated) |
+| `backend/.env` | `SEED_DEMO_DATA` | `false`. `true` seeds the demo forms at startup when they're missing (used by the hosted demo; never duplicates) |
+| `backend/.env` | `CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET` | empty: image and file uploads go to a local fake server |
 | `frontend/.env.local` | `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api` |
 
 ### Checks
 ```bash
-npm run test:backend     # pytest: 501 tests on a temporary database
-npm --prefix frontend test   # node:test: 127 tests (validation, logic, media layouts, caches…)
+npm run test:backend     # pytest: 525 tests on a temporary database
+npm --prefix frontend test   # node:test: 133 tests (validation, logic, media layouts, caches…)
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build:frontend   # next build
@@ -109,10 +111,11 @@ End-to-end browser checks run on an isolated stack (ports 3100/8100, throwaway d
 - **Custom themes:** background, text and button colors plus font, applied to the builder preview and the public form.
 - **Dark mode:** a Light / Dark / System switch for the dashboard, builder and results. Forms keep their own theme.
 - **CSV export** of all responses: readable values, opens correctly in Excel, protected against formula injection.
+- **File upload question:** drag-and-drop or choose a file (10MB limit), with upload progress; the file goes straight to Cloudinary and results link to it.
 - **Extras:** a template gallery (18 templates, "Use template" makes a real draft), a Share page (link, QR code, embed code), workspaces, multiple endings, and Typeform AI (Gemini) to draft a form or edit it by chat.
 
 ### Placeholders (“Coming soon”, disabled)
-Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs. Payment and File upload in the *Add content* menu (file upload is the one bonus not built).
+Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs. Payment in the *Add content* menu.
 
 ---
 
@@ -260,7 +263,7 @@ Base path `/api`. Errors are always `{"detail": "message"}`. Validation errors (
 | Forms | `GET /forms?workspace_id` · `POST /forms` · `GET/PATCH/DELETE /forms/{id}` · `POST /forms/{id}/duplicate` · `POST /forms/{id}/publish` · `POST /forms/{id}/unpublish` |
 | Questions | `POST /forms/{id}/questions` · `PATCH/DELETE /questions/{qid}` · `PUT /forms/{id}/questions/order` |
 | Endings | `GET/POST /forms/{id}/endings` · `PATCH/DELETE /endings/{eid}` · `PUT /forms/{id}/endings/order` |
-| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/views` · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
+| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/views` · `POST /public/forms/{slug}/uploads` (signed file upload) · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
 | Results | `GET /forms/{id}/responses?page&page_size&status` · `GET/DELETE /forms/{id}/responses/{rid}` · `POST /forms/{id}/responses/test` · `GET /forms/{id}/summary` · `GET /forms/{id}/responses/export.csv` |
 | Templates | `GET /templates?role&goal&type&q` · `GET /templates/{slug}` · `POST /forms/from-template/{slug}` |
 | Workspace & design | `GET/POST /workspaces` · `PATCH/DELETE /workspaces/{wid}` · `GET /themes` · `POST /media/sign` (signed image upload) |
@@ -284,7 +287,8 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 ## Known limitations
 - The builder is desktop-first. Below 1024 px its three columns become one pane at a time (Pages / Canvas / Settings), and the section tabs (Workflow, Share, Results…) are hidden below 768 px.
 - The builder canvas draws a slide at the canvas's own width; Typeform draws a fixed 16:9 slide and scales it down.
-- No file-upload question type (placeholder only), no image gallery (Unsplash, video, icons) or image editor; images are uploaded files.
+- No image gallery (Unsplash, video, icons) or image editor; images are uploaded files.
+- File uploads: one file per question, 10MB (checked in the browser and on the stored answer; Cloudinary receives the file directly).
 - Logic rules can't be reordered. A richer logic model (v2: conditions on several answers, variables, scoring) is designed but deferred (`docs/superpowers/DEFERRED.md`).
 - Template cards have no preview yet.
 - Abandoned partial responses are kept. Reloading mid-form starts a new partial response.

@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.5-flash-lite"
     
+    # SEED_DEMO_DATA=true: add the demo forms and responses (app/seed.py) at startup if they're missing, so a hosted
+    # demo is usable right away. Safe to leave on: seeding skips forms that already exist. Off by default.
+    seed_demo_data: bool = False
+
     cloudinary_cloud_name: str = ""
     cloudinary_api_key: str = ""
     cloudinary_api_secret: str = ""

@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -10,10 +11,18 @@ from app.core.db import Base, engine, migrate
 from app.core.errors import register_exception_handlers
 from app.routers import ai, forms, health, public, questions, responses, endings, media, templates, themes, workspaces
 
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     Base.metadata.create_all(engine)
     migrate()
+    if get_settings().seed_demo_data:
+        from app.seed import seed
+
+        forms, responses, themes = seed()
+        logger.info("Demo data: %d new form(s), %d response(s), %d theme(s).", forms, responses, themes)
     yield
 
 
