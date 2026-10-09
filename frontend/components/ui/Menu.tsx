@@ -65,7 +65,12 @@ export function Menu({ trigger, items, align = "end", className }: MenuProps) {
       if (portalEl?.contains(e.target as Node)) return;
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    const onScroll = () => setOpen(false);
+    // The menu is fixed to where its trigger was, so scrolling the page closes it. Scrolling a long menu itself
+    // must not: the capture listener also hears the menu's own scroll events.
+    const onScroll = (e: Event) => {
+      if (document.getElementById(menuId)?.contains(e.target as Node)) return;
+      setOpen(false);
+    };
     
     document.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("scroll", onScroll, { capture: true });

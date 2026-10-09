@@ -22,7 +22,8 @@ export function FormTabs({ active, formId, onViewChange }: { active: FormTab, fo
     else if (tab === "results") router.push(`/forms/${formId}/results`);
     else if (tab === "content" || tab === "workflow" || tab === "connect") {
       if (onViewChange) onViewChange(tab);
-      else router.push(`/forms/${formId}/edit`);
+      // Say which view: the builder page may come back from the background still showing another one.
+      else router.push(`/forms/${formId}/edit${tab === "content" ? "" : `?view=${tab}`}`);
     }
   }
 

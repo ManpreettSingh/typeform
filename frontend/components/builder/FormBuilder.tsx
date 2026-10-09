@@ -14,8 +14,8 @@ import {
   Smartphone,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { toast } from "sonner";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { ChatToCreateBar } from "@/components/ai/ChatToCreateBar";
@@ -36,6 +36,25 @@ import { QuestionList } from "./QuestionList";
 import { QuestionSettings } from "./QuestionSettings";
 
 type MobilePane = "pages" | "canvas" | "settings";
+
+const VIEWS: readonly BuilderView[] = ["content", "workflow", "connect"];
+
+/**
+ * Content / Workflow / Connect, kept in the URL (`?view=connect`). Next's <Activity> keeps this page alive while
+ * Results or Share is shown, so a view held in state came back stale: clicking Content there showed Connect. The URL
+ * says which tab was clicked; switching inside the builder updates it without a server round trip.
+ */
+function useBuilderView(): [BuilderView, (view: BuilderView) => void] {
+  const params = useSearchParams();
+  const pathname = usePathname();
+  const raw = params.get("view");
+  const view = VIEWS.find((v) => v === raw) ?? "content";
+  const setView = useCallback(
+    (next: BuilderView) => window.history.replaceState(null, "", next === "content" ? pathname : `${pathname}?view=${next}`),
+    [pathname],
+  );
+  return [view, setView];
+}
 
 export function FormBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -102,7 +121,7 @@ function BuilderLayout() {
   const selectedId = useBuilderStore((s) => s.selectedId);
   const hasQuestions = useBuilderStore((s) => s.questions.length > 0);
   const [confirming, setConfirming] = useState<Question | null>(null);
-  const [view, setView] = useState<BuilderView>("content");
+  const [view, setView] = useBuilderView();
   const [previewing, setPreviewing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [design, setDesign] = useState(false);
