@@ -1,8 +1,8 @@
 import { ExternalLink } from "lucide-react";
-import type { ThankYou } from "@/lib/types";
+import type { ThankYou, Ending } from "@/lib/types";
 
 /** End screen. `interactive=false` renders the button as plain text (builder previews). */
-export function ThankYouScreen({ thankYou, interactive = true }: { thankYou: ThankYou; interactive?: boolean }) {
+export function ThankYouScreen({ thankYou, interactive = true }: { thankYou: ThankYou | Pick<Ending, "title" | "message" | "button_text" | "button_url">; interactive?: boolean }) {
   const { title, message, button_text, button_url } = thankYou;
   const buttonClass =
     "inline-flex items-center gap-1.5 rounded-resp-button bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg";

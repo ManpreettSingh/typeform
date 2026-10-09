@@ -44,7 +44,7 @@ def validate_answers(
     Raises FieldValidationError keyed by question id (as a string) for every problem at once.
     Empty optional answers are dropped, not stored.
     """
-    known = {str(q.id) for q in questions}
+    known = {str(q.id) for q in questions if get_spec(q.type).answerable}
     errors = {key: UNKNOWN_QUESTION_MESSAGE for key in answers if key not in known}
     cleaned: dict[int, Any] = {}
 
@@ -52,6 +52,9 @@ def validate_answers(
     while index is not None:
         question = questions[index]
         spec = get_spec(question.type)
+        if not spec.answerable:
+            index = next_index(questions, index, cleaned)
+            continue
         key = str(question.id)
         value = answers.get(key)
         required = question.required and not partial

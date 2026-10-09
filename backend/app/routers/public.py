@@ -1,9 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.models import Response, ResponseStatus
 from app.schemas.public import (
     PartialStartOut,
     PartialUpdateIn,
@@ -21,7 +23,14 @@ DB = Annotated[Session, Depends(get_db)]
 
 @router.get("/forms/{slug}", response_model=PublicForm)
 def get_public_form(slug: str, db: DB):
-    return submission_service.get_published_form(db, slug)
+    form = submission_service.get_published_form(db, slug)
+    count = None
+    if form.welcome.get("show_submission_count"):
+        count = db.scalar(select(func.count(Response.id)).where(Response.form_id == form.id, Response.status == ResponseStatus.COMPLETED))
+    
+    # We can inject this into the form object temporarily for Pydantic to read
+    form.submission_count = count
+    return form
 
 
 @router.post("/forms/{slug}/views", status_code=status.HTTP_204_NO_CONTENT)

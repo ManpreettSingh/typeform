@@ -17,9 +17,14 @@ class PublicQuestion(BaseModel):
     title: str
     description: str | None
     required: bool
+    group_title: str | None = None
+    group_id: int | None = None
     properties: dict[str, Any]
     logic: dict[str, Any] | None
 
+
+from app.schemas.form import ThankYou, Theme, Welcome
+from app.schemas.ending import EndingOut
 
 class PublicForm(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -29,8 +34,10 @@ class PublicForm(BaseModel):
     description: str | None
     theme: Theme
     thank_you: ThankYou
-    # Ordered by position (relationship order_by).
+    welcome: Welcome
+    submission_count: int | None = None
     questions: list[PublicQuestion]
+    endings: list[EndingOut]
 
 
 class SubmissionIn(StrictModel):

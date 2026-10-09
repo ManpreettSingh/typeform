@@ -24,12 +24,13 @@ import { AddContentModal } from "./AddContentModal";
 import { BuilderTopBar, type BuilderView } from "./BuilderTopBar";
 import { BuilderCanvas, type CanvasDevice } from "./canvas/BuilderCanvas";
 import { ComingSoonSection } from "./form-settings/ComingSoonSection";
-import { ThankYouSettings } from "./form-settings/ThankYouSettings";
 import { ThemeSettings } from "./form-settings/ThemeSettings";
+import { WelcomeSettings } from "./form-settings/WelcomeSettings";
+import { EndingSettings } from "./form-settings/EndingSettings";
 import { LogicOverview } from "./logic/LogicOverview";
 import { PreviewOverlay } from "./PreviewOverlay";
 import { QuestionList } from "./QuestionList";
-import { QuestionSettings, WelcomeSettings } from "./QuestionSettings";
+import { QuestionSettings } from "./QuestionSettings";
 
 type MobilePane = "pages" | "canvas" | "settings";
 
@@ -131,7 +132,7 @@ function BuilderLayout() {
   let panel: React.ReactNode;
   if (design) panel = <ThemeSettings />;
   else if (screen === "welcome") panel = <WelcomeSettings />;
-  else if (screen === "ending") panel = <ThankYouSettings />;
+  else if (screen === "ending") panel = <EndingSettings />;
   else panel = <QuestionSettings onDelete={requestDelete} />;
 
   return (

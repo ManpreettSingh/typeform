@@ -68,7 +68,8 @@ export function PreviewOverlay({ onClose }: { onClose: () => void }) {
           questions={questions}
           thankYou={form.thank_you}
           // Same rule as the public page: a description turns the welcome screen on.
-          welcome={form.description?.trim() ? { title: form.title, description: form.description.trim() } : null}
+          welcome={form.description?.trim() ? { title: form.title, description: form.description.trim(), ...form.welcome, submission_count: form.response_count } : null}
+          endings={form.endings}
         />
       </RespondentTheme>
     </div>,

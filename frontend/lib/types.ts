@@ -25,6 +25,12 @@ export const QUESTION_TYPES = [
   "checkbox",
   "opinion_scale",
   "nps",
+  "statement",
+  "contact_info",
+  "address",
+  "ranking",
+  "matrix",
+  "group",
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -37,10 +43,21 @@ export type MultipleChoiceProperties = {
   options: ChoiceOption[];
   allow_multiple: boolean;
   allow_other: boolean;
+  none_of_the_above: boolean;
+  randomize: boolean;
+  min_selections?: number;
+  max_selections?: number;
 };
-export type DropdownProperties = { options: ChoiceOption[] };
+export type DropdownProperties = { 
+  options: ChoiceOption[];
+  alphabetical: boolean;
+  randomize: boolean;
+};
 export type NumberProperties = { min?: number; max?: number };
-export type RatingShape = "star" | "heart" | "number";
+export type RatingShape = 
+  | "star" | "heart" | "crown" | "cat" | "dog" | "droplet" | "flag" 
+  | "lightbulb" | "pencil" | "skull" | "thunderbolt" | "tick" 
+  | "trophy" | "up" | "user" | "circle" | "cloud" | "number";
 export type RatingProperties = { max: number; shape: RatingShape };
 export type EmptyProperties = Record<string, never>;
 export type WebsiteProperties = EmptyProperties;
@@ -58,6 +75,14 @@ export type OpinionScaleProperties = { steps: number; start_at_one: boolean; lab
 export type NpsProperties = { labels: ScaleLabels };
 /** The text beside the box; the question title stays above it. */
 export type CheckboxProperties = { label: string };
+export type StatementProperties = { button_text: string; hide_marks: boolean };
+export type CompositeField = { key: string; label: string; enabled: boolean; required: boolean };
+export type ContactInfoProperties = { fields: CompositeField[] };
+export type AddressProperties = { fields: CompositeField[] };
+
+export type RankingProperties = { options: ChoiceOption[]; randomize: boolean };
+export type MatrixProperties = { rows: ChoiceOption[]; columns: ChoiceOption[]; multiple_selection: boolean };
+export type GroupProperties = { button_text: string };
 
 export type QuestionPropertiesMap = {
   short_text: TextProperties;
@@ -75,6 +100,12 @@ export type QuestionPropertiesMap = {
   checkbox: CheckboxProperties;
   opinion_scale: OpinionScaleProperties;
   nps: NpsProperties;
+  statement: StatementProperties;
+  contact_info: ContactInfoProperties;
+  address: AddressProperties;
+  ranking: RankingProperties;
+  matrix: MatrixProperties;
+  group: GroupProperties;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
@@ -94,11 +125,29 @@ export type Logic = { rules: LogicRule[] };
 
 // ---- Questions ---------------------------------------------------------
 
+export type Ending = {
+  id: number;
+  form_id: number;
+  position: number;
+  title: string;
+  message: string;
+  button_text: string | null;
+  button_url: string | null;
+};
+
+export type Welcome = {
+  button_text: string;
+  show_time_to_complete: boolean;
+  show_submission_count: boolean;
+};
+
 type QuestionFields = {
   id: number;
   title: string;
   description: string | null;
   required: boolean;
+  group_title?: string | null;
+  group_id?: number | null;
   /** Branching rules; null when the question always goes to the next one. */
   logic: Logic | null;
 };
@@ -115,6 +164,7 @@ export type Question = PublicQuestion & {
   form_id: number;
   /** 0-based, contiguous within a form. */
   position: number;
+  group_id: number | null;
 };
 
 export type QuestionOf<T extends QuestionType> = Extract<Question, { type: T }>;
@@ -132,12 +182,14 @@ export type QuestionCreate = {
 
 /** Partial update; `properties` replaces the whole object. `type` is immutable. */
 export type QuestionUpdate = {
+  type?: QuestionType;
   title?: string;
   description?: string | null;
   required?: boolean;
   properties?: QuestionPropertiesMap[QuestionType];
   /** Replaces all rules; null (or no rules) removes them. */
   logic?: Logic | null;
+  group_id?: number | null;
 };
 
 export type QuestionOrder = { ordered_ids: number[] };
@@ -168,6 +220,12 @@ export type AnswerValueMap = {
   opinion_scale: number;
   /** 0..10 */
   nps: number;
+  statement: never;
+  contact_info: Record<string, string>;
+  address: Record<string, string>;
+  ranking: string[];
+  matrix: Record<string, string | string[]>;
+  group: never;
 };
 export type AnswerValue = AnswerValueMap[QuestionType];
 /** Answers keyed by question id. */
@@ -213,8 +271,10 @@ export type Form = FormBase & {
   description: string | null;
   theme: Theme;
   thank_you: ThankYou;
+  welcome: Welcome;
   /** Ordered by position. */
   questions: Question[];
+  endings: Ending[];
 };
 
 export type FormCreate = { title?: string };
@@ -227,6 +287,7 @@ export type FormUpdate = {
   description?: string | null;
   theme?: Theme;
   thank_you?: ThankYou;
+  welcome?: Welcome;
 };
 
 // ---- Public (respondent) ----------------------------------------------
@@ -239,8 +300,11 @@ export type PublicForm = {
   description: string | null;
   theme: Theme;
   thank_you: ThankYou;
+  welcome: Welcome;
+  submission_count: number | null;
   /** Ordered by position. */
   questions: PublicQuestion[];
+  endings: Ending[];
 };
 
 /** Keys are question ids. Empty optional answers are omitted. */
@@ -334,7 +398,24 @@ export type TextSummary = QuestionSummaryBase & {
   /** Every answer, most recent first. */
   answers: TextAnswer[];
 };
-export type QuestionSummary = ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary;
+export type CompositeSummary = QuestionSummaryBase & {
+  type: "contact_info" | "address";
+  answers: TextAnswer[];
+};
+export type RankAverage = {
+  option_id: string;
+  label: string;
+  average: number;
+};
+export type RankingSummary = QuestionSummaryBase & {
+  type: "ranking";
+  ranks: Record<string, RankAverage>;
+};
+export type MatrixSummary = QuestionSummaryBase & {
+  type: "matrix";
+  rows: Record<string, ChoiceSummary>;
+};
+export type QuestionSummary = ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary;
 
 export type FormSummary = {
   /** Every response, partial included. */

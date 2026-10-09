@@ -3,11 +3,14 @@ import { QuestionTypeChip } from "@/components/builder/QuestionTypeChip";
 import { formatNumber } from "@/lib/answerFormat";
 import type {
   ChoiceSummary,
+  MatrixSummary,
   NpsSummary,
   NumberSummary,
   Question,
   QuestionSummary,
+  RankingSummary,
   RatingSummary,
+  RatingShape,
   ScaleSummary,
   TextSummary,
 } from "@/lib/types";
@@ -76,9 +79,54 @@ function SummaryBody({
       return <NpsBody summary={summary} />;
     case "number":
       return <NumberBody summary={summary} />;
+    case "ranking":
+      return <RankingBody summary={summary} />;
+    case "matrix":
+      return <MatrixBody summary={summary} />;
     default:
-      return <TextBody summary={summary} onShowResponses={onShowResponses} />;
+      return <TextBody summary={summary as TextSummary} onShowResponses={onShowResponses} />;
   }
+}
+
+function RankingBody({ summary }: { summary: RankingSummary }) {
+  const ranks = Object.values(summary.ranks || {}).sort((a, b) => a.average - b.average);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-2 text-sm">
+        <div className="font-semibold text-text-muted">Rank</div>
+        <div className="font-semibold text-text-muted">Option</div>
+        <div className="font-semibold text-text-muted text-right">Avg</div>
+        {ranks.map((r, i) => (
+          <div key={r.option_id} className="contents border-t border-border/50 py-1">
+            <div className="font-medium text-text">{i + 1}</div>
+            <div className="text-text">{r.label}</div>
+            <div className="text-right text-text-muted">{r.average.toFixed(2)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MatrixBody({ summary }: { summary: MatrixSummary }) {
+  const rows = Object.values(summary.rows || {});
+  return (
+    <div className="flex flex-col gap-8">
+      {rows.map((r) => (
+        <div key={r.question_id} className="flex flex-col gap-2">
+          <h4 className="text-sm font-medium text-text">{r.title}</h4>
+          <BarList 
+            items={r.counts.map((c) => ({
+              key: c.option_id,
+              label: c.label,
+              count: c.count
+            }))} 
+            total={r.answered} 
+          />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ChoiceBody({ summary, multiple }: { summary: ChoiceSummary; multiple: boolean }) {
@@ -97,7 +145,7 @@ function ChoiceBody({ summary, multiple }: { summary: ChoiceSummary; multiple: b
   );
 }
 
-function RatingBody({ summary, shape }: { summary: RatingSummary; shape: "star" | "heart" | "number" }) {
+function RatingBody({ summary, shape }: { summary: RatingSummary; shape: RatingShape }) {
   const Icon = shape === "heart" ? Heart : shape === "star" ? Star : null;
   // Highest first, like review summaries.
   const items = Array.from({ length: summary.max }, (_, i) => summary.max - i).map((step) => ({

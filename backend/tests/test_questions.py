@@ -92,6 +92,8 @@ def test_patch_question(client, make_form, add_question):
         "options": [{"id": "r", "label": "Red"}],
         "allow_multiple": True,
         "allow_other": False,
+        "none_of_the_above": False,
+        "randomize": False,
     }
 
     # Partial: only description changes.
@@ -107,7 +109,6 @@ def test_patch_question_validation(client, make_form, add_question):
     assert res.status_code == 422
     assert "properties.max" in res.json()["detail"]["errors"]
     assert client.patch(url, json={"title": None}).status_code == 422
-    assert client.patch(url, json={"type": "email"}).status_code == 422  # type is immutable
     assert client.patch("/api/questions/999", json={"title": "x"}).status_code == 404
 
 

@@ -133,7 +133,12 @@ def _sample_phone(_props: Properties, rng: random.Random) -> str:
     return rng.choice(_SAMPLE_PHONES)
 
 
-def _spec(key: QuestionType, model: type[BaseModel], validate, sample, format=_format) -> QuestionTypeSpec:
+def _convert_text(old_type: QuestionType, old_props: Properties) -> dict:
+    if old_type in (QuestionType.SHORT_TEXT, QuestionType.LONG_TEXT):
+        return {k: v for k, v in old_props.items() if k in ("max_length",)}
+    return {}
+
+def _spec(key: QuestionType, model: type[BaseModel], validate, sample, format=_format, convert=None) -> QuestionTypeSpec:
     return QuestionTypeSpec(
         key=key,
         properties_model=model,
@@ -146,12 +151,13 @@ def _spec(key: QuestionType, model: type[BaseModel], validate, sample, format=_f
         logic_ops=_TEXT_OPS,
         logic_match=_match,
         logic_value_error=_rule_error,
+        convert=convert,
     )
 
 
 SPECS = [
-    _spec(QuestionType.SHORT_TEXT, TextProperties, _validate_text, _sample_from(_NAMES)),
-    _spec(QuestionType.LONG_TEXT, TextProperties, _validate_text, _sample_from(_SENTENCES)),
+    _spec(QuestionType.SHORT_TEXT, TextProperties, _validate_text, _sample_from(_NAMES), convert=_convert_text),
+    _spec(QuestionType.LONG_TEXT, TextProperties, _validate_text, _sample_from(_SENTENCES), convert=_convert_text),
     _spec(QuestionType.EMAIL, EmptyProperties, _validate_email, _sample_email),
     _spec(QuestionType.WEBSITE, EmptyProperties, _validate_website, _sample_website),
     _spec(QuestionType.PHONE_NUMBER, PhoneProperties, _validate_phone, _sample_phone, _format_phone),

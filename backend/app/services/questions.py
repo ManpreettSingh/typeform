@@ -82,12 +82,14 @@ def create_question(db: Session, form: Form, data: QuestionCreate) -> Question:
         if data.properties is None
         else _validated_properties(data.type, data.properties)
     )
+    from app.question_types import get_spec
+    spec = get_spec(data.type)
     question = Question(
         form_id=form.id,
         type=data.type,
         title=data.title,
         description=data.description,
-        required=data.required,
+        required=data.required if spec.answerable else False,
         properties=properties,
     )
     db.add(question)
@@ -101,19 +103,87 @@ def create_question(db: Session, form: Form, data: QuestionCreate) -> Question:
 
 
 def update_question(db: Session, question: Question, data: QuestionUpdate) -> Question:
+    from app.question_types import get_spec
+    from app.models import Answer
+    from app.core.errors import BadRequestError
+    from sqlalchemy import delete
+    
+    old_type = QuestionType(question.type)
+    
+    # Process type change first if requested
+    if "type" in data.model_fields_set and data.type is not None and data.type != old_type:
+        new_type = data.type
+        old_spec = get_spec(old_type)
+        new_spec = get_spec(new_type)
+        
+        if not old_spec.answerable or not new_spec.answerable:
+            raise BadRequestError("Cannot change into or out of group or statement")
+            
+        # Convert properties
+        if hasattr(new_spec, "convert") and new_spec.convert is not None:
+            new_props = new_spec.convert(old_type, question.properties)
+        else:
+            new_props = default_properties(new_type)
+            
+        question.type = new_type
+        question.properties = new_props
+        
+        # Filter logic rules
+        if question.logic and "rules" in question.logic:
+            valid_rules = [
+                r for r in question.logic["rules"] 
+                if r.get("op") in new_spec.logic_ops
+            ]
+            if not valid_rules:
+                question.logic = None
+            else:
+                question.logic = {"rules": valid_rules}
+                
+        # Wipe answers
+        db.execute(delete(Answer).where(Answer.question_id == question.id))
+        
+        # Update spec to the new one for the rest of the fields
+        spec = new_spec
+    else:
+        spec = get_spec(old_type)
+    
     for field in data.model_fields_set:
+        if field == "type":
+            continue
+            
         value = getattr(data, field)
         if field == "properties":
             value = _validated_properties(QuestionType(question.type), value)
         elif field == "logic":
             value = _validated_logic(question, value)
+        elif field == "required" and not spec.answerable:
+            value = False
+        elif field == "group_id":
+            # Just set it here, then do the move afterwards if it changed
+            continue
+            
         setattr(question, field, value)
+        
+    if "group_id" in data.model_fields_set and data.group_id != question.group_id:
+        from app.services import groups
+        if data.group_id is not None:
+            group = next(q for q in question.form.questions if q.id == data.group_id)
+            groups.add_to_group(db, question, group)
+        else:
+            groups.remove_from_group(db, question)
+            
     _commit_question_change(db, question.form)
     return question
 
 
 def delete_question(db: Session, question: Question) -> None:
     """Deletes the question (its answers cascade in the DB), drops jumps to it and closes the gap in positions."""
+    from app.services import groups
+    
+    if question.type == QuestionType.GROUP:
+        groups.delete_group(db, question)
+        return
+        
     form = question.form
     remaining = [q for q in form.questions if q.id != question.id]
     for q in remaining:

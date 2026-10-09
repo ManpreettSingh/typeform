@@ -73,7 +73,18 @@ def create_form(db: Session, data: FormCreate) -> Form:
         theme=Theme().model_dump(),
         thank_you=ThankYou().model_dump(),
     )
+    from app.models.ending import Ending
+    from app.schemas.form import Welcome
+    form.welcome = Welcome().model_dump()
     db.add(form)
+    db.flush()
+    ending = Ending(
+        form_id=form.id,
+        position=0,
+        title="Thanks for completing this form",
+        message="Your response has been recorded."
+    )
+    db.add(ending)
     db.commit()
     return form
 
@@ -81,7 +92,7 @@ def create_form(db: Session, data: FormCreate) -> Form:
 def update_form(db: Session, form: Form, data: FormUpdate) -> Form:
     for field in data.model_fields_set:
         value = getattr(data, field)
-        if field in ("theme", "thank_you"):
+        if field in ("theme", "thank_you", "welcome"):
             value = value.model_dump()
         setattr(form, field, value)
     db.commit()
@@ -96,6 +107,8 @@ def delete_form(db: Session, form: Form) -> None:
 def duplicate_form(db: Session, form: Form) -> Form:
     """Copies the form and its questions (not responses) as a new draft with a fresh slug."""
     title = f"{form.title} (copy)"
+    from app.models.ending import Ending
+    
     copies = {
         q.id: Question(
             type=q.type,
@@ -107,6 +120,16 @@ def duplicate_form(db: Session, form: Form) -> Form:
         )
         for q in form.questions
     }
+    endings_copies = [
+        Ending(
+            position=e.position,
+            title=e.title,
+            message=e.message,
+            button_text=e.button_text,
+            button_url=e.button_url
+        )
+        for e in form.endings
+    ]
     clone = Form(
         slug=generate_unique_slug(db),
         title=title[:200],
@@ -114,7 +137,9 @@ def duplicate_form(db: Session, form: Form) -> Form:
         status=FormStatus.DRAFT,
         theme=copy.deepcopy(form.theme),
         thank_you=copy.deepcopy(form.thank_you),
+        welcome=copy.deepcopy(form.welcome),
         questions=list(copies.values()),
+        endings=endings_copies,
     )
     db.add(clone)
     # Jump targets are question ids: point them at the copies once those have ids.

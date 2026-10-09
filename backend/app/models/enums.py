@@ -22,6 +22,12 @@ class QuestionType(StrEnum):
     CHECKBOX = "checkbox"
     OPINION_SCALE = "opinion_scale"
     NPS = "nps"
+    STATEMENT = "statement"
+    CONTACT_INFO = "contact_info"
+    ADDRESS = "address"
+    RANKING = "ranking"
+    MATRIX = "matrix"
+    GROUP = "group"
 
 
 class ResponseStatus(StrEnum):

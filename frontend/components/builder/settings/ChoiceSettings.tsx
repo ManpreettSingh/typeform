@@ -20,24 +20,73 @@ type ChoiceQuestion = QuestionOf<"multiple_choice"> | QuestionOf<"dropdown">;
  * Dropdown: the (possibly long) option list is edited here.
  */
 export function ChoiceSettings({ question }: { question: ChoiceQuestion }) {
-  if (question.type === "multiple_choice") return <MultipleChoiceSettings question={question} />;
-  return <DropdownChoices question={question} />;
+  if (question.type === "multiple_choice") return <MultipleChoiceSettings question={question as QuestionOf<"multiple_choice">} />;
+  return <DropdownChoices question={question as QuestionOf<"dropdown">} />;
 }
 
 function MultipleChoiceSettings({ question }: { question: QuestionOf<"multiple_choice"> }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
+  const { allow_multiple, allow_other, none_of_the_above, randomize, min_selections, max_selections } = question.properties;
+
+  const update = (props: Partial<typeof question.properties>) => {
+    updateQuestion(question.id, { properties: { ...question.properties, ...props } }, 0);
+  };
+
   return (
-    <SwitchRow
-      label="Multiple selection"
-      checked={question.properties.allow_multiple}
-      onChange={(allow_multiple) => updateQuestion(question.id, { properties: { ...question.properties, allow_multiple } }, 0)}
-    />
+    <>
+      <SwitchRow
+        label="Multiple selection"
+        checked={allow_multiple}
+        onChange={(checked) => update({ allow_multiple: checked, min_selections: undefined, max_selections: undefined })}
+      />
+      {allow_multiple && (
+        <div className="flex flex-col gap-2 pl-2">
+          <label className="flex items-center gap-2 text-sm text-text">
+            <span className="w-16">Min</span>
+            <input
+              type="number"
+              min={1}
+              max={max_selections || question.properties.options.length}
+              value={min_selections || ""}
+              onChange={(e) => update({ min_selections: e.target.value ? parseInt(e.target.value) : undefined })}
+              className="h-8 w-20 rounded-field border border-border-strong bg-field px-2 text-sm focus:border-accent focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text">
+            <span className="w-16">Max</span>
+            <input
+              type="number"
+              min={min_selections || 1}
+              max={question.properties.options.length}
+              value={max_selections || ""}
+              onChange={(e) => update({ max_selections: e.target.value ? parseInt(e.target.value) : undefined })}
+              className="h-8 w-20 rounded-field border border-border-strong bg-field px-2 text-sm focus:border-accent focus:outline-none"
+            />
+          </label>
+        </div>
+      )}
+      <SwitchRow
+        label="Randomize"
+        checked={randomize || false}
+        onChange={(checked) => update({ randomize: checked })}
+      />
+      <SwitchRow
+        label='Add "Other" option'
+        checked={allow_other || false}
+        onChange={(checked) => update({ allow_other: checked })}
+      />
+      <SwitchRow
+        label='Add "None of the above"'
+        checked={none_of_the_above || false}
+        onChange={(checked) => update({ none_of_the_above: checked })}
+      />
+    </>
   );
 }
 
-function DropdownChoices({ question }: { question: ChoiceQuestion }) {
+function DropdownChoices({ question }: { question: QuestionOf<"dropdown"> }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
-  const { options } = question.properties;
+  const { options, alphabetical, randomize } = question.properties;
   const max = MAX_OPTIONS[question.type];
   const inputs = useRef(new Map<string, HTMLInputElement>());
   // Option to focus once it has rendered (after an add/remove).
@@ -120,6 +169,19 @@ function DropdownChoices({ question }: { question: ChoiceQuestion }) {
         </Button>
         <p className="text-xs text-text-muted">Press Enter to add another choice.</p>
       </fieldset>
+      
+      <div className="flex flex-col gap-4">
+        <SwitchRow
+          label="Alphabetical"
+          checked={alphabetical || false}
+          onChange={(checked) => updateQuestion(question.id, { properties: { ...question.properties, alphabetical: checked, randomize: checked ? false : randomize } }, 0)}
+        />
+        <SwitchRow
+          label="Randomize"
+          checked={randomize || false}
+          onChange={(checked) => updateQuestion(question.id, { properties: { ...question.properties, randomize: checked, alphabetical: checked ? false : alphabetical } }, 0)}
+        />
+      </div>
 
     </div>
   );

@@ -35,14 +35,41 @@ def next_index(questions: Sequence[Question], index: int, answers: dict[int, Any
                 return None
             target = positions.get(rule["to"])
             if target is not None and target > index:
+                # jump aimed at a header lands on its first child
+                if questions[target].type == "group":
+                    children = [i for i in range(target + 1, len(questions)) if questions[i].group_id == questions[target].id]
+                    if children:
+                        return children[0]
+                    # empty group: fall through to logic below
                 return target
-    return index + 1 if index + 1 < len(questions) else None
+
+    # skip header with no children
+    nxt = index + 1
+    while nxt < len(questions):
+        if questions[nxt].type == "group":
+            children = [i for i in range(nxt + 1, len(questions)) if questions[i].group_id == questions[nxt].id]
+            if not children:
+                nxt += 1
+                continue
+        return nxt
+    return None
 
 
 def visited_path(questions: Sequence[Question], answers: dict[int, Any]) -> list[int]:
     """Indices a respondent with these answers goes through, from the first question to the end."""
     path: list[int] = []
-    index = 0 if questions else None
+    
+    def _skip_empty(nxt: int) -> int | None:
+        while nxt < len(questions):
+            if questions[nxt].type == "group":
+                children = [i for i in range(nxt + 1, len(questions)) if questions[i].group_id == questions[nxt].id]
+                if not children:
+                    nxt += 1
+                    continue
+            return nxt
+        return None
+        
+    index = _skip_empty(0) if questions else None
     while index is not None:
         path.append(index)
         index = next_index(questions, index, answers)

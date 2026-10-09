@@ -180,6 +180,11 @@ def _two_default_options() -> list[ChoiceOption]:
     return [ChoiceOption(id=new_option_id(), label=f"Choice {i}") for i in (1, 2)]
 
 
+def _convert_choice(old_type: QuestionType, old_props: Properties) -> dict:
+    if old_type in (QuestionType.MULTIPLE_CHOICE, QuestionType.DROPDOWN):
+        return {"options": old_props.get("options", _two_default_options())}
+    return {"options": _two_default_options()}
+
 SPECS = [
     QuestionTypeSpec(
         key=QuestionType.MULTIPLE_CHOICE,
@@ -193,6 +198,7 @@ SPECS = [
         logic_ops=_CHOICE_OPS,
         logic_match=_match_choice,
         logic_value_error=_choice_rule_error,
+        convert=_convert_choice,
     ),
     QuestionTypeSpec(
         key=QuestionType.DROPDOWN,
@@ -206,6 +212,7 @@ SPECS = [
         logic_ops=_CHOICE_OPS,
         logic_match=_match_choice,
         logic_value_error=_choice_rule_error,
+        convert=_convert_choice,
     ),
     QuestionTypeSpec(
         key=QuestionType.YES_NO,

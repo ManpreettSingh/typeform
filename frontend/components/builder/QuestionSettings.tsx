@@ -4,12 +4,13 @@ import { Minus, MousePointerClick, Trash2, Video } from "lucide-react";
 import type { ComponentType } from "react";
 import { SETTINGS_COMPONENTS } from "@/components/questionTypes/settings";
 import { Button, EmptyState } from "@/components/ui";
-import { QUESTION_TYPE_META } from "@/lib/questionTypes";
+import { QUESTION_TYPE_META, getDef } from "@/lib/questionTypes";
 import type { Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { LogicSettings } from "./logic/LogicSettings";
 import { PanelCard, PanelDivider, SwitchRow } from "./panel/PanelCard";
 import { QuestionTypeChip } from "./QuestionTypeChip";
+import { AnswerTypeSelect } from "./settings/AnswerTypeSelect";
 
 /**
  * Right panel for the selected question, laid out like Typeform's: a Question card, an Answer card (type,
@@ -36,6 +37,7 @@ export function QuestionSettings({ onDelete }: { onDelete: (question: Question) 
 
 function Fields({ question, onDelete }: { question: Question; onDelete: (question: Question) => void }) {
   const updateQuestion = useBuilderStore((s) => s.updateQuestion);
+  const answerable = getDef(question.type).answerable;
 
   return (
     <div className="flex flex-col gap-3">
@@ -57,19 +59,25 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
       </PanelCard>
 
       <PanelCard title="Answer">
-        <div
-          title="The answer type is set when the question is added"
-          className="flex h-9 items-center gap-2.5 rounded-field border border-border-strong bg-field px-1.5 text-sm text-text"
-        >
-          <QuestionTypeChip type={question.type} />
-          {QUESTION_TYPE_META[question.type].label}
-        </div>
+        {question.type === "group" || question.type === "statement" ? (
+          <div
+            title="The answer type is set when the question is added"
+            className="flex h-9 items-center gap-2.5 rounded-field border border-border-strong bg-field px-1.5 text-sm text-text"
+          >
+            <QuestionTypeChip type={question.type} />
+            {QUESTION_TYPE_META[question.type].label}
+          </div>
+        ) : (
+          <AnswerTypeSelect question={question} />
+        )}
         <PanelDivider />
-        <SwitchRow
-          label="Required"
-          checked={question.required}
-          onChange={(required) => updateQuestion(question.id, { required }, 0)}
-        />
+        {answerable && (
+          <SwitchRow
+            label="Required"
+            checked={question.required}
+            onChange={(required) => updateQuestion(question.id, { required }, 0)}
+          />
+        )}
         <TypeSettings question={question} />
         <PanelDivider />
         <Button
@@ -83,7 +91,7 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
         </Button>
       </PanelCard>
 
-      <LogicSettings question={question} />
+      {answerable && <LogicSettings question={question} />}
     </div>
   );
 }

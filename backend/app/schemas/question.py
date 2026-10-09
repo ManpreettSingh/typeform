@@ -22,8 +22,9 @@ class QuestionCreate(StrictModel):
 
 
 class QuestionUpdate(PatchModel):
-    NON_NULLABLE = ("title", "required", "properties")
-
+    NON_NULLABLE = ("type", "title", "required", "properties")
+    
+    type: QuestionType | None = None
     title: str | None = Field(default=None, max_length=QUESTION_TITLE_MAX)
     description: str | None = Field(default=None, max_length=QUESTION_DESCRIPTION_MAX)
     required: bool | None = None
@@ -31,6 +32,7 @@ class QuestionUpdate(PatchModel):
     properties: dict[str, Any] | None = None
     # Branching rules (schemas/logic.py); replaces the whole object, null or no rules = none.
     logic: dict[str, Any] | None = None
+    group_id: int | None = None
 
 
 class QuestionOut(BaseModel):
@@ -43,6 +45,7 @@ class QuestionOut(BaseModel):
     description: str | None
     required: bool
     position: int
+    group_id: int | None
     properties: dict[str, Any]
     logic: dict[str, Any] | None
 

@@ -17,9 +17,23 @@ import {
   SlidersHorizontal,
   SquareCheck,
   Star,
+  Quote,
+  User,
+  MapPin,
+  ListOrdered,
+  Grid3X3,
+  Folder,
   type LucideIcon,
 } from "lucide-react";
 import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
+import {
+  validateRanking,
+  formatRanking,
+  rankingToSubmission,
+  validateMatrix,
+  formatMatrix,
+  matrixToSubmission,
+} from "./matrixRanking";
 import { dateKey, formatDate, validateDate } from "./dates";
 import { NPS_RANGE, isStepInRange, scaleRange } from "./scales";
 import {
@@ -249,6 +263,64 @@ function formatChoice(question: ChoiceQuestion, value: AnswerValue): string {
     .join(", ");
 }
 
+function validateComposite(
+  question: PublicQuestionOf<"contact_info" | "address">,
+  value: AnswerValue,
+  emailFields: Set<string>,
+  phoneFields: Set<string>
+): string | null {
+  if (typeof value !== "object" || value === null) return "Answer must be an object";
+  const fields = question.properties.fields;
+  const errors: Record<string, string> = {};
+  for (const f of fields) {
+    if (!f.enabled) continue;
+    const v = (value as Record<string, unknown>)[f.key];
+    const strVal = typeof v === "string" ? v.trim() : (v ? String(v).trim() : "");
+    if (!strVal) {
+      if (f.required) {
+        errors[f.key] = "Please fill this in";
+      }
+      continue;
+    }
+    if (emailFields.has(f.key) && !EMAIL.test(strVal)) {
+      errors[f.key] = "Hmm… that email doesn't look right";
+    }
+    if (phoneFields.has(f.key) && !parsePhone(strVal)?.isValid()) {
+      errors[f.key] = PHONE_ERROR;
+    }
+  }
+  if (Object.keys(errors).length > 0) return JSON.stringify(errors);
+  return null;
+}
+
+const validateContactInfo = (question: PublicQuestionOf<"contact_info">, value: AnswerValue) => validateComposite(question, value, new Set(["email"]), new Set(["phone_number"]));
+const validateAddress = (question: PublicQuestionOf<"address">, value: AnswerValue) => validateComposite(question, value, new Set(), new Set());
+
+const formatComposite = (question: PublicQuestionOf<"contact_info" | "address">, value: AnswerValue): string => {
+  if (typeof value !== "object" || value === null) return "";
+  const parts: string[] = [];
+  for (const f of question.properties.fields) {
+    if (f.enabled) {
+      const v = (value as Record<string, unknown>)[f.key];
+      if (v && String(v).trim()) parts.push(String(v).trim());
+    }
+  }
+  return parts.join(", ");
+};
+
+const compositeToSubmission = (question: PublicQuestionOf<"contact_info" | "address">, value: AnswerValue): AnswerValue => {
+  if (typeof value !== "object" || value === null) return {} as AnswerValue;
+  const out: Record<string, string> = {};
+  for (const f of question.properties.fields) {
+    if (f.enabled) {
+      const v = (value as Record<string, unknown>)[f.key];
+      const strVal = typeof v === "string" ? v.trim() : (v ? String(v).trim() : "");
+      if (strVal) out[f.key] = strVal;
+    }
+  }
+  return out as AnswerValue;
+};
+
 // ---- the registry ---------------------------------------------------------
 
 // Colors follow Typeform's groups: text = blue, choice (incl. yes/no) = lavender, rating = green,
@@ -439,6 +511,78 @@ export const QUESTION_TYPE_DEFS: { [T in QuestionType]: QuestionTypeDef<T> } = {
     ruleMatches: matchNumber,
     toSubmission: trimmed,
   },
+  statement: {
+    label: "Statement",
+    icon: Quote,
+    chip: "bg-qt-screen text-qt-fg",
+    group: "structure",
+    answerable: false,
+    ops: [],
+    validate: () => null,
+    format: () => "",
+    ruleMatches: () => false,
+    toSubmission: () => undefined as never,
+  },
+  contact_info: {
+    label: "Contact Info",
+    icon: User,
+    chip: "bg-qt-contact text-qt-fg",
+    group: "contact",
+    answerable: true,
+    ops: [],
+    validate: validateContactInfo,
+    format: formatComposite,
+    ruleMatches: () => false,
+    toSubmission: compositeToSubmission,
+  },
+  address: {
+    label: "Address",
+    icon: MapPin,
+    chip: "bg-qt-contact text-qt-fg",
+    group: "contact",
+    answerable: true,
+    ops: [],
+    validate: validateAddress,
+    format: formatComposite,
+    ruleMatches: () => false,
+    toSubmission: compositeToSubmission,
+  },
+  ranking: {
+    label: "Ranking",
+    icon: ListOrdered,
+    chip: "bg-qt-choice text-qt-fg",
+    group: "choice",
+    answerable: true,
+    ops: ["is", "is_not"],
+    validate: validateRanking,
+    format: formatRanking,
+    ruleMatches: () => false,
+    toSubmission: rankingToSubmission,
+  },
+  matrix: {
+    label: "Matrix",
+    icon: Grid3X3,
+    chip: "bg-qt-screen text-qt-fg",
+    group: "choice",
+    answerable: true,
+    ops: [],
+    validate: validateMatrix,
+    format: formatMatrix,
+    ruleMatches: () => false,
+    toSubmission: matrixToSubmission,
+  },
+  group: {
+    label: "Question Group",
+    icon: Folder,
+    chip: "bg-qt-screen text-qt-fg",
+    group: "structure",
+    answerable: false,
+    ops: [],
+    validate: () => null,
+    format: () => "",
+    ruleMatches: () => false,
+    toSubmission: () => undefined as never,
+  }
 };
 
 /** The definition for a type, for callers that only have the wide `QuestionType`. */

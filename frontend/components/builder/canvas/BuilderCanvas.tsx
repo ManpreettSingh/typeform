@@ -133,7 +133,6 @@ function CanvasQuestion({
   );
 }
 
-/** Welcome screen: the form title and description, edited in place. Respondents see it when there's a description. */
 function CanvasWelcome() {
   const form = useBuilderStore((s) => s.form!);
   const setTitle = useBuilderStore((s) => s.setTitle);
@@ -161,8 +160,16 @@ function CanvasWelcome() {
         onChange={(next) => updateForm({ description: next || null })}
         className="text-center text-lg opacity-70"
       />
+      
+      {(form.welcome?.show_time_to_complete || form.welcome?.show_submission_count) && (
+        <div className="flex gap-4 text-sm opacity-60">
+          {form.welcome.show_time_to_complete && <span>Takes 5 minutes</span>}
+          {form.welcome.show_submission_count && <span>{form.response_count} submissions</span>}
+        </div>
+      )}
+
       <div className="mt-4 flex items-center gap-3">
-        <span className="rounded-resp-button bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg">Start</span>
+        <span className="rounded-resp-button bg-resp-accent px-5 py-2.5 text-lg font-semibold text-resp-accent-fg">{form.welcome?.button_text || "Start"}</span>
         <span className="hidden text-xs opacity-60 sm:inline">
           press <strong>Enter ↵</strong>
         </span>
@@ -177,6 +184,9 @@ function CanvasWelcome() {
 }
 
 function CanvasEnding() {
-  const thankYou = useBuilderStore((s) => s.form!.thank_you);
-  return <ThankYouScreen thankYou={thankYou} interactive={false} />;
+  const form = useBuilderStore((s) => s.form!);
+  const selectedEndingId = useBuilderStore((s) => s.selectedEndingId);
+  const ending = form.endings.find((e) => e.id === selectedEndingId);
+
+  return <ThankYouScreen thankYou={ending || form.thank_you} interactive={false} />;
 }

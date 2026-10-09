@@ -60,6 +60,7 @@ export function QuestionRenderer({
       number={number}
       title={question.title}
       titleId={titleId}
+      groupTitle={question.group_title}
       description={question.description}
       required={question.required}
       error={error}

@@ -5,17 +5,18 @@ import { create } from "zustand";
 import { ApiError, getErrorMessage } from "@/lib/api";
 import { formsApi } from "@/lib/queries/forms";
 import { questionsApi } from "@/lib/queries/questions";
+import { endingsApi } from "@/lib/queries/endings";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { Form, FormUpdate, Question, QuestionCreate, QuestionType, QuestionUpdate } from "@/lib/types";
 import { Autosaver, type SaveStatus } from "./autosave";
 
 export type BuilderForm = Pick<
   Form,
-  "id" | "slug" | "title" | "description" | "status" | "response_count" | "theme" | "thank_you"
+  "id" | "slug" | "title" | "description" | "status" | "response_count" | "theme" | "thank_you" | "welcome" | "endings"
 >;
 
 /** Form-level fields edited in the builder and saved through PATCH /forms/{id}. */
-type FormSettings = Pick<Form, "title" | "description" | "theme" | "thank_you">;
+type FormSettings = Pick<Form, "title" | "description" | "theme" | "thank_you" | "welcome">;
 
 /** What the canvas shows: the welcome screen, the selected question, or the ending (thank-you screen). */
 export type BuilderScreen = "welcome" | "question" | "ending";
@@ -30,6 +31,7 @@ type BuilderState = {
   form: BuilderForm | null;
   questions: Question[];
   selectedId: number | null;
+  selectedEndingId: number | null;
   screen: BuilderScreen;
   saveStatus: SaveStatus;
   /** Last server-confirmed values, used to roll back failed saves. */
@@ -41,6 +43,7 @@ type BuilderActions = {
   loadForm: (formId: number) => Promise<void>;
   /** Selects a question and shows it on the canvas. */
   select: (id: number) => void;
+  selectEnding: (id: number) => void;
   showScreen: (screen: BuilderScreen) => void;
   /** Local update + debounced PATCH of title / description / theme / thank_you. */
   updateForm: (patch: Partial<FormSettings>, debounceMs?: number) => void;
@@ -54,6 +57,11 @@ type BuilderActions = {
   deleteQuestion: (id: number) => Promise<void>;
   /** Moves `activeId` to `overId`'s slot (drag and drop) and saves the new order. */
   moveQuestion: (activeId: number, overId: number) => void;
+  addEnding: () => Promise<void>;
+  updateEnding: (id: number, patch: Partial<Form["endings"][number]>, debounceMs?: number) => void;
+  duplicateEnding: (id: number) => Promise<void>;
+  deleteEnding: (id: number) => Promise<void>;
+  moveEnding: (activeId: number, overId: number) => void;
   applyServerForm: (form: Form) => void;
   flush: () => Promise<void>;
   hasUnsavedChanges: () => boolean;
@@ -75,7 +83,7 @@ function withoutJumpsTo(question: Question, id: number): Question {
 const withLogicOf = (question: Question, saved: Question | undefined): Question =>
   saved ? { ...question, logic: saved.logic } : question;
 
-const toMeta = ({ id, slug, title, description, status, response_count, theme, thank_you }: Form): BuilderForm => ({
+const toMeta = ({ id, slug, title, description, status, response_count, theme, thank_you, welcome, endings }: Form): BuilderForm => ({
   id,
   slug,
   title,
@@ -84,9 +92,11 @@ const toMeta = ({ id, slug, title, description, status, response_count, theme, t
   response_count,
   theme,
   thank_you,
+  welcome,
+  endings,
 });
 
-const settingsOf = ({ title, description, theme, thank_you }: Form): FormSettings => ({ title, description, theme, thank_you });
+const settingsOf = ({ title, description, theme, thank_you, welcome }: Form): FormSettings => ({ title, description, theme, thank_you, welcome });
 
 const reportFailure = (what: string, error: unknown) => toast.error(`${what} ${getErrorMessage(error)}`);
 
@@ -109,9 +119,10 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
     form: null,
     questions: [],
     selectedId: null,
+    selectedEndingId: null,
     screen: "question",
     saveStatus: "saved",
-    savedSettings: { title: "", description: null, theme: {} as Form["theme"], thank_you: {} as Form["thank_you"] },
+    savedSettings: { title: "", description: null, theme: {} as Form["theme"], thank_you: {} as Form["thank_you"], welcome: {} as Form["welcome"] },
     savedQuestions: {},
 
     async loadForm(formId) {
@@ -119,7 +130,7 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
       const sameForm = get().form?.id === formId;
       // Re-showing the same form refreshes in the background; switching forms shows the skeleton.
       if (!sameForm) {
-        set({ load: { status: "loading", error: null }, form: null, questions: [], selectedId: null, screen: "question" });
+        set({ load: { status: "loading", error: null }, form: null, questions: [], selectedId: null, selectedEndingId: null, screen: "question" });
       }
 
       await saver.flushAll();
@@ -241,28 +252,161 @@ export const useBuilderStore = create<BuilderState & BuilderActions>()((set, get
         patch,
         async (pending) => {
           try {
-            const saved = await questionsApi.update(id, pending as QuestionUpdate);
-            set((s) => ({
-              savedQuestions: { ...s.savedQuestions, [id]: saved },
-              // Adopt the server's normalised copy unless newer edits are already queued.
-              questions: saver.hasPending(key)
-                ? s.questions
-                : s.questions.map((q) => (q.id === id ? { ...saved, position: q.position } : q)),
-            }));
+            const saved = await questionsApi.update(id, pending);
+            set((s) => ({ savedQuestions: { ...s.savedQuestions, [id]: saved } }));
           } catch (error) {
             saver.cancel(key);
-            set((s) => ({
-              questions: s.questions.map((q) =>
-                q.id === id && s.savedQuestions[id] ? { ...s.savedQuestions[id], position: q.position } : q,
-              ),
-            }));
-            reportFailure("Couldn't save your changes.", error);
+            set((s) => {
+              const saved = s.savedQuestions[id];
+              return { questions: s.questions.map((q) => (q.id === id ? withLogicOf(saved ?? q, saved) : q)) };
+            });
+            reportFailure("Couldn't save the question.", error);
             throw error;
           }
         },
         debounceMs,
       );
     },
+
+    selectEnding(id) {
+      set({ selectedEndingId: id, screen: "ending" });
+    },
+
+    async addEnding() {
+      const { form } = get();
+      if (!form) return;
+      await saver.now(STRUCTURE_KEY, async () => {
+        try {
+          const created = await endingsApi.create(form.id, { title: "New ending", message: "" });
+          set((s) => {
+            if (!s.form) return {};
+            return {
+              form: { ...s.form, endings: [...s.form.endings, created] },
+              selectedEndingId: created.id,
+              screen: "ending",
+            };
+          });
+        } catch (error) {
+          reportFailure("Couldn't add the ending.", error);
+          throw error;
+        }
+      });
+    },
+
+    updateEnding(id, patch, debounceMs = TEXT_DEBOUNCE_MS) {
+      set((s) => {
+        if (!s.form) return {};
+        return {
+          form: {
+            ...s.form,
+            endings: s.form.endings.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+          },
+        };
+      });
+
+      const key = `e:${id}`;
+      saver.queue(
+        key,
+        patch,
+        async (pending) => {
+          try {
+            await endingsApi.update(id, pending);
+          } catch (error) {
+            saver.cancel(key);
+            reportFailure("Couldn't save the ending.", error);
+            // Needs local rollback? The whole form is fetched anyway when reloading
+            throw error;
+          }
+        },
+        debounceMs,
+      );
+    },
+
+    async duplicateEnding(id) {
+      const source = get().form?.endings.find((e) => e.id === id);
+      const formId = get().form?.id;
+      if (!source || !formId) return;
+      await saver.flush(`e:${id}`);
+      set({ selectedEndingId: id, screen: "ending" });
+      await saver.now(STRUCTURE_KEY, async () => {
+        try {
+          const created = await endingsApi.create(formId, { title: source.title, message: source.message, button_text: source.button_text, button_url: source.button_url });
+          set((s) => {
+            if (!s.form) return {};
+            const next = [...s.form.endings];
+            next.splice(source.position + 1, 0, created);
+            return {
+              form: { ...s.form, endings: next.map((e, i) => ({ ...e, position: i })) },
+              selectedEndingId: created.id,
+              screen: "ending",
+            };
+          });
+          // Fix positions server-side
+          const newOrder = get().form!.endings.map(e => e.id);
+          await endingsApi.reorder(formId, newOrder);
+        } catch (error) {
+          reportFailure("Couldn't duplicate the ending.", error);
+          throw error;
+        }
+      });
+    },
+
+    async deleteEnding(id) {
+      const form = get().form;
+      if (!form) return;
+      if (form.endings.length <= 1) {
+        toast.error("A form must have at least one ending.");
+        return;
+      }
+      const position = form.endings.find((e) => e.id === id)?.position ?? 0;
+      set((s) => {
+        if (!s.form) return {};
+        return { form: { ...s.form, endings: s.form.endings.filter((e) => e.id !== id) } };
+      });
+      const remaining = get().form!.endings;
+      const nextSelected = remaining[Math.min(position, remaining.length - 1)].id;
+      if (get().selectedEndingId === id) get().selectEnding(nextSelected);
+
+      await saver.now(STRUCTURE_KEY, async () => {
+        try {
+          await endingsApi.delete(id);
+        } catch (error) {
+          reportFailure("Couldn't delete the ending.", error);
+          const server = await formsApi.get(form.id).catch(() => null);
+          if (server) set({ form: toMeta(server) });
+          throw error;
+        }
+      });
+    },
+
+    moveEnding(activeId, overId) {
+      const form = get().form;
+      if (!form || activeId === overId) return;
+      
+      const oldIndex = form.endings.findIndex((e) => e.id === activeId);
+      const newIndex = form.endings.findIndex((e) => e.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+      
+      const nextEndings = arrayMove(form.endings, oldIndex, newIndex).map((e, i) => ({ ...e, position: i }));
+      set((s) => s.form ? { form: { ...s.form, endings: nextEndings } } : {});
+
+      saver.queue(
+        STRUCTURE_KEY,
+        {}, // dummy
+        async () => {
+          try {
+            await endingsApi.reorder(form.id, nextEndings.map((e) => e.id));
+          } catch (error) {
+            reportFailure("Couldn't reorder endings.", error);
+            const server = await formsApi.get(form.id).catch(() => null);
+            if (server) set({ form: toMeta(server) });
+            throw error;
+          }
+        },
+        500
+      );
+    },
+
 
     async deleteQuestion(id) {
       const { questions, selectedId } = get();

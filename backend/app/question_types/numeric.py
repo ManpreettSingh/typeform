@@ -182,6 +182,13 @@ def _rule_error(value: Any) -> str | None:
     return None if is_number(value) else "Enter a number"
 
 
+def _convert_rating(old_type: QuestionType, old_props: Properties) -> dict:
+    if old_type == QuestionType.OPINION_SCALE:
+        return {"max": min(old_props.get("steps", 11), 10)} # Rating has max <= 10
+    if old_type == QuestionType.RATING:
+        return {"steps": old_props.get("max", 5)} # OpinionScale has steps
+    return {}
+
 SPECS = [
     QuestionTypeSpec(
         key=QuestionType.NUMBER,
@@ -208,6 +215,7 @@ SPECS = [
         logic_ops=_NUMBER_OPS,
         logic_match=_match_number,
         logic_value_error=_rule_error,
+        convert=_convert_rating,
     ),
     QuestionTypeSpec(
         key=QuestionType.OPINION_SCALE,
@@ -221,6 +229,7 @@ SPECS = [
         logic_ops=_NUMBER_OPS,
         logic_match=_match_number,
         logic_value_error=_rule_error,
+        convert=_convert_rating,
     ),
     QuestionTypeSpec(
         key=QuestionType.NPS,

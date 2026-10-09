@@ -34,3 +34,8 @@ class Question(Base):
     group_id: Mapped[int | None] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"))
 
     form: Mapped[Form] = relationship(back_populates="questions")
+    group: Mapped[Question | None] = relationship(remote_side=[id])
+
+    @property
+    def group_title(self) -> str | None:
+        return self.group.title if self.group else None

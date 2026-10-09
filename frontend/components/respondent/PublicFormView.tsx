@@ -54,7 +54,8 @@ export function PublicFormView() {
         <RespondentFlow
           questions={form.questions}
           thankYou={form.thank_you}
-          welcome={description ? { title: form.title, description } : null}
+          welcome={description ? { title: form.title, description, ...form.welcome, submission_count: form.submission_count } : null}
+          endings={form.endings}
           onComplete={complete}
           onProgress={saveProgress}
         />

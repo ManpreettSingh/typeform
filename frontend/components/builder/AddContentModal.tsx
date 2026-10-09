@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import {
   AlignLeft,
+  Blocks,
   Calendar,
   CalendarClock,
   CircleSlash,
@@ -11,7 +12,7 @@ import {
   Equal,
   Gauge,
   Globe,
-  Grid3x3,
+  Grid3X3,
   Hash,
   Image,
   Info,
@@ -20,6 +21,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  Quote,
   Scale,
   Search,
   SlidersHorizontal,
@@ -48,10 +50,10 @@ const GROUPS: Group[] = [
     title: "Contact info",
     chip: "bg-qt-contact",
     items: [
-      { label: "Contact Info", icon: UserRound },
+      { label: "Contact Info", icon: UserRound, type: "contact_info" },
       { label: "Email", icon: Mail, type: "email" },
       { label: "Phone Number", icon: Phone, type: "phone_number" },
-      { label: "Address", icon: MapPin },
+      { label: "Address", icon: MapPin, type: "address" },
       { label: "Website", icon: Globe, type: "website" },
     ],
   },
@@ -74,8 +76,8 @@ const GROUPS: Group[] = [
       { label: "Net Promoter Score®", icon: Gauge, type: "nps" },
       { label: "Opinion Scale", icon: SlidersHorizontal, type: "opinion_scale" },
       { label: "Rating", icon: Star, type: "rating" },
-      { label: "Ranking", icon: ListOrdered },
-      { label: "Matrix", icon: Grid3x3 },
+      { label: "Ranking", icon: ListOrdered, type: "ranking" },
+      { label: "Matrix", icon: Grid3X3, type: "matrix" },
     ],
   },
   {
@@ -96,6 +98,18 @@ const GROUPS: Group[] = [
       { label: "Payment", icon: CreditCard },
       { label: "File Upload", icon: Upload },
       { label: "Scheduler", icon: CalendarClock },
+    ],
+  },
+  {
+    title: "Form structure",
+    chip: "bg-qt-screen",
+    items: [
+      { label: "Welcome Screen", icon: AlignLeft }, // Placeholder for now, handled differently?
+      { label: "Partial Submit Point", icon: CircleSlash }, // Soon
+      { label: "Statement", icon: Quote, type: "statement" },
+      { label: "Question Group", icon: Grid3X3, type: "group" },
+      { label: "End Screen", icon: AlignLeft },
+      { label: "Redirect to URL", icon: Globe },
     ],
   },
 ];
@@ -228,6 +242,43 @@ function ElementsTab({ onDone }: { onDone: () => void }) {
                 {label}
               </button>
             ))}
+            
+            <h3 className="mt-4 text-sm font-medium text-text">Connect to apps</h3>
+            <button
+              type="button"
+              className="flex h-10 items-center gap-2.5 rounded-field border border-border-strong bg-bg px-2.5 text-sm text-text-soft hover:bg-bg-hover focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <span className="flex size-6 items-center justify-center rounded-input text-qt-fg bg-gray-200">
+                <Blocks className="size-3.5" aria-hidden />
+              </span>
+              HubSpot
+            </button>
+            <button
+              type="button"
+              disabled
+              className="flex h-10 items-center justify-between gap-2.5 rounded-field border border-border-strong bg-bg px-2.5 text-sm text-text-soft disabled:opacity-60"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-6 items-center justify-center rounded-input text-qt-fg bg-gray-200">
+                  <Blocks className="size-3.5" aria-hidden />
+                </span>
+                Salesforce
+              </div>
+              <Badge variant="accent">Soon</Badge>
+            </button>
+            <button
+              type="button"
+              disabled
+              className="flex h-10 items-center justify-between gap-2.5 rounded-field border border-border-strong bg-bg px-2.5 text-sm text-text-soft disabled:opacity-60"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-6 items-center justify-center rounded-input text-qt-fg bg-gray-200">
+                  <Grid3X3 className="size-3.5" aria-hidden />
+                </span>
+                Browse all apps
+              </div>
+              <Badge variant="accent">Soon</Badge>
+            </button>
           </div>
         )}
       </div>

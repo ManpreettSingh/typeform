@@ -12,6 +12,11 @@ import { OpinionScaleAnswer } from "@/components/respondent/answers/OpinionScale
 import { RatingAnswer } from "@/components/respondent/answers/RatingAnswer";
 import { EmailAnswer, LongTextAnswer, NumberAnswer, ShortTextAnswer } from "@/components/respondent/answers/TextAnswer";
 import { WebsiteAnswer } from "@/components/respondent/answers/WebsiteAnswer";
+import { CompositeAnswer } from "@/components/respondent/answers/CompositeAnswer";
+import { RankingAnswer } from "@/components/respondent/answers/RankingAnswer";
+import { MatrixAnswer } from "@/components/respondent/answers/MatrixAnswer";
+import { StatementScreen } from "@/components/respondent/StatementScreen";
+import { GroupHeader } from "@/components/respondent/GroupHeader";
 import type { AnswerProps } from "@/components/respondent/types";
 import type { QuestionType } from "@/lib/types";
 
@@ -35,4 +40,10 @@ export const ANSWER_COMPONENTS = {
   checkbox: CheckboxAnswer,
   opinion_scale: OpinionScaleAnswer,
   nps: NpsAnswer,
+  statement: StatementScreen,
+  contact_info: CompositeAnswer as ComponentType<AnswerProps<"contact_info">>,
+  address: CompositeAnswer as ComponentType<AnswerProps<"address">>,
+  ranking: RankingAnswer,
+  matrix: MatrixAnswer,
+  group: GroupHeader,
 } satisfies { [T in QuestionType]: ComponentType<AnswerProps<T>> };

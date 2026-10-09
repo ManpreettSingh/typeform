@@ -47,7 +47,7 @@ def summarize_form(db: Session, form: Form) -> FormSummary:
         completion_rate=round(completed / total, 4) if total else 0.0,
         views=form.views,
         average_seconds=_average_seconds(db, form),
-        questions=[summarize_question(q, values[q.id], times[q.id]) for q in form.questions],
+        questions=[summarize_question(q, values[q.id], times[q.id]) for q in form.questions if get_spec(q.type).answerable],
     )
 
 

@@ -130,9 +130,31 @@ class TextSummary(_QuestionSummaryBase):
     # Every answer, most recent first (Typeform lists them all, with a search box).
     answers: list[TextAnswer]
 
+class CompositeSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.CONTACT_INFO, QuestionType.ADDRESS]
+    answers: list[TextAnswer]
+
+
+class RankAverage(BaseModel):
+    option_id: str
+    label: str
+    average: float
+
+
+class RankingSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.RANKING]
+    # In option order, dict of option_id -> RankAverage
+    ranks: dict[str, RankAverage]
+
+
+class MatrixSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.MATRIX]
+    # dict of row_id -> ChoiceSummary
+    rows: dict[str, ChoiceSummary]
+
 
 QuestionSummary = Annotated[
-    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary,
+    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary,
     Field(discriminator="type"),
 ]
 

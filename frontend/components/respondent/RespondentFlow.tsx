@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, type ReactNode, type RefObject } from "react";
 import { toast } from "sonner";
 import { ApiError, getErrorMessage } from "@/lib/api";
-import type { Answers, PublicQuestion, ThankYou } from "@/lib/types";
+import type { Answers, PublicQuestion, ThankYou, Ending } from "@/lib/types";
 import { canEndAfter, nextIndex, visitedPath } from "@/lib/logic";
 import { isEmptyAnswer, validateAnswer } from "@/lib/validation";
 import { flowReducer, initialFlowState } from "./flowState";
@@ -18,7 +18,15 @@ type Props = {
   questions: PublicQuestion[];
   thankYou: ThankYou;
   /** Shows a welcome screen before the first question. */
-  welcome?: { title: string; description: string } | null;
+  welcome?: {
+    title: string;
+    description: string;
+    button_text?: string;
+    show_time_to_complete?: boolean;
+    show_submission_count?: boolean;
+    submission_count?: number | null;
+  } | null;
+  endings?: Ending[];
   /**
    * Called with all answers after the last question validates. Throw an `ApiError` 422 keyed by question id
    * to send the respondent back to the offending question. Omit for a local, non-persisting run.
@@ -38,7 +46,7 @@ const isTextEntry = (target: EventTarget | null): target is HTMLElement =>
     (target.tagName === "INPUT" && (target as HTMLInputElement).type !== "button"));
 
 /** One-question-at-a-time respondent flow with progress, keyboard navigation and welcome/thank-you screens. */
-export function RespondentFlow({ questions, thankYou, welcome, onComplete, onProgress }: Props) {
+export function RespondentFlow({ questions, thankYou, welcome, endings, onComplete, onProgress }: Props) {
   const [state, dispatch] = useReducer(flowReducer, Boolean(welcome), initialFlowState);
   // Handlers read the latest state from here: auto-advance timers and toast actions outlive the render that made them.
   const stateRef = useRef(state);
@@ -182,7 +190,7 @@ export function RespondentFlow({ questions, thankYou, welcome, onComplete, onPro
   if (step === "welcome" && welcome) {
     content = <WelcomeScreen {...welcome} onStart={goNext} />;
   } else if (step === "done") {
-    content = <ThankYouScreen thankYou={thankYou} />;
+    content = <ThankYouScreen thankYou={endings?.[0] || thankYou} />;
   } else {
     content = (
       <QuestionRenderer

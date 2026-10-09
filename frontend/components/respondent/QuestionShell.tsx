@@ -5,6 +5,7 @@ type Props = {
   number: number;
   title: string;
   titleId: string;
+  groupTitle?: string | null;
   description: string | null;
   required: boolean;
   error?: string | null;
@@ -27,6 +28,7 @@ export function QuestionShell({
   number,
   title,
   titleId,
+  groupTitle,
   description,
   required,
   error,
@@ -50,6 +52,11 @@ export function QuestionShell({
           {number}
         </span>
         <div className="min-w-0 flex-1">
+          {groupTitle && (
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-resp-text/60">
+              {groupTitle}
+            </p>
+          )}
           {titleSlot ?? (
             <h2 id={titleId} className="text-xl leading-snug break-words sm:text-[26px] sm:leading-[34px]">
               <span className="sr-only">Question {number}: </span>

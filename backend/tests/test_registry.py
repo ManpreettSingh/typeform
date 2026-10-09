@@ -28,6 +28,11 @@ EXPECTED_OPS = {
     "checkbox": {"is"},
     "opinion_scale": NUMBER_OPS,
     "nps": NUMBER_OPS,
+    "contact_info": set(),
+    "address": set(),
+    "ranking": {"is", "is_not"},
+    "matrix": set(),
+    "group": set(),
 }
 CHOICE_PROPS = {"options": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}], "allow_multiple": True}
 

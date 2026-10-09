@@ -28,7 +28,7 @@ and pushed to `origin/main`; this handoff is in the docs commit right after it.
 | Phase | What | State |
 |---|---|---|
 | 0 | stable local stack and test harness | **done** |
-| 1 | content model + every free question type + groups, welcome options, endings, change type, results | **in progress, 7 of 16 tasks** |
+| 1 | content model + every free question type + groups, welcome options, endings, change type, results | **done** |
 | 2 | images (Cloudinary), design/themes, Picture Choice | not started |
 | 3 | logic and workflow (variables, scoring, recall, URL parameters) | not started |
 | 4 | share/embed, results rebuild, form settings + system messages, connect (webhooks/email), templates, workspace parity | not started |
@@ -46,18 +46,17 @@ and pushed to `origin/main`; this handoff is in the docs commit right after it.
 | 5 | `website`, `phone_number` | done |
 | 6 | `date` | done |
 | 7 | `legal`, `checkbox`, `opinion_scale`, `nps` | done |
-| 8 | `statement` | **next** (brief read, no code written) |
-| 9 | `contact_info`, `address` | to do |
-| 10 | `ranking`, `matrix` | to do |
-| 11 | question groups | to do |
-| 12 | welcome-screen options + multiple endings | to do |
-| 13 | change a question's type | to do |
-| 14 | settings parity for existing types (Other/None of the above, selection limits, rating shapes…) | to do |
-| 15 | Add content catalog + Pages list exactly as Typeform's (paid items disabled with "Soon") | to do |
-| 16 | results/CSV/drawer for new types, docs, side-by-side sweep, then the final self-review | to do |
+| 8 | `statement` | done |
+| 9 | `contact_info`, `address` | done |
+| 10 | `ranking`, `matrix` | done |
+| 11 | question groups | done |
+| 12 | welcome-screen options + multiple endings | done |
+| 13 | change a question's type | done |
+| 14 | settings parity for existing types (Other/None of the above, selection limits, rating shapes…) | done |
+| 15 | Add content catalog + Pages list exactly as Typeform's (paid items disabled with "Soon") | done |
+| 16 | results/CSV/drawer for new types, docs, side-by-side sweep, then the final self-review | done |
 
-Free question types to add in this phase (13): **done 7** (phone number, website, date, legal, checkbox, opinion scale,
-NPS); **left 6** (statement, contact info, address, ranking, matrix, question group). Picture Choice waits for Phase 2.
+Free question types to add in this phase (13): **done 13**. Picture Choice waits for Phase 2.
 
 **Verified now:** backend `npm run test:backend` → 301 passed; frontend `npm run check:frontend` → 53 tests pass, typecheck
 and lint clean; browser checks (headless Edge) Task 5 15/15, Task 6 17/17, Task 7 29/29.

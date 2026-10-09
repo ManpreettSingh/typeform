@@ -58,6 +58,9 @@ def _value_error(qtype: QuestionType, value: Any) -> str | None:
 
 def rule_errors(qtype: QuestionType, logic: Logic) -> dict[str, str]:
     """Type-specific problems keyed like `logic.rules.0.op`. Targets are checked by the caller (needs the form)."""
+    if qtype not in OPS_BY_TYPE and logic.rules:
+        return {"logic": "Rules cannot be added to this question type"}
+
     errors: dict[str, str] = {}
     for i, rule in enumerate(logic.rules):
         if rule.op not in OPS_BY_TYPE[qtype]:

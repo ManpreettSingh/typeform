@@ -29,14 +29,19 @@ class FormCreate(StrictModel):
     title: Title = "New form"
 
 
+class Welcome(StrictModel):
+    button_text: str = Field(default="Start", max_length=24)
+    show_time_to_complete: bool = False
+    show_submission_count: bool = False
+
 class FormUpdate(PatchModel):
-    NON_NULLABLE = ("title", "theme", "thank_you")
+    NON_NULLABLE = ("title", "theme", "thank_you", "welcome")
 
     title: Title | None = None
     description: str | None = Field(default=None, max_length=FORM_DESCRIPTION_MAX)
     theme: Theme | None = None
     thank_you: ThankYou | None = None
-
+    welcome: Welcome | None = None
 
 class _FormBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -50,17 +55,17 @@ class _FormBase(BaseModel):
     updated_at: datetime
     published_at: datetime | None
 
-
 class FormListItem(_FormBase):
     question_count: int
-    # Drawn as the form's icon / card thumbnail in the workspace, in the form's own colors.
     theme: Theme
-    # Every response, partial included (response_count is completed only): completion = response_count / this.
     response_total: int
 
+from app.schemas.ending import EndingOut
 
 class FormOut(_FormBase):
     description: str | None
     theme: Theme
     thank_you: ThankYou
+    welcome: Welcome
     questions: list[QuestionOut]
+    endings: list[EndingOut]

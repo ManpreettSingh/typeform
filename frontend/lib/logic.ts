@@ -42,15 +42,68 @@ export function nextIndex(questions: PublicQuestion[], index: number, answers: A
     if (!ruleMatches(question.type, rule, answers[question.id])) continue;
     if (rule.to === "end") return null;
     const target = questions.findIndex((q) => q.id === rule.to);
-    if (target > index) return target;
+    if (target > index) {
+      if (questions[target].type === "group") {
+        const targetId = questions[target].id;
+        const children = [];
+        for (let i = target + 1; i < questions.length; i++) {
+          if (questions[i].group_id === targetId) {
+            children.push(i);
+          }
+        }
+        if (children.length > 0) return children[0];
+      }
+      return target;
+    }
   }
-  return index + 1 < questions.length ? index + 1 : null;
+
+  let nxt = index + 1;
+  while (nxt < questions.length) {
+    if (questions[nxt].type === "group") {
+      const nxtId = questions[nxt].id;
+      let hasChildren = false;
+      for (let i = nxt + 1; i < questions.length; i++) {
+        if (questions[i].group_id === nxtId) {
+          hasChildren = true;
+          break;
+        }
+      }
+      if (!hasChildren) {
+        nxt++;
+        continue;
+      }
+    }
+    return nxt;
+  }
+  return null;
 }
 
 /** Indices a respondent with these answers goes through, from the first question to the end. */
 export function visitedPath(questions: PublicQuestion[], answers: Answers): number[] {
   const path: number[] = [];
-  let index: number | null = questions.length ? 0 : null;
+
+  function skipEmpty(nxt: number): number | null {
+    while (nxt < questions.length) {
+      if (questions[nxt].type === "group") {
+        const nxtId = questions[nxt].id;
+        let hasChildren = false;
+        for (let i = nxt + 1; i < questions.length; i++) {
+          if (questions[i].group_id === nxtId) {
+            hasChildren = true;
+            break;
+          }
+        }
+        if (!hasChildren) {
+          nxt++;
+          continue;
+        }
+      }
+      return nxt;
+    }
+    return null;
+  }
+
+  let index: number | null = questions.length ? skipEmpty(0) : null;
   while (index !== null) {
     path.push(index);
     index = nextIndex(questions, index, answers);

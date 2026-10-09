@@ -19,7 +19,7 @@ def create_test_response(db, form: Form) -> Response:
     if not form.questions:
         raise BadRequestError("Add a question before generating a test response.")
     rng = random.Random()
-    answers = {str(q.id): get_spec(q.type).sample(q.properties, rng) for q in form.questions}
+    answers = {str(q.id): get_spec(q.type).sample(q.properties, rng) for q in form.questions if get_spec(q.type).answerable}
     cleaned = validate_answers(form.questions, answers)
     now = utcnow()
     response = Response(

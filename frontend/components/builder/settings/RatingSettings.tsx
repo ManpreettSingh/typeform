@@ -14,6 +14,21 @@ const STEPS = Array.from({ length: RATING_MAX_RANGE.max - RATING_MAX_RANGE.min +
 const SHAPES: { value: RatingShape; label: string }[] = [
   { value: "star", label: "Stars" },
   { value: "heart", label: "Hearts" },
+  { value: "crown", label: "Crowns" },
+  { value: "cat", label: "Cats" },
+  { value: "dog", label: "Dogs" },
+  { value: "droplet", label: "Droplets" },
+  { value: "flag", label: "Flags" },
+  { value: "lightbulb", label: "Lightbulbs" },
+  { value: "pencil", label: "Pencils" },
+  { value: "skull", label: "Skulls" },
+  { value: "thunderbolt", label: "Thunderbolts" },
+  { value: "tick", label: "Ticks" },
+  { value: "trophy", label: "Trophies" },
+  { value: "up", label: "Thumbs Up" },
+  { value: "user", label: "Users" },
+  { value: "circle", label: "Circles" },
+  { value: "cloud", label: "Clouds" },
   { value: "number", label: "Numbers" },
 ];
 

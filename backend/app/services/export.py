@@ -28,7 +28,7 @@ def _iso(dt) -> str:
 
 
 def responses_csv(db: Session, form: Form) -> str:
-    questions = list(form.questions)
+    questions = [q for q in form.questions if get_spec(q.type).answerable]
     responses = db.scalars(
         select(Response)
         .where(Response.form_id == form.id)

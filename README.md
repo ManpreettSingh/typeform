@@ -67,7 +67,7 @@ Responses are generated from a fixed random seed, so every machine gets the same
 
 ### Checks
 ```bash
-npm run test:backend     # pytest: 101 tests on a temporary database
+npm run test:backend     # pytest: 347 tests on a temporary database
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build:frontend   # next build
@@ -185,7 +185,7 @@ erDiagram
     questions {
         int id PK
         int form_id FK "cascade"
-        text type "8 types (CHECK)"
+        text type "13 types (CHECK)"
         text title
         text description
         bool required
