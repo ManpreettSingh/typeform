@@ -289,6 +289,7 @@ export type ThankYou = {
 type FormBase = {
   id: number;
   slug: string;
+  workspace_id: number | null;
   title: string;
   status: FormStatus;
   /** Completed responses only. */

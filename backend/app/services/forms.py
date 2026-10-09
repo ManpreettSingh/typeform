@@ -140,6 +140,8 @@ def duplicate_form(db: Session, form: Form) -> Form:
     ]
     clone = Form(
         slug=generate_unique_slug(db),
+        # Same workspace, or the dashboard (which lists one workspace) never shows the copy.
+        workspace_id=form.workspace_id,
         title=title[:200],
         description=form.description,
         status=FormStatus.DRAFT,
@@ -150,10 +152,12 @@ def duplicate_form(db: Session, form: Form) -> Form:
         endings=endings_copies,
     )
     db.add(clone)
-    # Jump targets are question ids: point them at the copies once those have ids.
+    # Jump targets and groups are question ids: point them at the copies once those have ids.
     db.flush()
+    new_ids = {old: new.id for old, new in copies.items()}
     for original in form.questions:
-        copies[original.id].logic = _remap_logic(original.logic, {old: new.id for old, new in copies.items()})
+        copies[original.id].logic = _remap_logic(original.logic, new_ids)
+        copies[original.id].group_id = new_ids.get(original.group_id) if original.group_id else None
     db.commit()
     return clone
 

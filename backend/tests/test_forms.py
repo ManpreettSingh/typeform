@@ -133,6 +133,32 @@ def test_duplicate_copies_questions_not_responses(client, db, make_form, add_que
     assert {q["id"] for q in clone["questions"]}.isdisjoint(q["id"] for q in original["questions"])
 
 
+def test_duplicate_stays_in_the_workspace_and_is_listed(client, make_form):
+    # The copy used to get no workspace, so the dashboard (which lists a workspace) never showed it.
+    workspace = client.post("/api/workspaces", json={"name": "Team"}).json()
+    form = client.post("/api/forms", json={"title": "Team survey", "workspace_id": workspace["id"]}).json()
+
+    clone = client.post(f"/api/forms/{form['id']}/duplicate").json()
+    assert clone["workspace_id"] == workspace["id"]
+    listed = {f["id"] for f in client.get("/api/forms", params={"workspace_id": workspace["id"]}).json()}
+    assert clone["id"] in listed
+
+    default = make_form("Mine")
+    copy_of_default = client.post(f"/api/forms/{default['id']}/duplicate").json()
+    assert copy_of_default["id"] in {f["id"] for f in client.get("/api/forms").json()}
+
+
+def test_duplicate_keeps_questions_in_their_groups(client, make_form, add_question):
+    form = make_form()
+    group = add_question(form["id"], "group", title="About you")
+    inside = add_question(form["id"], "short_text", title="Name?")
+    assert client.patch(f"/api/questions/{inside['id']}", json={"group_id": group["id"]}).status_code == 200
+
+    clone = client.post(f"/api/forms/{form['id']}/duplicate").json()
+    by_title = {q["title"]: q for q in clone["questions"]}
+    assert by_title["Name?"]["group_id"] == by_title["About you"]["id"]
+
+
 def test_duplicate_missing_form_is_404(client):
     assert client.post("/api/forms/123/duplicate").status_code == 404
 

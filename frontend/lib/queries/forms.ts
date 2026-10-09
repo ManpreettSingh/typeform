@@ -36,10 +36,11 @@ export const formKeys = {
 
 /** `responseTotal` (partial included) isn't on the detail shape; callers pass the list's value when they have it. */
 export function toListItem(form: Form, responseTotal = form.response_count): FormListItem {
-  const { id, slug, title, status, response_count, created_at, updated_at, published_at, theme } = form;
+  const { id, slug, workspace_id, title, status, response_count, created_at, updated_at, published_at, theme } = form;
   return {
     id,
     slug,
+    workspace_id,
     title,
     status,
     response_count,
@@ -52,23 +53,36 @@ export function toListItem(form: Form, responseTotal = form.response_count): For
   };
 }
 
-/** Writes a fresh server copy of a form into both the list and detail caches. */
-function storeForm(qc: QueryClient, form: Form, workspaceId?: number) {
+/** Every cached form list (one per workspace, plus the unfiltered one). */
+const allLists = { queryKey: [...formKeys.all, "list"] };
+
+/**
+ * Writes a fresh server copy of a form into the detail cache and every cached list: replaced where it's already
+ * listed, added to the top of its own workspace's list (and the unfiltered one) when it's new.
+ */
+export function storeForm(qc: QueryClient, form: Form) {
   qc.setQueryData(formKeys.detail(form.id), form);
-  qc.setQueryData<FormListItem[]>(formKeys.list(workspaceId), (list) => {
-    if (!list) return list;
+  for (const [key, list] of qc.getQueriesData<FormListItem[]>(allLists)) {
+    if (!list) continue;
+    const workspaceId = key[2];
     const existing = list.find((f) => f.id === form.id);
-    const item = toListItem(form, existing?.response_total);
-    return existing ? list.map((f) => (f.id === form.id ? item : f)) : [item, ...list];
-  });
+    if (existing) {
+      const item = toListItem(form, existing.response_total);
+      qc.setQueryData(key, list.map((f) => (f.id === form.id ? item : f)));
+    } else if (workspaceId === undefined || workspaceId === form.workspace_id) {
+      qc.setQueryData(key, [toListItem(form), ...list]);
+    }
+  }
 }
 
-/** Optimistically edits the cached list; returns a rollback. */
-async function patchList(qc: QueryClient, update: (list: FormListItem[]) => FormListItem[], workspaceId?: number) {
-  await qc.cancelQueries({ queryKey: formKeys.list(workspaceId) });
-  const previous = qc.getQueryData<FormListItem[]>(formKeys.list(workspaceId));
-  if (previous) qc.setQueryData(formKeys.list(workspaceId), update(previous));
-  return () => qc.setQueryData(formKeys.list(workspaceId), previous);
+/** Optimistically edits every cached list; returns a rollback. */
+export async function patchLists(qc: QueryClient, update: (list: FormListItem[]) => FormListItem[]) {
+  await qc.cancelQueries(allLists);
+  const previous = qc.getQueriesData<FormListItem[]>(allLists);
+  for (const [key, list] of previous) if (list) qc.setQueryData(key, update(list));
+  return () => {
+    for (const [key, list] of previous) qc.setQueryData(key, list);
+  };
 }
 
 // ---- Hooks -------------------------------------------------------------
@@ -105,7 +119,7 @@ export function useRenameForm() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, title }: { id: number; title: string }) => formsApi.update(id, { title }),
-    onMutate: ({ id, title }) => patchList(qc, (list) => list.map((f) => (f.id === id ? { ...f, title } : f))),
+    onMutate: ({ id, title }) => patchLists(qc, (list) => list.map((f) => (f.id === id ? { ...f, title } : f))),
     onSuccess: (form) => {
       storeForm(qc, form);
       toast.success("Form renamed");
@@ -121,7 +135,7 @@ export function useDeleteForm() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (form: FormListItem) => formsApi.remove(form.id),
-    onMutate: (form) => patchList(qc, (list) => list.filter((f) => f.id !== form.id)),
+    onMutate: (form) => patchLists(qc, (list) => list.filter((f) => f.id !== form.id)),
     onSuccess: (_data, form) => {
       qc.removeQueries({ queryKey: formKeys.detail(form.id) });
       toast.success(`Deleted “${form.title}”`);
