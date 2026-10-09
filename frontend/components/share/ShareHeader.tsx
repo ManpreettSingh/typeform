@@ -2,28 +2,14 @@
 
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Badge, Tabs } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { publicFormPath } from "@/lib/share";
 import type { Form } from "@/lib/types";
-
-type Tab = "create" | "results" | "share";
-
-const TABS = [
-  { value: "create" as const, label: "Create" },
-  { value: "results" as const, label: "Results" },
-  { value: "share" as const, label: "Share" },
-];
+import { FormTabs } from "@/components/builder/FormTabs";
 
 export function ShareHeader({ form }: { form: Form }) {
-  const router = useRouter();
   const published = form.status === "published";
-
-  function onTab(tab: Tab) {
-    if (tab === "create") router.push(`/forms/${form.id}/edit`);
-    if (tab === "results") router.push(`/forms/${form.id}/results`);
-  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-bg px-3 sm:px-4">
@@ -40,7 +26,7 @@ export function ShareHeader({ form }: { form: Form }) {
         <Badge variant={published ? "success" : "neutral"}>{published ? "Published" : "Draft"}</Badge>
       </div>
 
-      <Tabs<Tab> aria-label="Form sections" items={TABS} value="share" onChange={onTab} className="hidden md:flex" />
+      <FormTabs active="share" formId={form.id} />
 
       <div className="flex shrink-0 items-center justify-end gap-2 md:flex-1">
         {published && (

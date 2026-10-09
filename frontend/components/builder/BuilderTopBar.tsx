@@ -12,18 +12,13 @@ import { Button, ConfirmDialog, IconButton } from "@/components/ui";
 import { useSetPublished } from "@/lib/queries/forms";
 import { useBuilderStore } from "@/store/builderStore";
 import { SaveIndicator } from "./SaveIndicator";
+import { FormTabs } from "./FormTabs";
 
 /** Builder pages under the top tabs: Content (the builder), Workflow (logic), Connect (integrations). */
 export type BuilderView = "content" | "workflow" | "connect";
 type Tab = BuilderView | "share" | "results";
 
-const TABS: { value: Tab; label: string }[] = [
-  { value: "content", label: "Content" },
-  { value: "workflow", label: "Workflow" },
-  { value: "connect", label: "Connect" },
-  { value: "share", label: "Share" },
-  { value: "results", label: "Results" },
-];
+
 
 type Props = {
   view: BuilderView;
@@ -54,17 +49,23 @@ export function BuilderTopBar({ view, onViewChange }: Props) {
       {
         onSuccess: (updated) => {
           applyServerForm(updated);
-          if (next) setDialog("share");
+          if (next) {
+            import("canvas-confetti").then((confetti) => {
+              confetti.default({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ["#000000", "#ffffff", "#4c414e"]
+              });
+            });
+            setDialog("share");
+          }
         },
       },
     );
   }
 
-  function onTab(tab: Tab) {
-    if (tab === "results") router.push(`/forms/${form.id}/results`);
-    else if (tab === "share") router.push(`/forms/${form.id}/share`);
-    else onViewChange(tab);
-  }
+
 
   return (
     <header className="grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-bg px-3 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
@@ -92,29 +93,7 @@ export function BuilderTopBar({ view, onViewChange }: Props) {
         />
       </nav>
 
-      <div role="tablist" aria-label="Form sections" className="hidden h-full items-stretch gap-7 md:flex">
-        {TABS.map(({ value, label }) => {
-          const selected = value === view;
-          return (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              onClick={() => onTab(value)}
-              className={clsx(
-                // Typeform marks the current section with a bar along the top edge.
-                "relative px-0.5 text-sm font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
-                selected
-                  ? "text-text before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:rounded-b-[3px] before:bg-text-soft"
-                  : "text-text-soft hover:text-text",
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <FormTabs active={view} formId={form.id} onViewChange={onViewChange} />
 
       <div className="flex shrink-0 items-center justify-end gap-2">
         <SaveIndicator />
