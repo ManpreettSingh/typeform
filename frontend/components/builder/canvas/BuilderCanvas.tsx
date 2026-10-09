@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { AiStartScreen } from "@/components/ai/AiStartScreen";
+import { MediaCanvas } from "@/components/respondent/MediaCanvas";
 import { QuestionRenderer } from "@/components/respondent/QuestionRenderer";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { ThankYouScreen } from "@/components/respondent/ThankYouScreen";
@@ -38,6 +39,8 @@ export function BuilderCanvas({
 }) {
   const screen = useBuilderStore((s) => s.screen);
   const theme = useBuilderStore((s) => s.form!.theme);
+  const welcome = useBuilderStore((s) => s.form!.welcome);
+  const ending = useBuilderStore((s) => s.form!.endings.find((e) => e.id === s.selectedEndingId));
   const questions = useBuilderStore((s) => s.questions);
   const selectedId = useBuilderStore((s) => s.selectedId);
   const index = questions.findIndex((q) => q.id === selectedId);
@@ -64,6 +67,9 @@ export function BuilderCanvas({
     );
   } else content = <p className="opacity-60">Select a page to edit it.</p>;
 
+  // The selected page's image, laid out like the live form so it shows as soon as it's added.
+  const media = screen === "welcome" ? welcome : screen === "ending" ? ending : question?.properties;
+
   return (
     <div className="flex min-h-0 flex-1 justify-center">
       <RespondentTheme
@@ -73,9 +79,15 @@ export function BuilderCanvas({
           device === "mobile" ? "my-4 w-[375px] rounded-card shadow-popover" : "w-full",
         )}
       >
-        <div className={clsx("m-auto flex w-full justify-center", device === "mobile" ? "px-6 py-10" : "px-10 py-14")}>
-          {content}
-        </div>
+        {media?.attachment ? (
+          <MediaCanvas attachment={media.attachment} layout={media.layout}>
+            {content}
+          </MediaCanvas>
+        ) : (
+          <div className={clsx("m-auto flex w-full justify-center", device === "mobile" ? "px-6 py-10" : "px-10 py-14")}>
+            {content}
+          </div>
+        )}
       </RespondentTheme>
     </div>
   );
