@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronUp, LayoutGrid, Plus, Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useId } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AiAssistant } from "@/components/ai/AiAssistant";
@@ -27,7 +27,6 @@ export function WorkspaceSidebar({ query, onQueryChange, formCount, totals, acti
   // "Ask Typeform AI": the review view for a form that doesn't exist yet; Apply creates it.
   const [ai, setAi] = useState<string | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: workspaces } = useWorkspaces();
   // A request made elsewhere (the onboarding's "Create my first form with AI") opens the same view.
   const launched = useAiLauncher((s) => s.prompt);
