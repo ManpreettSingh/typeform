@@ -40,13 +40,10 @@ import {
   QUESTION_TYPES,
   type AnswerValue,
   type LogicOp,
-  type Condition,
+  type LogicRule,
   type PublicQuestionOf,
   type QuestionType,
 } from "@/lib/types";
-
-/** What a per-type matcher needs from a condition: the operator and the value to compare with. */
-export type LogicRule = Pick<Condition, "op" | "value">;
 
 export type QuestionGroup = "contact" | "choice" | "rating" | "text" | "other" | "structure";
 

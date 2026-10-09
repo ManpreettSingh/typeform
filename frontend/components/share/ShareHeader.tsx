@@ -16,14 +16,13 @@ const TABS = [
   { value: "share" as const, label: "Share" },
 ];
 
-/** Same sections as the builder's top bar, with Results selected. */
-export function ResultsHeader({ form, onShare }: { form: Form; onShare: () => void }) {
+export function ShareHeader({ form }: { form: Form }) {
   const router = useRouter();
   const published = form.status === "published";
 
   function onTab(tab: Tab) {
     if (tab === "create") router.push(`/forms/${form.id}/edit`);
-    if (tab === "share") router.push(`/forms/${form.id}/share`);
+    if (tab === "results") router.push(`/forms/${form.id}/results`);
   }
 
   return (
@@ -41,7 +40,7 @@ export function ResultsHeader({ form, onShare }: { form: Form; onShare: () => vo
         <Badge variant={published ? "success" : "neutral"}>{published ? "Published" : "Draft"}</Badge>
       </div>
 
-      <Tabs<Tab> aria-label="Form sections" items={TABS} value="results" onChange={onTab} className="hidden md:flex" />
+      <Tabs<Tab> aria-label="Form sections" items={TABS} value="share" onChange={onTab} className="hidden md:flex" />
 
       <div className="flex shrink-0 items-center justify-end gap-2 md:flex-1">
         {published && (

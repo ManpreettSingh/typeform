@@ -62,7 +62,7 @@ export function BuilderTopBar({ view, onViewChange }: Props) {
 
   function onTab(tab: Tab) {
     if (tab === "results") router.push(`/forms/${form.id}/results`);
-    else if (tab === "share") setDialog(published ? "share" : "publish-to-share");
+    else if (tab === "share") router.push(`/forms/${form.id}/share`);
     else onViewChange(tab);
   }
 
