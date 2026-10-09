@@ -2,6 +2,7 @@ import { X, ImageIcon } from "lucide-react";
 import { newOptionId, optionLetter } from "@/lib/questionTypes";
 import type { ChoiceOption, QuestionOf } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { uploadImage } from "@/lib/upload";
 import { clsx } from "clsx";
 
 const MIN_OPTIONS = 1;
@@ -32,37 +33,23 @@ export function CanvasPictureChoices({ question }: { question: QuestionOf<"pictu
     setOptions(next, 500);
   }
 
-  async function uploadImage(index: number, file: File) {
+  async function handleImageUpload(index: number, file: File) {
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/media/sign", { method: "POST" });
-      if (!res.ok) throw new Error("Could not sign upload");
-      const signatureData = await res.json();
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signatureData.api_key);
-      formData.append("timestamp", signatureData.timestamp);
-      formData.append("signature", signatureData.signature);
-      formData.append("folder", signatureData.folder);
-
-      const uploadRes = await fetch(signatureData.upload_url, { method: "POST", body: formData });
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const uploadData = await uploadRes.json();
-
+      const { url, public_id } = await uploadImage(file);
       const next = [...options];
       next[index] = {
         ...next[index],
         attachment: {
           type: "image",
-          public_id: uploadData.public_id,
-          url: uploadData.secure_url,
+          public_id: public_id,
+          url: url,
           alt: file.name,
         }
       };
       setOptions(next, 0);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload image. Check console for details.");
+      // alert removed since fallback handles it
     }
   }
 
@@ -86,7 +73,7 @@ export function CanvasPictureChoices({ question }: { question: QuestionOf<"pictu
                     className="hidden" 
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) uploadImage(i, file);
+                      if (file) handleImageUpload(i, file);
                     }} 
                   />
                 </label>

@@ -6,6 +6,7 @@ import { Button, Select } from "@/components/ui";
 import { DEFAULT_THEME, FONT_OPTIONS, HEX_COLOR, themeStyle } from "@/lib/theme";
 import type { Theme } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
+import { uploadImage } from "@/lib/upload";
 import { PanelCard } from "../panel/PanelCard";
 
 const THEME_DEBOUNCE_MS = 400;
@@ -115,29 +116,11 @@ function BackgroundImageField({ value, onChange }: { value: string | null; onCha
 
     setUploading(true);
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/media/sign", { method: "POST" });
-      if (!res.ok) throw new Error("Could not sign upload");
-      const signatureData = await res.json();
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signatureData.api_key);
-      formData.append("timestamp", signatureData.timestamp);
-      formData.append("signature", signatureData.signature);
-      formData.append("folder", signatureData.folder);
-
-      const uploadRes = await fetch(signatureData.upload_url, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const uploadData = await uploadRes.json();
-
-      onChange(uploadData.secure_url);
+      const { url } = await uploadImage(file);
+      onChange(url);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload image. Check console for details.");
+      // Removed the alert since uploadImage falls back gracefully
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

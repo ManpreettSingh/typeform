@@ -2,6 +2,7 @@ import { ImageIcon, LayoutPanelLeft, LayoutPanelTop, Monitor, Maximize } from "l
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import type { MediaAttachment, MediaLayout } from "@/lib/types";
+import { uploadImage } from "@/lib/upload";
 
 type Props = {
   attachment: MediaAttachment | null | undefined;
@@ -19,30 +20,13 @@ export function MediaSettings({ attachment, layout, onChange }: Props) {
 
     setUploading(true);
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/media/sign", { method: "POST" });
-      if (!res.ok) throw new Error("Could not sign upload");
-      const signatureData = await res.json();
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", signatureData.api_key);
-      formData.append("timestamp", signatureData.timestamp);
-      formData.append("signature", signatureData.signature);
-      formData.append("folder", signatureData.folder);
-
-      const uploadRes = await fetch(signatureData.upload_url, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const uploadData = await uploadRes.json();
+      const { url, public_id } = await uploadImage(file);
 
       onChange({
         attachment: {
           type: "image",
-          public_id: uploadData.public_id,
-          url: uploadData.secure_url,
+          public_id: public_id,
+          url: url,
           alt: file.name,
         },
         layout: layout || { type: "stack", placement: null },
