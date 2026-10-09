@@ -60,6 +60,23 @@ class UploadSignatureOut(BaseModel):
     max_bytes: int
 
 
+class PaymentOrderIn(BaseModel):
+    question_id: int
+    # What the respondent chose to pay, in minor units (paise, cents). Checked against the question's limits.
+    amount: int
+
+
+class PaymentOrderOut(BaseModel):
+    """Everything Razorpay Checkout needs to open for this order. Never includes the key secret."""
+
+    order_id: str
+    key_id: str
+    amount: int
+    currency: str
+    name: str
+    description: str
+
+
 class PartialStartOut(BaseModel):
     response_id: int
     # Needed to save progress on this response; keeps others from writing to it.

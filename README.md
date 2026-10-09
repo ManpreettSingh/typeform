@@ -67,6 +67,7 @@ Responses are generated from a fixed random seed, so every machine gets the same
 | `backend/.env` | `CORS_ORIGINS` | `http://localhost:3000` (comma-separated) |
 | `backend/.env` | `SEED_DEMO_DATA` | `false`. `true` seeds the demo forms at startup when they're missing (used by the hosted demo; never duplicates) |
 | `backend/.env` | `CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET` | empty: image and file uploads go to a local fake server |
+| `backend/.env` | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | empty: a payment question builds, but paying says "Payments aren't set up yet". Use **test-mode** keys (`rzp_test_…`) from the Razorpay dashboard. The secret stays on the server |
 | `frontend/.env.local` | `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api` |
 
 ### Checks
@@ -112,10 +113,11 @@ End-to-end browser checks run on an isolated stack (ports 3100/8100, throwaway d
 - **Dark mode:** a Light / Dark / System switch for the dashboard, builder and results. Forms keep their own theme.
 - **CSV export** of all responses: readable values, opens correctly in Excel, protected against formula injection.
 - **File upload question:** drag-and-drop or choose a file (10MB limit), with upload progress; the file goes straight to Cloudinary and results link to it.
+- **Payment question (Razorpay):** the respondent types an amount (within the creator's minimum and maximum, optionally pre-filled) and pays in Razorpay Checkout; the creator picks the currency (INR, USD, EUR, GBP), business name and description. The server opens the order, then re-checks the payment with Razorpay when the response is submitted (signature, paid, same amount, made for that question, not used by another response). Results show the amount and payment id, plus the total collected.
 - **Extras:** a template gallery (18 templates, "Use template" makes a real draft), a Share page (link, QR code, embed code), workspaces, multiple endings, and Typeform AI (Gemini) to draft a form or edit it by chat.
 
 ### Placeholders (“Coming soon”, disabled)
-Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs. Payment in the *Add content* menu.
+Integrations and Collaborate under Settings; Contacts, Automations and Insights tabs.
 
 ---
 
@@ -263,7 +265,7 @@ Base path `/api`. Errors are always `{"detail": "message"}`. Validation errors (
 | Forms | `GET /forms?workspace_id` · `POST /forms` · `GET/PATCH/DELETE /forms/{id}` · `POST /forms/{id}/duplicate` · `POST /forms/{id}/publish` · `POST /forms/{id}/unpublish` |
 | Questions | `POST /forms/{id}/questions` · `PATCH/DELETE /questions/{qid}` · `PUT /forms/{id}/questions/order` |
 | Endings | `GET/POST /forms/{id}/endings` · `PATCH/DELETE /endings/{eid}` · `PUT /forms/{id}/endings/order` |
-| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/views` · `POST /public/forms/{slug}/uploads` (signed file upload) · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
+| Public | `GET /public/forms/{slug}` · `POST /public/forms/{slug}/views` · `POST /public/forms/{slug}/uploads` (signed file upload) · `POST /public/forms/{slug}/payments/order` (opens a Razorpay order for a payment question) · `POST /public/forms/{slug}/responses` · `POST /public/forms/{slug}/responses/start` · `PATCH /public/responses/{rid}` |
 | Results | `GET /forms/{id}/responses?page&page_size&status` · `GET/DELETE /forms/{id}/responses/{rid}` · `POST /forms/{id}/responses/test` · `GET /forms/{id}/summary` · `GET /forms/{id}/responses/export.csv` |
 | Templates | `GET /templates?role&goal&type&q` · `GET /templates/{slug}` · `POST /forms/from-template/{slug}` |
 | Workspace & design | `GET/POST /workspaces` · `PATCH/DELETE /workspaces/{wid}` · `GET /themes` · `POST /media/sign` (signed image upload) |
@@ -289,6 +291,7 @@ Full request and response shapes: [`docs/API_SPEC.md`](docs/API_SPEC.md), or the
 - The builder canvas draws a slide at the canvas's own width; Typeform draws a fixed 16:9 slide and scales it down.
 - No image gallery (Unsplash, video, icons) or image editor; images are uploaded files.
 - File uploads: one file per question, 10MB (checked in the browser and on the stored answer; Cloudinary receives the file directly).
+- Payments: one amount per payment question, no refunds, coupons, subscriptions or Razorpay webhooks. A payment counts when Razorpay reports it `captured` or `authorized`. Starting an order is open to anyone with the form's link (like submitting), so an abuser could create unpaid orders in your Razorpay account; there is no rate limiting anywhere in this app.
 - Logic rules can't be reordered. A richer logic model (v2: conditions on several answers, variables, scoring) is designed but deferred (`docs/superpowers/DEFERRED.md`).
 - Template cards have no preview yet.
 - Abandoned partial responses are kept. Reloading mid-form starts a new partial response.

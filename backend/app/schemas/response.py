@@ -166,8 +166,24 @@ class FileSummary(_QuestionSummaryBase):
     files: list[FileAnswer]
 
 
+class PaymentRecord(BaseModel):
+    payment_id: str
+    amount: int
+    currency: str
+    submitted_at: datetime
+
+
+class PaymentSummary(_QuestionSummaryBase):
+    type: Literal[QuestionType.PAYMENT]
+    # What came in, in the question's currency (minor units); payments in a since-changed currency aren't added up.
+    currency: str
+    total_amount: int
+    # Every payment, most recent first.
+    payments: list[PaymentRecord]
+
+
 QuestionSummary = Annotated[
-    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary | FileSummary,
+    ChoiceSummary | RatingSummary | ScaleSummary | NpsSummary | NumberSummary | TextSummary | CompositeSummary | RankingSummary | MatrixSummary | FileSummary | PaymentSummary,
     Field(discriminator="type"),
 ]
 

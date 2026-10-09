@@ -130,6 +130,15 @@ async function start(seed) {
     CLOUDINARY_API_KEY: "",
     CLOUDINARY_API_SECRET: "",
     CLOUDINARY_URL: "",
+    // Razorpay points at the fake on :8101 (scripts/fake-services.mjs). To try your real Razorpay test keys instead
+    // (backend/.env or the shell), start with E2E_REAL_RAZORPAY=1; nothing is overridden then.
+    ...(process.env.E2E_REAL_RAZORPAY
+      ? {}
+      : {
+          RAZORPAY_KEY_ID: "rzp_test_e2e",
+          RAZORPAY_KEY_SECRET: "e2e_secret",
+          RAZORPAY_API_BASE: "http://localhost:8101/razorpay/v1",
+        }),
   };
   if (seed) {
     const res = spawnSync(python, ["-m", "app.seed"], { cwd: backend, env: apiEnv, encoding: "utf8" });

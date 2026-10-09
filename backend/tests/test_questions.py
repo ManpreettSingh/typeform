@@ -51,8 +51,12 @@ def test_create_validates_properties_against_type(client, make_form):
     res = client.post(url, json={"type": "number", "properties": {"min": 10, "max": 1}})
     assert res.status_code == 422
 
-    # Payment is still a "Coming soon" placeholder, not a type.
-    assert client.post(url, json={"type": "payment"}).status_code == 422
+    res = client.post(url, json={"type": "payment", "properties": {"currency": "JPY"}})
+    assert res.status_code == 422 and "properties.currency" in res.json()["detail"]["errors"]
+    res = client.post(url, json={"type": "payment", "properties": {"min_amount": 1_000, "max_amount": 500}})
+    assert res.status_code == 422
+
+    assert client.post(url, json={"type": "not_a_type"}).status_code == 422
 
 
 def test_create_missing_form_is_404(client):

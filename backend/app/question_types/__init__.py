@@ -1,12 +1,12 @@
 """The question-type registry: SPECS maps every QuestionType to its QuestionTypeSpec (see base.py)."""
 
 from app.models.enums import QuestionType
-from app.question_types import choice, dates, files, numeric, structure, text, composite, matrix_ranking
+from app.question_types import choice, dates, files, numeric, payment, structure, text, composite, matrix_ranking
 from app.question_types.base import AnswerError, QuestionTypeSpec
 
 SPECS: dict[QuestionType, QuestionTypeSpec] = {
     spec.key: spec
-    for module in (text, numeric, choice, dates, structure, composite, matrix_ranking, files)
+    for module in (text, numeric, choice, dates, structure, composite, matrix_ranking, files, payment)
     for spec in module.SPECS
 }
 

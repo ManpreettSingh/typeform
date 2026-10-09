@@ -14,6 +14,7 @@ import { FieldListSettings } from "@/components/builder/settings/FieldListSettin
 import { RankingSettings } from "@/components/builder/settings/RankingSettings";
 import { MatrixSettings } from "@/components/builder/settings/MatrixSettings";
 import { GroupSettings } from "@/components/builder/settings/GroupSettings";
+import { PaymentSettings } from "@/components/builder/settings/PaymentSettings";
 import type { QuestionOf, QuestionType } from "@/lib/types";
 
 /** `null` means the type has no settings beyond Required. A type missing here is a compile error. */
@@ -41,4 +42,5 @@ export const SETTINGS_COMPONENTS = {
   matrix: MatrixSettings,
   group: GroupSettings,
   file_upload: null,
+  payment: PaymentSettings,
 } satisfies { [T in QuestionType]: ComponentType<{ question: QuestionOf<T> }> | null };

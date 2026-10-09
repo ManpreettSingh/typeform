@@ -61,5 +61,7 @@ class QuestionTypeSpec:
     convert: Callable[[QuestionType, Properties], Properties] | None = None
     # What a required question says when it is left unanswered; None → the common "Please fill this in".
     required_message: str | None = None
+    # True when the question can't be skipped whatever its Required switch says (a payment).
+    always_required: bool = False
     # (validated value) -> False when the value doesn't answer a required question (e.g. "I don't accept").
     satisfies_required: Callable[[Any], bool] | None = None

@@ -33,6 +33,7 @@ export const QUESTION_TYPES = [
   "matrix",
   "group",
   "file_upload",
+  "payment",
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
@@ -127,6 +128,21 @@ export type RankingProperties = { options: ChoiceOption[]; randomize: boolean };
 export type MatrixProperties = { rows: ChoiceOption[]; columns: ChoiceOption[]; multiple_selection: boolean };
 export type GroupProperties = { button_text: string };
 
+export const PAYMENT_CURRENCIES = ["INR", "USD", "EUR", "GBP"] as const;
+export type PaymentCurrency = (typeof PAYMENT_CURRENCIES)[number];
+/** Amounts are whole minor units (paise, cents): 100 = ₹1.00. Razorpay's smallest charge is 1.00; one payment caps at 5,00,000.00. */
+export const PAYMENT_AMOUNT_RANGE = { min: 100, max: 50_000_000 } as const;
+export type PaymentProperties = {
+  currency: PaymentCurrency;
+  /** Shown on Razorpay's checkout. */
+  description: string;
+  business_name: string;
+  /** Pre-filled in the amount field. */
+  suggested_amount?: number;
+  min_amount: number;
+  max_amount: number;
+};
+
 export type QuestionPropertiesMap = {
   short_text: WithMedia<TextProperties>;
   long_text: WithMedia<TextProperties>;
@@ -151,6 +167,7 @@ export type QuestionPropertiesMap = {
   matrix: WithMedia<MatrixProperties>;
   group: WithMedia<GroupProperties>;
   file_upload: WithMedia<EmptyProperties>;
+  payment: WithMedia<PaymentProperties>;
 };
 
 export const RATING_MAX_RANGE = { min: 3, max: 10 } as const;
@@ -273,9 +290,18 @@ export type AnswerValueMap = {
   matrix: Record<string, string | string[]>;
   group: never;
   file_upload: UploadedFile;
+  payment: PaymentAnswer;
 };
 /** A respondent's upload, stored where Cloudinary put it (question_types/files.py). */
 export type UploadedFile = { url: string; name: string; size: number; type?: string };
+/** Proof of a Razorpay payment (question_types/payment.py); `amount` is in minor units. The server re-checks it with Razorpay. */
+export type PaymentAnswer = {
+  payment_id: string;
+  order_id: string;
+  signature: string;
+  amount: number;
+  currency: PaymentCurrency;
+};
 export type AnswerValue = AnswerValueMap[QuestionType];
 /** Answers keyed by question id. */
 export type Answers = Record<number, AnswerValue | undefined>;
@@ -472,7 +498,16 @@ export type FileSummary = QuestionSummaryBase & {
   /** Every uploaded file, most recent first. */
   files: { name: string; url: string; size: number; submitted_at: ISODateTime }[];
 };
+export type PaymentSummary = QuestionSummaryBase & {
+  type: "payment";
+  /** The question's currency; `total_amount` (minor units) adds up only payments in it. */
+  currency: PaymentCurrency;
+  total_amount: number;
+  /** Every payment, most recent first. */
+  payments: { payment_id: string; amount: number; currency: PaymentCurrency; submitted_at: ISODateTime }[];
+};
 export type QuestionSummary =
+  | PaymentSummary
   | ChoiceSummary
   | RatingSummary
   | ScaleSummary

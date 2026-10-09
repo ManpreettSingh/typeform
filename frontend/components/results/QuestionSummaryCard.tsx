@@ -1,13 +1,15 @@
-import { FileText, Heart, Star } from "lucide-react";
+import { Banknote, FileText, Heart, Star } from "lucide-react";
 import { QuestionTypeChip } from "@/components/builder/QuestionTypeChip";
 import { formatNumber } from "@/lib/answerFormat";
 import { formatFileSize } from "@/lib/fileUpload";
+import { formatMoney } from "@/lib/payment";
 import type {
   ChoiceSummary,
   FileSummary,
   MatrixSummary,
   NpsSummary,
   NumberSummary,
+  PaymentSummary,
   Question,
   QuestionSummary,
   RankingSummary,
@@ -87,6 +89,8 @@ function SummaryBody({
       return <MatrixBody summary={summary} />;
     case "file_upload":
       return <FileBody summary={summary} onShowResponses={onShowResponses} />;
+    case "payment":
+      return <PaymentBody summary={summary} onShowResponses={onShowResponses} />;
     default:
       return <TextBody summary={summary as TextSummary} onShowResponses={onShowResponses} />;
   }
@@ -277,6 +281,31 @@ function FileBody({ summary, onShowResponses }: { summary: FileSummary; onShowRe
               {file.name}
             </a>
             <span className="shrink-0 text-xs text-text-muted">{formatFileSize(file.size)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-text-muted">
+        {summary.answered > recent.length ? `Latest ${recent.length} of ${summary.answered}. ` : ""}
+        <button type="button" onClick={onShowResponses} className="font-medium text-accent hover:underline">
+          See all responses
+        </button>
+      </p>
+    </>
+  );
+}
+
+function PaymentBody({ summary, onShowResponses }: { summary: PaymentSummary; onShowResponses: () => void }) {
+  const recent = summary.payments.slice(0, 5);
+  const count = `${summary.answered} ${summary.answered === 1 ? "payment" : "payments"}`;
+  return (
+    <>
+      <Figure label={`Collected from ${count}`} value={formatMoney(summary.total_amount, summary.currency)} />
+      <ul className="mt-3 flex flex-col gap-2">
+        {recent.map((payment) => (
+          <li key={payment.payment_id} className="flex items-center gap-3 rounded-input bg-bg-subtle px-3 py-2 text-sm text-text">
+            <Banknote className="size-4 shrink-0 text-text-muted" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{payment.payment_id}</span>
+            <span className="shrink-0 font-medium">{formatMoney(payment.amount, payment.currency)}</span>
           </li>
         ))}
       </ul>

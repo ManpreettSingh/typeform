@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     cloudinary_api_key: str = ""
     cloudinary_api_secret: str = ""
 
+    # Payment questions (Razorpay). Test keys start with rzp_test_. Without both, order and verification answer "Payments
+    # aren't set up yet". The key id is public (Checkout needs it); the secret never leaves the server.
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_api_base: str = "https://api.razorpay.com/v1"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

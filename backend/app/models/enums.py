@@ -30,6 +30,7 @@ class QuestionType(StrEnum):
     MATRIX = "matrix"
     GROUP = "group"
     FILE_UPLOAD = "file_upload"
+    PAYMENT = "payment"
 
 
 class ResponseStatus(StrEnum):

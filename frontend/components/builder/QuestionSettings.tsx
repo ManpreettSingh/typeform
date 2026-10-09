@@ -64,7 +64,8 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
         {answerable && (
           <SwitchRow
             label="Required"
-            checked={question.required}
+            checked={question.required || Boolean(getDef(question.type).alwaysRequired)}
+            disabled={getDef(question.type).alwaysRequired}
             onChange={(required) => updateQuestion(question.id, { required }, 0)}
           />
         )}

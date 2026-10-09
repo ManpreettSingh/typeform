@@ -12,11 +12,14 @@ from app.schemas.public import (
     PartialStartOut,
     PartialUpdateIn,
     PartialUpdateOut,
+    PaymentOrderIn,
+    PaymentOrderOut,
     PublicForm,
     SubmissionIn,
     SubmissionOut,
     UploadSignatureOut,
 )
+from app.services import payments
 from app.services import submissions as submission_service
 from app.services.media import generate_upload_signature
 
@@ -56,6 +59,16 @@ def sign_file_upload(slug: str, db: DB):
     return UploadSignatureOut(
         **generate_upload_signature(folder=f"responses/{form.slug}", resource_type="auto"), max_bytes=MAX_FILE_BYTES
     )
+
+
+@router.post("/forms/{slug}/payments/order", response_model=PaymentOrderOut)
+def start_payment(slug: str, data: PaymentOrderIn, db: DB):
+    """Opens a Razorpay order for the amount the respondent typed on one of the form's payment questions."""
+    form = submission_service.get_published_form(db, slug)
+    question = next((q for q in form.questions if q.id == data.question_id and q.type == QuestionType.PAYMENT), None)
+    if question is None:
+        raise NotFoundError("This form doesn't take payments")
+    return payments.create_order(form, question, data.amount)
 
 
 @router.post("/forms/{slug}/responses", response_model=SubmissionOut, status_code=status.HTTP_201_CREATED)

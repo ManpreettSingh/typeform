@@ -96,7 +96,7 @@ const GROUPS: Group[] = [
     items: [
       { label: "Number", icon: Hash, type: "number" },
       { label: "Date", icon: Calendar, type: "date" },
-      { label: "Payment", icon: CreditCard },
+      { label: "Payment", icon: CreditCard, type: "payment" },
       { label: "File Upload", icon: Upload, type: "file_upload" },
       { label: "Scheduler", icon: CalendarClock },
     ],

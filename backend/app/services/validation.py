@@ -57,7 +57,7 @@ def validate_answers(
             continue
         key = str(question.id)
         value = answers.get(key)
-        required = question.required and not partial
+        required = (question.required or spec.always_required) and not partial
         if is_empty(value):
             if required:
                 errors[key] = spec.required_message or REQUIRED_MESSAGE

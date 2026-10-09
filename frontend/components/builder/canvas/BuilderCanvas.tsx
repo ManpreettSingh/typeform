@@ -10,6 +10,7 @@ import { VideoQuestionDialog } from "../settings/VideoQuestionDialog";
 import { RespondentTheme } from "@/components/respondent/RespondentTheme";
 import { ThankYouScreen } from "@/components/respondent/ThankYouScreen";
 import { canEndAfter } from "@/lib/logic";
+import { getDef } from "@/lib/questionTypes";
 import type { AnswerValue, Question } from "@/lib/types";
 import { useBuilderStore } from "@/store/builderStore";
 import { CanvasCheckbox } from "./CanvasCheckbox";
@@ -148,7 +149,7 @@ function CanvasQuestion({
             maxLength={QUESTION_TITLE_MAX}
             onChange={(title) => updateQuestion(question.id, { title })}
           />
-          {question.required && <span aria-label="required">*</span>}
+          {(question.required || Boolean(getDef(question.type).alwaysRequired)) &&<span aria-label="required">*</span>}
         </div>
       }
       descriptionSlot={

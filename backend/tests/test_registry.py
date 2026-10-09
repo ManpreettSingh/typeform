@@ -35,6 +35,7 @@ EXPECTED_OPS = {
     "matrix": set(),
     "group": set(),
     "file_upload": set(),
+    "payment": set(),
 }
 CHOICE_PROPS = {"options": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}], "allow_multiple": True}
 

@@ -24,9 +24,11 @@ import {
   Grid3X3,
   Folder,
   Upload,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import { UPLOAD_ERROR, validateUploadedFile } from "@/lib/fileUpload";
+import { PAYMENT_ERROR, formatMoney, validatePayment } from "@/lib/payment";
 import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
 import {
   validateRanking,
@@ -43,6 +45,7 @@ import {
   type AnswerValue,
   type LogicOp,
   type LogicRule,
+  type PaymentAnswer,
   type PublicQuestionOf,
   type QuestionType,
 } from "@/lib/types";
@@ -59,6 +62,8 @@ export type QuestionTypeDef<T extends QuestionType = QuestionType> = {
   answerable: boolean;
   /** What a required question says when left unanswered; absent → "Please fill this in". */
   requiredMessage?: string;
+  /** True when the question can't be skipped whatever its Required switch says (a payment). */
+  alwaysRequired?: boolean;
   /** False when a valid answer still doesn't answer a required question ("I don’t accept"). */
   satisfiesRequired?(value: AnswerValue): boolean;
   /** Conditions a branching rule can use, in menu order (same as the server's `logic_ops`). */
@@ -607,6 +612,23 @@ export const QUESTION_TYPE_DEFS: { [T in QuestionType]: QuestionTypeDef<T> } = {
     ops: [],
     validate: (_question, value) => validateUploadedFile(value),
     format: (_question, value) => (typeof value === "object" && value !== null && "name" in value ? String(value.name) : ""),
+    ruleMatches: () => false,
+    toSubmission: (_question, value) => value,
+  },
+  payment: {
+    label: "Payment",
+    icon: CreditCard,
+    chip: "bg-qt-other text-qt-fg",
+    group: "other",
+    answerable: true,
+    requiredMessage: PAYMENT_ERROR,
+    alwaysRequired: true,
+    ops: [],
+    validate: (question, value) => validatePayment(value, question.properties),
+    format: (_question, value) => {
+      const payment = value as Partial<PaymentAnswer> | null;
+      return typeof payment?.amount === "number" ? `${formatMoney(payment.amount, String(payment.currency))} (${payment.payment_id})` : "";
+    },
     ruleMatches: () => false,
     toSubmission: (_question, value) => value,
   },

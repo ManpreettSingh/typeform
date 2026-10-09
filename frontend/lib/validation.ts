@@ -13,7 +13,7 @@ export function isEmptyAnswer(value: AnswerValue | undefined): boolean {
 /** Returns an error message, or null when the answer is acceptable. */
 export function validateAnswer(question: PublicQuestion, value: AnswerValue | undefined): string | null {
   const def = getDef(question.type);
-  const unanswered = question.required ? (def.requiredMessage ?? "Please fill this in") : null;
+  const unanswered = question.required || def.alwaysRequired ? (def.requiredMessage ?? "Please fill this in") : null;
   if (value === undefined || isEmptyAnswer(value)) return unanswered;
   const error = def.validate(question, value);
   if (error) return error;

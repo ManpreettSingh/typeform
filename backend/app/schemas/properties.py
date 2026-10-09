@@ -125,6 +125,33 @@ class EmptyProperties(_Props):
     pass
 
 
+# Amounts are whole minor units (paise, cents): 100 = ₹1.00. Razorpay's smallest charge is 1.00 and one payment is
+# capped at 5,00,000.00.
+PAYMENT_MIN_AMOUNT = 100
+PAYMENT_MAX_AMOUNT = 50_000_000
+
+
+class PaymentProperties(_Props):
+    """A payment question: the respondent types what they pay, within the creator's limits."""
+
+    currency: Literal["INR", "USD", "EUR", "GBP"] = "INR"
+    # Shown on Razorpay's checkout.
+    description: str = Field(default="", max_length=255)
+    business_name: str = Field(default="", max_length=80)
+    # Pre-filled in the amount field.
+    suggested_amount: int | None = Field(default=None, ge=PAYMENT_MIN_AMOUNT, le=PAYMENT_MAX_AMOUNT)
+    min_amount: int = Field(default=PAYMENT_MIN_AMOUNT, ge=PAYMENT_MIN_AMOUNT, le=PAYMENT_MAX_AMOUNT)
+    max_amount: int = Field(default=10_000_000, ge=PAYMENT_MIN_AMOUNT, le=PAYMENT_MAX_AMOUNT)
+
+    @model_validator(mode="after")
+    def _limits(self):
+        if self.min_amount > self.max_amount:
+            raise ValueError("The minimum amount can't be more than the maximum")
+        if self.suggested_amount is not None and not self.min_amount <= self.suggested_amount <= self.max_amount:
+            raise ValueError("The suggested amount must be between the minimum and the maximum")
+        return self
+
+
 class StatementProperties(_Props):
     button_text: str = Field(default="Continue", max_length=24)
     hide_marks: bool = False

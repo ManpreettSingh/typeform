@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import ConflictError, NotFoundError
 from app.models import Answer, Form, FormStatus, Response, ResponseStatus
 from app.models.base import utcnow
+from app.services import payments
 from app.services.validation import validate_answers
 
 
@@ -27,6 +28,7 @@ def record_view(db: Session, form: Form) -> None:
 def create_submission(db: Session, form: Form, answers: dict[str, Any]) -> Response:
     """Validates every answer, then stores a completed response and its answers in one transaction."""
     cleaned = validate_answers(form.questions, answers)
+    payments.verify_submission(db, form, cleaned)
     now = utcnow()
     response = Response(
         form_id=form.id,
@@ -72,6 +74,8 @@ def get_open_response(db: Session, response_id: int, token: str) -> Response:
 def save_progress(db: Session, response: Response, answers: dict[str, Any], complete: bool) -> Response:
     """Replaces the stored answers. `complete` validates like a full submission and marks it completed."""
     cleaned = validate_answers(response.form.questions, answers, partial=not complete)
+    if complete:
+        payments.verify_submission(db, response.form, cleaned, response_id=response.id)
 
     # Update rows in place: replacing the collection could insert before deleting and hit the unique key.
     existing = {a.question_id: a for a in response.answers}

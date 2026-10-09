@@ -2,6 +2,7 @@
 
 import { useId, type ComponentType } from "react";
 import { ANSWER_COMPONENTS } from "@/components/questionTypes/answers";
+import { getDef } from "@/lib/questionTypes";
 import type { AnswerValue, PublicQuestion, QuestionType } from "@/lib/types";
 import { QuestionShell } from "./QuestionShell";
 import type { AnswerProps, RenderMode } from "./types";
@@ -83,7 +84,7 @@ export function QuestionRenderer({
       titleId={titleId}
       groupTitle={question.group_title}
       description={question.description}
-      required={question.required}
+      required={question.required || Boolean(getDef(question.type).alwaysRequired)}
       error={error}
       errorKey={errorKey}
       submitLabel={isLast ? "Submit" : "OK"}
