@@ -30,7 +30,13 @@ def get_template(slug: str, db: DB):
     return template_service.template_detail(db, slug)
 
 
+from pydantic import BaseModel
+
+class CreateFromTemplateRequest(BaseModel):
+    workspace_id: int | None = None
+
 @router.post("/forms/from-template/{slug}", response_model=FormOut, status_code=status.HTTP_201_CREATED)
-def create_form_from_template(slug: str, db: DB):
-    form = template_service.create_form_from_template(db, slug)
+def create_form_from_template(slug: str, db: DB, req: CreateFromTemplateRequest | None = None):
+    workspace_id = req.workspace_id if req else None
+    form = template_service.create_form_from_template(db, slug, workspace_id)
     return form_service.to_form_out(db, form)

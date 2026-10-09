@@ -47,7 +47,16 @@ export function FormShare() {
   if (form.isPending) return <ShareSkeleton />;
   if (form.isError || !form.data) return <div>Error loading form</div>;
 
-  const embedCode = `<div data-tf-live="${url}"></div>\n<script src="${window.location.origin}/embed.js"></script>`;
+  const embedCode = useMemo(() => {
+    if (!url) return "";
+    let base = `<div data-tf-live="${url}"></div>\n<script src="${window.location.origin}/embed.js"></script>`;
+    if (embedMode === "fullpage") {
+      base = `<div data-tf-live="${url}" data-tf-mode="fullpage"></div>\n<script src="${window.location.origin}/embed.js"></script>`;
+    } else if (embedMode === "popup") {
+      base = `<button id="form-popup-btn">Open Form</button>\n<div data-tf-live="${url}" data-tf-mode="popup" data-tf-launch="form-popup-btn"></div>\n<script src="${window.location.origin}/embed.js"></script>`;
+    }
+    return base;
+  }, [url, embedMode]);
 
   return (
     <div className="flex h-screen flex-col bg-[#f7f7f8]">

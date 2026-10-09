@@ -73,8 +73,10 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-tf-live]").forEach((el) => {
       const url = el.getAttribute("data-tf-live");
+      const mode = el.getAttribute("data-tf-mode") || "standard";
+      const launchButtonId = el.getAttribute("data-tf-launch");
       if (url) {
-        createEmbed(el, { mode: "standard", url });
+        createEmbed(el, { mode, url, launchButtonId });
       }
     });
   });

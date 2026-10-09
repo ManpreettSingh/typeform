@@ -237,11 +237,11 @@ def template_detail(db: Session, slug: str) -> TemplateDetail:
 # ---- use a template ------------------------------------------------------------------------------------------------
 
 
-def create_form_from_template(db: Session, slug: str) -> Form:
+def create_form_from_template(db: Session, slug: str, workspace_id: int | None = None) -> Form:
     """A new draft form with the template's questions, endings, welcome button and theme."""
     template = get_template(slug)
     theme = _gallery_themes(db)[template.theme]
-    form = form_service.create_form(db, FormCreate(title=template.title))
+    form = form_service.create_form(db, FormCreate(title=template.title, workspace_id=workspace_id))
     form_id = form.id
     try:
         _fill_form(db, form, template, theme)
