@@ -24,7 +24,7 @@ describe("profileFromAnswers", () => {
   it("copes with skipped optional questions and odd values", () => {
     const p = profileFromAnswers({ [Q_NAME]: "Ana" });
     assert.deepEqual(p.status === "completed" && [p.role, p.goals], [null, []]);
-    const junk = profileFromAnswers({ [Q_NAME]: "Ana", [Q_ROLE]: 5, [Q_GOALS]: ["leads", 3, null] });
+    const junk = profileFromAnswers({ [Q_NAME]: "Ana", [Q_ROLE]: 5, [Q_GOALS]: ["leads", 3, null] } as any);
     assert.deepEqual(junk.status === "completed" && [junk.role, junk.goals], [null, ["leads"]]);
     assert.equal(profileFromAnswers({}).status, "skipped");
   });
