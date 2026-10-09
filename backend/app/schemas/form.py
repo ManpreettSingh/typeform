@@ -29,6 +29,7 @@ class ThankYou(StrictModel):
 class FormCreate(StrictModel):
     # Typeform names new forms "New form" until the creator renames them.
     title: Title = "New form"
+    workspace_id: int | None = None
 
 
 from app.schemas.media import MediaPropertiesMixin
@@ -39,19 +40,21 @@ class Welcome(StrictModel, MediaPropertiesMixin):
     show_submission_count: bool = False
 
 class FormUpdate(PatchModel):
-    NON_NULLABLE = ("title", "theme", "thank_you", "welcome")
+    NON_NULLABLE = ("title", "theme", "thank_you", "welcome", "workspace_id")
 
     title: Title | None = None
     description: str | None = Field(default=None, max_length=FORM_DESCRIPTION_MAX)
     theme: Theme | None = None
     thank_you: ThankYou | None = None
     welcome: Welcome | None = None
+    workspace_id: int | None = None
 
 class _FormBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     slug: str
+    workspace_id: int | None
     title: str
     status: FormStatus
     response_count: int

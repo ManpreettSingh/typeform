@@ -183,6 +183,34 @@ def rename_theme_color_keys(engine: Engine) -> None:
             conn.execute(text("UPDATE forms SET theme = :theme WHERE id = :id"), {"theme": json.dumps(theme), "id": form_id})
 
 
+def create_workspaces_table(engine: Engine) -> None:
+    with engine.begin() as conn:
+        conn.exec_driver_sql(
+            """
+            CREATE TABLE IF NOT EXISTS workspaces (
+                id INTEGER NOT NULL PRIMARY KEY,
+                name VARCHAR(200) NOT NULL,
+                created_at DATETIME NOT NULL,
+                updated_at DATETIME NOT NULL
+            )
+            """
+        )
+
+def add_forms_workspace_id(engine: Engine) -> None:
+    _add_column(engine, "forms", "workspace_id", "INTEGER REFERENCES workspaces(id) ON DELETE SET NULL")
+    
+    with engine.begin() as conn:
+        from datetime import datetime
+        now = datetime.utcnow().isoformat()
+        # Ensure at least one workspace exists
+        res = conn.exec_driver_sql("SELECT COUNT(*) FROM workspaces").scalar()
+        if not res:
+            conn.exec_driver_sql(
+                f"INSERT INTO workspaces (id, name, created_at, updated_at) VALUES (1, 'My workspace', '{now}', '{now}')"
+            )
+        # Update forms that have no workspace
+        conn.exec_driver_sql("UPDATE forms SET workspace_id = 1 WHERE workspace_id IS NULL")
+
 MIGRATIONS: list[tuple[str, Step]] = [
     ("add_forms_views", add_forms_views),
     ("drop_question_type_check", drop_question_type_check),
@@ -192,6 +220,8 @@ MIGRATIONS: list[tuple[str, Step]] = [
     ("create_themes_table", create_themes_table),
     ("create_ai_memory_table", create_ai_memory_table),
     ("rename_theme_color_keys", rename_theme_color_keys),
+    ("create_workspaces_table", create_workspaces_table),
+    ("add_forms_workspace_id", add_forms_workspace_id),
 ]
 
 

@@ -239,6 +239,7 @@ def _seed_form(db: Session, spec: dict[str, Any]) -> Form | None:
     specs: list[QuestionSpec] = spec["questions"]
     form = Form(
         slug=spec["slug"],
+        workspace_id=1,
         title=spec["title"],
         description=spec["description"],
         status=status,

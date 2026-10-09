@@ -38,13 +38,17 @@ def get_form(db: Session, form_id: int) -> Form:
     return form
 
 
-def list_forms(db: Session) -> list[FormListItem]:
+def list_forms(db: Session, workspace_id: int | None = None) -> list[FormListItem]:
     # One query with correlated counts — no per-form round trips.
-    rows = db.execute(
-        select(Form, _response_count_expr(), _response_total_expr(), _question_count_expr()).order_by(
-            Form.updated_at.desc(), Form.id.desc()
-        )
-    ).all()
+    stmt = select(Form, _response_count_expr(), _response_total_expr(), _question_count_expr()).order_by(
+        Form.updated_at.desc(), Form.id.desc()
+    )
+    if workspace_id is not None:
+        stmt = stmt.where(Form.workspace_id == workspace_id)
+    else:
+        stmt = stmt.where(Form.workspace_id == 1)
+
+    rows = db.execute(stmt).all()
     return [
         _serialize(FormListItem, form, response_count=responses, response_total=total, question_count=questions)
         for form, responses, total, questions in rows
@@ -68,6 +72,7 @@ def _serialize(schema: type[FormSchema], form: Form, **extra: object) -> FormSch
 def create_form(db: Session, data: FormCreate) -> Form:
     form = Form(
         slug=generate_unique_slug(db),
+        workspace_id=data.workspace_id or 1,
         title=data.title,
         status=FormStatus.DRAFT,
         theme=Theme().model_dump(),

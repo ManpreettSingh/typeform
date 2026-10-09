@@ -15,8 +15,8 @@ DB = Annotated[Session, Depends(get_db)]
 
 
 @router.get("", response_model=list[FormListItem])
-def list_forms(db: DB):
-    return form_service.list_forms(db)
+def list_forms(db: DB, workspace_id: int | None = None):
+    return form_service.list_forms(db, workspace_id)
 
 
 @router.post("", response_model=FormOut, status_code=status.HTTP_201_CREATED)

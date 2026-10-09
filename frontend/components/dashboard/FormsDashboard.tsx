@@ -12,6 +12,7 @@ import {
   useRenameForm,
   useSetPublished,
 } from "@/lib/queries/forms";
+import { useWorkspaces } from "@/lib/queries/workspaces";
 import type { FormListItem } from "@/lib/types";
 import { CreateFormButton } from "./CreateFormButton";
 import { FormCard, FormCardSkeleton, type FormCardActions } from "./FormCard";
@@ -29,11 +30,13 @@ const SKELETON_COUNT = 4;
 const GRID = "grid grid-cols-1 gap-4 pt-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
 
 export function FormsDashboard() {
-  const forms = useForms();
+  const [activeWorkspace, setActiveWorkspace] = useState(1);
+  const forms = useForms(activeWorkspace);
   const renameForm = useRenameForm();
   const deleteForm = useDeleteForm();
   const duplicateForm = useDuplicateForm();
   const setPublished = useSetPublished();
+  const { data: workspaces } = useWorkspaces();
 
   const [query, setQuery] = useState("");
   // Typeform's workspace defaults to "Date created", newest first.
@@ -72,6 +75,8 @@ export function FormsDashboard() {
     const all = forms.data.reduce((sum, f) => sum + f.response_total, 0);
     return { completed, inProgress: all - completed };
   }, [forms.data]);
+  
+  const currentWorkspaceName = workspaces?.find(w => w.id === activeWorkspace)?.name ?? "My workspace";
 
   return (
     <>
@@ -80,10 +85,12 @@ export function FormsDashboard() {
         onQueryChange={setQuery}
         formCount={forms.data?.length ?? null}
         totals={totals}
+        activeWorkspace={activeWorkspace}
+        setActiveWorkspace={setActiveWorkspace}
       />
       <section aria-label="Forms" className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-          <h1 className="text-2xl font-normal text-text">My workspace</h1>
+          <h1 className="text-2xl font-normal text-text">{currentWorkspaceName}</h1>
           {forms.data && forms.data.length > 0 && (
             <FormsToolbar sort={sort} onSortChange={setSort} view={view} onViewChange={setView} />
           )}
@@ -100,7 +107,7 @@ export function FormsDashboard() {
               leftIcon={<Search className="size-4" />}
             />
           </div>
-          <CreateFormButton />
+          <CreateFormButton activeWorkspace={activeWorkspace} />
         </div>
 
         {forms.isPending ? (
@@ -137,7 +144,7 @@ export function FormsDashboard() {
             icon={<FileText className="size-6" />}
             title="No forms yet"
             description="Create your first form to start collecting responses, one question at a time."
-            action={<CreateFormButton />}
+            action={<CreateFormButton activeWorkspace={activeWorkspace} />}
           />
         ) : visible.length === 0 ? (
           <EmptyState

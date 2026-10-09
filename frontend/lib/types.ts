@@ -309,7 +309,7 @@ export type Form = FormBase & {
   endings: Ending[];
 };
 
-export type FormCreate = { title?: string };
+export type FormCreate = { title?: string; workspace_id?: number };
 
 /** Typeform AI: a request in plain words ("Create with AI", "Chat to create", "Ask Typeform AI"). */
 export type AiPrompt = { prompt: string };

@@ -8,5 +8,6 @@ from app.models.question import Question
 from app.models.response import Response
 
 from app.models.theme import ThemeGallery
+from app.models.workspace import Workspace
 
-__all__ = ["AiMemory", "Answer", "Ending", "Form", "FormStatus", "Question", "QuestionType", "Response", "ResponseStatus", "ThemeGallery"]
+__all__ = ["AiMemory", "Answer", "Ending", "Form", "FormStatus", "Question", "QuestionType", "Response", "ResponseStatus", "ThemeGallery", "Workspace"]

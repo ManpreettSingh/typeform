@@ -10,7 +10,7 @@ import { useCreateForm } from "@/lib/queries/forms";
 const TITLE_MAX = 200;
 
 /** "Create form" button + title modal; on success opens the builder. */
-export function CreateFormButton({ size = "md", className }: { size?: ButtonProps["size"]; className?: string }) {
+export function CreateFormButton({ size = "md", className, activeWorkspace = 1 }: { size?: ButtonProps["size"]; className?: string; activeWorkspace?: number }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const formId = useId();
@@ -29,7 +29,7 @@ export function CreateFormButton({ size = "md", className }: { size?: ButtonProp
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     createForm.mutate(
-      { title: title.trim() || undefined },
+      { title: title.trim() || undefined, workspace_id: activeWorkspace },
       {
         onSuccess: (form) => {
           // Close before navigating so the dialog isn't left mid-exit inside the hidden dashboard.

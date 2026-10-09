@@ -97,6 +97,7 @@ def _apply(db: Session, form: Form | None, p: Proposal) -> Form:
     if form is None:
         form = Form(
             slug=generate_unique_slug(db),
+            workspace_id=1,
             title=p.welcome.title,
             status=FormStatus.DRAFT,
             theme=Theme().model_dump(),

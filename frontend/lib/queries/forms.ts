@@ -8,7 +8,7 @@ import type { AiPrompt, Form, FormCreate, FormListItem, FormUpdate } from "@/lib
 // ---- API ---------------------------------------------------------------
 
 export const formsApi = {
-  list: () => apiGet<FormListItem[]>("/forms"),
+  list: (workspaceId?: number) => apiGet<FormListItem[]>(workspaceId ? `/forms?workspace_id=${workspaceId}` : "/forms"),
   get: (id: number) => apiGet<Form>(`/forms/${id}`),
   create: (data: FormCreate) => apiPost<Form>("/forms", data),
   update: (id: number, data: FormUpdate) => apiPatch<Form>(`/forms/${id}`, data),
@@ -28,7 +28,7 @@ export const aiApi = {
 
 export const formKeys = {
   all: ["forms"] as const,
-  list: () => [...formKeys.all, "list"] as const,
+  list: (workspaceId?: number) => [...formKeys.all, "list", workspaceId] as const,
   detail: (id: number) => [...formKeys.all, "detail", id] as const,
 };
 
@@ -53,9 +53,9 @@ export function toListItem(form: Form, responseTotal = form.response_count): For
 }
 
 /** Writes a fresh server copy of a form into both the list and detail caches. */
-function storeForm(qc: QueryClient, form: Form) {
+function storeForm(qc: QueryClient, form: Form, workspaceId?: number) {
   qc.setQueryData(formKeys.detail(form.id), form);
-  qc.setQueryData<FormListItem[]>(formKeys.list(), (list) => {
+  qc.setQueryData<FormListItem[]>(formKeys.list(workspaceId), (list) => {
     if (!list) return list;
     const existing = list.find((f) => f.id === form.id);
     const item = toListItem(form, existing?.response_total);
@@ -64,18 +64,18 @@ function storeForm(qc: QueryClient, form: Form) {
 }
 
 /** Optimistically edits the cached list; returns a rollback. */
-async function patchList(qc: QueryClient, update: (list: FormListItem[]) => FormListItem[]) {
-  await qc.cancelQueries({ queryKey: formKeys.list() });
-  const previous = qc.getQueryData<FormListItem[]>(formKeys.list());
-  if (previous) qc.setQueryData(formKeys.list(), update(previous));
-  return () => qc.setQueryData(formKeys.list(), previous);
+async function patchList(qc: QueryClient, update: (list: FormListItem[]) => FormListItem[], workspaceId?: number) {
+  await qc.cancelQueries({ queryKey: formKeys.list(workspaceId) });
+  const previous = qc.getQueryData<FormListItem[]>(formKeys.list(workspaceId));
+  if (previous) qc.setQueryData(formKeys.list(workspaceId), update(previous));
+  return () => qc.setQueryData(formKeys.list(workspaceId), previous);
 }
 
 // ---- Hooks -------------------------------------------------------------
 
-export function useForms() {
+export function useForms(workspaceId?: number) {
   // staleTime 0: the builder edits forms too, so refresh whenever the dashboard is shown.
-  return useQuery({ queryKey: formKeys.list(), queryFn: formsApi.list, staleTime: 0 });
+  return useQuery({ queryKey: formKeys.list(workspaceId), queryFn: () => formsApi.list(workspaceId), staleTime: 0 });
 }
 
 export function useCreateForm() {
