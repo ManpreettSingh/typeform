@@ -3,10 +3,10 @@
 import { clsx } from "clsx";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState, type ReactNode, type RefObject } from "react";
 import { toast } from "sonner";
 import { ApiError, getErrorMessage } from "@/lib/api";
-import type { Answers, PublicQuestion, ThankYou, Ending, MediaAttachment, MediaLayout } from "@/lib/types";
+import type { Answers, PublicQuestion, ThankYou, Ending, MediaProperties } from "@/lib/types";
 import { canEndAfter, nextIndex, visitedPath } from "@/lib/logic";
 import { isEmptyAnswer, validateAnswer } from "@/lib/validation";
 import { flowReducer, initialFlowState } from "./flowState";
@@ -26,9 +26,7 @@ type Props = {
     show_time_to_complete?: boolean;
     show_submission_count?: boolean;
     submission_count?: number | null;
-    attachment?: MediaAttachment | null;
-    layout?: MediaLayout | null;
-  } | null;
+  } & MediaProperties | null;
   endings?: Ending[];
   /**
    * Called with all answers after the last question validates. Throw an `ApiError` 422 keyed by question id
@@ -59,6 +57,9 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
   // Latest `submit`, for the toast's Retry action.
   const submitRef = useRef<() => Promise<void>>(async () => {});
   const reduceMotion = useReducedMotion();
+  // Mobile image layouts follow the flow's own width, so phone-frame previews get them too.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const small = useNarrow(rootRef);
 
   useLayoutEffect(() => {
     stateRef.current = state;
@@ -190,18 +191,15 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
 
   const slideKey = step === "question" ? current.id : step;
   let content: ReactNode;
-  let attachment = null;
-  let layout = null;
+  let media: MediaProperties | null | undefined;
 
   if (step === "welcome" && welcome) {
     content = <WelcomeScreen {...welcome} onStart={goNext} />;
-    attachment = welcome.attachment;
-    layout = welcome.layout;
+    media = welcome;
   } else if (step === "done") {
     const endScreen = endings?.[0] || thankYou;
     content = <ThankYouScreen thankYou={endScreen} />;
-    attachment = "attachment" in endScreen ? (endScreen as Ending).attachment : null;
-    layout = "attachment" in endScreen ? (endScreen as Ending).layout : null;
+    media = "attachment" in endScreen ? (endScreen as Ending) : null;
   } else {
     content = (
       <QuestionRenderer
@@ -218,14 +216,23 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
         submitting={state.submitting}
       />
     );
-    attachment = current.properties?.attachment;
-    layout = current.properties?.layout;
+    media = current.properties as MediaProperties;
   }
 
-  content = <MediaCanvas attachment={attachment} layout={layout}>{content}</MediaCanvas>;
+  content = (
+    <MediaCanvas
+      attachment={media?.attachment}
+      layout={media?.layout}
+      viewport_overrides={media?.viewport_overrides}
+      small={small}
+      inlineStack={step === "question"}
+    >
+      {content}
+    </MediaCanvas>
+  );
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div ref={rootRef} className="relative flex h-full flex-col">
       {step === "question" && (
         <div
           role="progressbar"
@@ -270,6 +277,21 @@ export function RespondentFlow({ questions, thankYou, welcome, endings, onComple
       )}
     </div>
   );
+}
+
+/** Whether the element is narrower than a tablet (Tailwind's md), kept up to date as it resizes. */
+function useNarrow(ref: RefObject<HTMLElement | null>, below = 768) {
+  const [narrow, setNarrow] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setNarrow(el.getBoundingClientRect().width < below);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, below]);
+  return narrow;
 }
 
 /**

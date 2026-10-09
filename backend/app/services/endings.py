@@ -19,7 +19,8 @@ def create_ending(db: Session, form_id: int, data: EndingCreate) -> Ending:
         title=data.title,
         message=data.message,
         button_text=data.button_text,
-        button_url=data.button_url
+        button_url=data.button_url,
+        **data.model_dump(include={"attachment", "layout", "viewport_overrides"}),
     )
     db.add(ending)
     db.commit()

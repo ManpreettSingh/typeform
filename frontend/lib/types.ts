@@ -42,20 +42,27 @@ export type MediaAttachment = {
   public_id: string;
   url: string;
   alt: string;
-  focal_point?: Record<string, unknown> | null;
+  /** Where cropped layouts keep the image centred, 0–1 from the top-left (default the middle). */
+  focal_point?: { x: number; y: number } | null;
+  /** -100 (black) … 100 (washed out), like Typeform. */
   brightness?: number | null;
   scale?: number | null;
 };
 
+export type MediaLayoutType = "stack" | "split" | "float" | "wallpaper";
+
+/** `placement` is the image's side for float and split. */
 export type MediaLayout = {
-  type: "stack" | "split" | "float" | "wallpaper";
-  placement: "left" | "right" | null;
+  type: MediaLayoutType;
+  placement?: "left" | "right" | null;
 };
 
 export type MediaProperties = {
   attachment?: MediaAttachment | null;
+  /** Desktop layout. */
   layout?: MediaLayout | null;
-  viewport_overrides?: Record<string, unknown> | null;
+  /** `small`: the mobile layout (stack when unset). */
+  viewport_overrides?: { small?: MediaLayout | null } | null;
 };
 
 type WithMedia<T> = T & MediaProperties;

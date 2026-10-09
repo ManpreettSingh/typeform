@@ -80,7 +80,13 @@ export function BuilderCanvas({
         )}
       >
         {media?.attachment ? (
-          <MediaCanvas attachment={media.attachment} layout={media.layout}>
+          <MediaCanvas
+            attachment={media.attachment}
+            layout={media.layout}
+            viewport_overrides={media.viewport_overrides}
+            small={device === "mobile"}
+            inlineStack={screen === "question"}
+          >
             {content}
           </MediaCanvas>
         ) : (

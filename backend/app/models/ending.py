@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
@@ -25,5 +25,9 @@ class Ending(Base):
     message: Mapped[str] = mapped_column(Text, nullable=False, default="Your response has been recorded.")
     button_text: Mapped[str | None] = mapped_column(String(50))
     button_url: Mapped[str | None] = mapped_column(String(2000))
+    # Image and its desktop / mobile layout (schemas/media.py).
+    attachment: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    layout: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    viewport_overrides: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
     form: Mapped[Form] = relationship(back_populates="endings")

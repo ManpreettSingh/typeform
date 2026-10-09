@@ -45,14 +45,7 @@ export function WelcomeSettings() {
           onChange={(c: boolean) => updateForm({ welcome: { ...form.welcome!, show_submission_count: c } })}
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-medium text-text-subtle">Image or video</label>
-        <MediaSettings
-          attachment={form.welcome.attachment}
-          layout={form.welcome.layout}
-          onChange={(patch) => updateForm({ welcome: { ...form.welcome!, ...patch } })}
-        />
-      </div>
+      <MediaSettings media={form.welcome} onChange={(patch) => updateForm({ welcome: { ...form.welcome!, ...patch } })} />
     </div>
   );
 }

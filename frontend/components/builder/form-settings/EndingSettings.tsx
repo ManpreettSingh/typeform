@@ -52,14 +52,7 @@ export function EndingSettings() {
           placeholder="https://"
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-xs font-medium text-text-subtle">Image or video</label>
-        <MediaSettings
-          attachment={ending.attachment}
-          layout={ending.layout}
-          onChange={(patch) => updateEnding(ending.id, patch)}
-        />
-      </div>
+      <MediaSettings media={ending} onChange={(patch) => updateEnding(ending.id, patch)} />
     </div>
   );
 }

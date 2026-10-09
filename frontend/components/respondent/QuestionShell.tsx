@@ -1,5 +1,6 @@
 import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useStackedMedia } from "./MediaCanvas";
 
 type Props = {
   number: number;
@@ -41,6 +42,8 @@ export function QuestionShell({
   descriptionSlot,
   children,
 }: Props) {
+  // Stack layout: the image sits between the question text and the answer.
+  const media = useStackedMedia();
   return (
     <div className="w-full max-w-2xl">
       <div className="flex items-start gap-2 sm:gap-3">
@@ -73,6 +76,7 @@ export function QuestionShell({
             (description && (
               <p className="mt-2 text-base break-words whitespace-pre-line opacity-70 sm:text-lg">{description}</p>
             ))}
+          {media && <div className="mt-6 sm:mt-8">{media}</div>}
 
           <div className="mt-6 sm:mt-8">{children}</div>
           {hint && <p className="mt-2 text-xs opacity-60">{hint}</p>}

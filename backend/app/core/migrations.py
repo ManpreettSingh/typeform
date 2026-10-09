@@ -211,6 +211,11 @@ def add_forms_workspace_id(engine: Engine) -> None:
         # Update forms that have no workspace
         conn.exec_driver_sql("UPDATE forms SET workspace_id = 1 WHERE workspace_id IS NULL")
 
+def add_endings_media(engine: Engine) -> None:
+    for name in ("attachment", "layout", "viewport_overrides"):
+        _add_column(engine, "endings", name, "JSON")
+
+
 MIGRATIONS: list[tuple[str, Step]] = [
     ("add_forms_views", add_forms_views),
     ("drop_question_type_check", drop_question_type_check),
@@ -222,6 +227,7 @@ MIGRATIONS: list[tuple[str, Step]] = [
     ("rename_theme_color_keys", rename_theme_color_keys),
     ("create_workspaces_table", create_workspaces_table),
     ("add_forms_workspace_id", add_forms_workspace_id),
+    ("add_endings_media", add_endings_media),
 ]
 
 

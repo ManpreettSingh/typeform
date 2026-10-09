@@ -59,18 +59,6 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
         </div>
       </PanelCard>
 
-      <PanelCard title="Image or video">
-        <MediaSettings
-          attachment={question.properties.attachment}
-          layout={question.properties.layout}
-          onChange={(patch) =>
-            updateQuestion(question.id, {
-              properties: { ...question.properties, ...patch },
-            })
-          }
-        />
-      </PanelCard>
-
       <PanelCard title="Answer">
         {question.type === "group" || question.type === "statement" ? (
           <div
@@ -92,6 +80,12 @@ function Fields({ question, onDelete }: { question: Question; onDelete: (questio
           />
         )}
         <TypeSettings question={question} />
+        <PanelDivider />
+        {/* Like Typeform, the image settings sit at the end of the Answer card. */}
+        <MediaSettings
+          media={question.properties}
+          onChange={(patch) => updateQuestion(question.id, { properties: { ...question.properties, ...patch } })}
+        />
         <PanelDivider />
         <Button
           variant="dangerGhost"

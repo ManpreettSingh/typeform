@@ -23,6 +23,39 @@ def test_duplicate_form_copies_endings(client, make_form):
     assert len(dup_form["endings"]) == 2
     assert dup_form["endings"][1]["title"] == "Second ending"
 
+MEDIA = {
+    "attachment": {"type": "image", "public_id": "p", "url": "https://example.com/a.png", "alt": "A", "brightness": -20},
+    "layout": {"type": "split", "placement": "right"},
+    "viewport_overrides": {"small": {"type": "wallpaper", "placement": None}},
+}
+
+
+def test_ending_media_is_saved(client, make_form):
+    form = make_form()
+    ending_id = form["endings"][0]["id"]
+    assert client.patch(f"/api/endings/{ending_id}", json=MEDIA).status_code == 200
+
+    saved = client.get(f"/api/forms/{form['id']}").json()["endings"][0]
+    assert saved["attachment"]["url"] == "https://example.com/a.png"
+    assert saved["attachment"]["brightness"] == -20
+    assert saved["layout"] == {"type": "split", "placement": "right"}
+    assert saved["viewport_overrides"] == {"small": {"type": "wallpaper", "placement": None}}
+
+    # Removing the image clears it.
+    client.patch(f"/api/endings/{ending_id}", json={"attachment": None, "layout": None})
+    cleared = client.get(f"/api/forms/{form['id']}").json()["endings"][0]
+    assert cleared["attachment"] is None and cleared["layout"] is None
+
+
+def test_new_ending_and_duplicate_keep_media(client, make_form):
+    form = make_form()
+    created = client.post(f"/api/forms/{form['id']}/endings", json={"title": "Pic", **MEDIA}).json()
+    assert created["attachment"]["url"] == "https://example.com/a.png"
+
+    dup = client.post(f"/api/forms/{form['id']}/duplicate").json()
+    assert dup["endings"][1]["layout"] == {"type": "split", "placement": "right"}
+
+
 def test_welcome_button_text_limit_24(client, make_form):
     form = make_form()
     form_id = form["id"]

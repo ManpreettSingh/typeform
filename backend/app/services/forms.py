@@ -131,7 +131,10 @@ def duplicate_form(db: Session, form: Form) -> Form:
             title=e.title,
             message=e.message,
             button_text=e.button_text,
-            button_url=e.button_url
+            button_url=e.button_url,
+            attachment=copy.deepcopy(e.attachment),
+            layout=copy.deepcopy(e.layout),
+            viewport_overrides=copy.deepcopy(e.viewport_overrides),
         )
         for e in form.endings
     ]
