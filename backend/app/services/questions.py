@@ -3,6 +3,7 @@ from typing import Any
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from app.core.db import lock_for_write
 from app.core.errors import BadRequestError, FieldValidationError, NotFoundError, errors_from_pydantic
 from app.models import Form, Question, QuestionType
 from app.models.base import utcnow
@@ -69,6 +70,12 @@ def _renumber(db: Session, ordered: list[Question]) -> None:
     db.flush()
 
 
+def lock_positions(db: Session, form: Form) -> None:
+    """Serialises position changes on this form and re-reads its questions under the lock (core/db.py)."""
+    lock_for_write(db)
+    db.expire(form, ["questions"])
+
+
 def _commit_question_change(db: Session, form: Form) -> None:
     form.updated_at = utcnow()
     db.commit()
@@ -92,6 +99,7 @@ def create_question(db: Session, form: Form, data: QuestionCreate) -> Question:
         required=data.required if spec.answerable else False,
         properties=properties,
     )
+    lock_positions(db, form)
     db.add(question)
 
     ordered = list(form.questions)
@@ -185,6 +193,7 @@ def delete_question(db: Session, question: Question) -> None:
         return
         
     form = question.form
+    lock_positions(db, form)
     remaining = [q for q in form.questions if q.id != question.id]
     for q in remaining:
         q.logic = without_jumps_to(q.logic, {question.id})
@@ -195,6 +204,7 @@ def delete_question(db: Session, question: Question) -> None:
 
 
 def reorder_questions(db: Session, form: Form, ordered_ids: list[int]) -> list[Question]:
+    lock_positions(db, form)
     by_id = {q.id: q for q in form.questions}
     if len(ordered_ids) != len(by_id) or set(ordered_ids) != by_id.keys():
         raise BadRequestError("ordered_ids must list every question of this form exactly once.")

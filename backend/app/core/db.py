@@ -20,6 +20,18 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _record) -> None:
     cursor.close()
 
 
+def lock_for_write(db: Session) -> None:
+    """Takes SQLite's write lock now, before a read-then-write such as picking the next free position.
+
+    pysqlite only opens a transaction at the first INSERT/UPDATE, so two requests could both read the same positions
+    and the second write then broke UNIQUE(form_id, position) with a 500. BEGIN IMMEDIATE makes them take turns (the
+    other waits on the driver's busy timeout). Plain reads stay lock-free. Callers reload what they read after this.
+    """
+    connection = db.connection()
+    if not connection.connection.dbapi_connection.in_transaction:
+        connection.exec_driver_sql("BEGIN IMMEDIATE")
+
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

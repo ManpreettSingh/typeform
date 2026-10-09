@@ -10,6 +10,7 @@ from typing import Any
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from app.core.db import lock_for_write
 from app.core.errors import FieldValidationError, errors_from_pydantic
 from app.models import Form, FormStatus, Question, QuestionType
 from app.models.base import utcnow
@@ -28,6 +29,10 @@ PROVISIONAL = 1_000_000  # positions above any real one, so UNIQUE(form_id, posi
 
 def apply_proposal(db: Session, data: ApplyIn) -> Form:
     form = form_service.get_form(db, data.form_id) if data.form_id is not None else None
+    if form is not None:
+        # Rewrites positions of questions and endings: no other change may interleave.
+        lock_for_write(db)
+        db.expire(form, ["questions", "endings"])
     try:
         form = _apply(db, form, data.proposal)
         db.commit()

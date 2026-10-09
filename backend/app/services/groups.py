@@ -7,6 +7,8 @@ def add_to_group(db: Session, question: Question, group: Question) -> Question:
     
     # We need to reorder the form's questions so that `question` is after the group's last child.
     form = group.form
+    from app.services.questions import lock_positions
+    lock_positions(db, form)
     ordered = list(form.questions)
     
     # Remove question from current position
@@ -37,6 +39,8 @@ def remove_from_group(db: Session, question: Question) -> Question:
         return question
         
     form = question.form
+    from app.services.questions import lock_positions
+    lock_positions(db, form)
     # Find the group
     group = next(q for q in form.questions if q.id == question.group_id)
     question.group_id = None
@@ -63,7 +67,8 @@ def remove_from_group(db: Session, question: Question) -> Question:
 def delete_group(db: Session, group: Question):
     """Deletes header and children."""
     form = group.form
-    from app.services.questions import without_jumps_to, _renumber, _commit_question_change
+    from app.services.questions import without_jumps_to, _renumber, _commit_question_change, lock_positions
+    lock_positions(db, form)
     
     children = [q for q in form.questions if q.group_id == group.id]
     to_delete = {group.id} | {q.id for q in children}

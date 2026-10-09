@@ -1,14 +1,24 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.db import lock_for_write
 from app.core.errors import ConflictError, NotFoundError
 from app.models.ending import Ending
 from app.models.form import Form
 from app.schemas.ending import EndingCreate, EndingUpdate
 
 
-def create_ending(db: Session, form_id: int, data: EndingCreate) -> Ending:
+def _locked_form(db: Session, form_id: int) -> Form | None:
+    """The form with its endings re-read under the write lock, so position changes take turns (core/db.py)."""
+    lock_for_write(db)
     form = db.get(Form, form_id)
+    if form is not None:
+        db.expire(form, ["endings"])
+    return form
+
+
+def create_ending(db: Session, form_id: int, data: EndingCreate) -> Ending:
+    form = _locked_form(db, form_id)
     if not form:
         raise NotFoundError("Form not found")
         
@@ -53,7 +63,7 @@ def delete_ending(db: Session, ending_id: int) -> None:
     if not ending:
         raise NotFoundError("Ending not found")
         
-    form = ending.form
+    form = _locked_form(db, ending.form_id)
     if len(form.endings) <= 1:
         raise ConflictError("A form must have at least one ending")
         
@@ -70,7 +80,7 @@ def delete_ending(db: Session, ending_id: int) -> None:
 
 
 def reorder_endings(db: Session, form_id: int, ending_ids: list[int]) -> list[Ending]:
-    form = db.get(Form, form_id)
+    form = _locked_form(db, form_id)
     if not form:
         raise NotFoundError("Form not found")
         
