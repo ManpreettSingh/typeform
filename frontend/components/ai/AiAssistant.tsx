@@ -114,6 +114,21 @@ export function AiAssistant({ formId, initialPrompt, theme = DEFAULT_THEME, onCl
 
   if (!mounted) return null;
 
+  const actionBar = (
+    <div className="flex items-center justify-end gap-3 rounded-card border border-border bg-bg px-4 py-2.5 shadow-lg">
+      {applyError ? (
+        <p role="alert" className="mr-auto text-sm text-danger">
+          {applyError}
+        </p>
+      ) : (
+        !changes && <p className="mr-auto text-sm text-text-muted">{version ? "No changes to apply." : "Suggested changes appear here."}</p>
+      )}
+      <Button onClick={apply} loading={applying} disabled={!changes}>
+        {formId === null ? "Create form" : "Apply changes to form"}
+      </Button>
+    </div>
+  );
+
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Typeform AI" className="fixed inset-0 z-50 flex flex-col bg-bg">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
@@ -157,7 +172,7 @@ export function AiAssistant({ formId, initialPrompt, theme = DEFAULT_THEME, onCl
 
         <section
           aria-label="Review"
-          className={clsx("min-h-0 min-w-0 flex-1 flex-col bg-bg-subtle lg:flex", pane === "review" ? "flex" : "hidden")}
+          className={clsx("relative min-h-0 min-w-0 flex-1 flex-col bg-bg-subtle lg:flex", pane === "review" ? "flex" : "hidden")}
         >
           <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4">
             <Tabs<ReviewTab>
@@ -192,28 +207,24 @@ export function AiAssistant({ formId, initialPrompt, theme = DEFAULT_THEME, onCl
             )}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === "preview" && version ? (
-              <ProposalPreview proposal={version.proposal} theme={theme} versionKey={session.current} />
-            ) : (
-              <SuggestedChanges diff={version?.diff ?? null} />
-            )}
-          </div>
+          {tab === "preview" && version ? (
+            <>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <ProposalPreview proposal={version.proposal} theme={theme} versionKey={session.current} />
+              </div>
+              {/* The preview fills the pane, so the button floats over its bottom edge. */}
+              <div className="absolute inset-x-0 bottom-6 z-10 mx-auto w-fit max-w-[calc(100%-2rem)]">{actionBar}</div>
+            </>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+              <div className="flex flex-col">
+                <SuggestedChanges diff={version?.diff ?? null} versionKey={session.current} />
+              </div>
+              {/* Right under the last suggestion; once the list is long it stays just above the bottom edge. */}
+              <div className="sticky bottom-6 z-10 mx-auto mb-6 w-fit max-w-[calc(100%-2rem)]">{actionBar}</div>
+            </div>
+          )}
 
-          <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-border bg-bg px-4 py-3">
-            {applyError ? (
-              <p role="alert" className="mr-auto text-sm text-danger">
-                {applyError}
-              </p>
-            ) : (
-              !changes && (
-                <p className="mr-auto text-sm text-text-muted">{version ? "No changes to apply." : "Suggested changes appear here."}</p>
-              )
-            )}
-            <Button onClick={apply} loading={applying} disabled={!changes}>
-              {formId === null ? "Create form" : "Apply changes to form"}
-            </Button>
-          </footer>
         </section>
       </div>
 

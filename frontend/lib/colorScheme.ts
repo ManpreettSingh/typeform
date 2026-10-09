@@ -14,9 +14,10 @@ const listeners = new Set<() => void>();
 function readPreference(): ColorSchemePreference {
   try {
     const stored = localStorage.getItem(COLOR_SCHEME_STORAGE_KEY);
-    return stored === "light" || stored === "dark" ? stored : "system";
+    // Light is the default; following the computer is something a person picks.
+    return stored === "dark" || stored === "system" ? stored : "light";
   } catch {
-    return "system";
+    return "light";
   }
 }
 
@@ -33,8 +34,7 @@ function apply() {
 
 export function setColorSchemePreference(preference: ColorSchemePreference) {
   try {
-    if (preference === "system") localStorage.removeItem(COLOR_SCHEME_STORAGE_KEY);
-    else localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, preference);
+    localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, preference);
   } catch {
     // Storage blocked: still switch for this page view.
   }
@@ -55,9 +55,9 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** The stored preference ("system" on the server and before hydration). */
+/** The stored preference (light on the server and before hydration). */
 export function useColorSchemePreference(): ColorSchemePreference {
-  return useSyncExternalStore(subscribe, readPreference, () => "system");
+  return useSyncExternalStore(subscribe, readPreference, () => "light");
 }
 
 /** The theme actually shown. */

@@ -41,7 +41,8 @@ import { useBuilderStore } from "@/store/builderStore";
 
 type Tab = "elements" | "import" | "ai";
 
-type Element = { label: string; icon: LucideIcon; type?: QuestionType };
+// An item is a question type, or a screen: "welcome" opens the welcome screen, "ending" adds an end screen.
+type Element = { label: string; icon: LucideIcon; type?: QuestionType; action?: "welcome" | "ending" };
 type Group = { title: string; chip: string; items: Element[] };
 
 // Typeform's "Add form elements" catalogue. Items without a `type` aren't built here and show "Soon".
@@ -105,11 +106,11 @@ const GROUPS: Group[] = [
     title: "Form structure",
     chip: "bg-qt-screen",
     items: [
-      { label: "Welcome Screen", icon: AlignLeft }, // Placeholder for now, handled differently?
+      { label: "Welcome Screen", icon: AlignLeft, action: "welcome" },
       { label: "Partial Submit Point", icon: CircleSlash }, // Soon
       { label: "Statement", icon: Quote, type: "statement" },
       { label: "Question Group", icon: Grid3X3, type: "group" },
-      { label: "End Screen", icon: AlignLeft },
+      { label: "End Screen", icon: AlignLeft, action: "ending" },
       { label: "Redirect to URL", icon: Globe },
     ],
   },
@@ -225,15 +226,31 @@ function AiTab({ onSubmit }: { onSubmit: (prompt: string) => void }) {
 
 function ElementsTab({ onDone }: { onDone: () => void }) {
   const addQuestion = useBuilderStore((s) => s.addQuestion);
+  const addEnding = useBuilderStore((s) => s.addEnding);
+  const showScreen = useBuilderStore((s) => s.showScreen);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const needle = query.trim().toLowerCase();
 
   async function add(type: QuestionType) {
+    return run(() => addQuestion(type));
+  }
+
+  /** What picking a tile does: a question is added, the welcome screen is opened, an end screen is added. */
+  function pick({ type, action }: Element) {
+    if (type) return void add(type);
+    if (action === "welcome") {
+      showScreen("welcome");
+      return onDone();
+    }
+    if (action === "ending") void run(addEnding);
+  }
+
+  async function run(task: () => Promise<unknown>) {
     if (adding) return;
     setAdding(true);
     try {
-      await addQuestion(type);
+      await task();
       onDone();
     } catch {
       // The store already showed a toast; keep the modal open.
@@ -323,31 +340,35 @@ function ElementsTab({ onDone }: { onDone: () => void }) {
         {groups.map((group) => (
           <section key={group.title} aria-label={group.title} className="flex flex-col gap-1">
             <h3 className="mb-2 text-sm font-medium text-text">{group.title}</h3>
-            {group.items.map(({ label, icon: Icon, type }) => (
+            {group.items.map((item) => {
+              const { label, icon: Icon, type, action } = item;
+              const available = Boolean(type || action);
+              return (
               <button
                 key={label}
                 type="button"
-                disabled={!type || adding}
-                title={type ? undefined : "Coming soon"}
-                onClick={() => type && void add(type)}
+                disabled={!available || adding}
+                title={available ? undefined : "Coming soon"}
+                onClick={() => available && pick(item)}
                 className={clsx(
                   "flex h-9 items-center gap-3 rounded-field px-1.5 text-left text-sm focus-visible:outline-2 focus-visible:outline-accent",
-                  type ? "text-text-soft hover:bg-bg-hover" : "cursor-default text-text-muted",
+                  available ? "text-text-soft hover:bg-bg-hover" : "cursor-default text-text-muted",
                 )}
               >
                 <span
                   className={clsx(
                     "flex size-6 shrink-0 items-center justify-center rounded-input text-qt-fg",
                     group.chip,
-                    !type && "opacity-50",
+                    !available && "opacity-50",
                   )}
                 >
                   <Icon className="size-3.5" aria-hidden />
                 </span>
                 <span className="flex-1">{label}</span>
-                {!type && <Badge variant="accent">Soon</Badge>}
+                {!available && <Badge variant="accent">Soon</Badge>}
               </button>
-            ))}
+              );
+            })}
           </section>
         ))}
       </div>

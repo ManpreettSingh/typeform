@@ -4,8 +4,8 @@ export const COLOR_SCHEME_STORAGE_KEY = "color-scheme";
 
 /**
  * Runs inline in <head> before first paint, so a dark preference never flashes light.
- * Mirrors `resolve` in lib/colorScheme.ts: stored "light"/"dark", otherwise the OS setting.
+ * Mirrors `resolve` in lib/colorScheme.ts: light unless Dark was chosen, or System was chosen and the OS is dark.
  */
 export const COLOR_SCHEME_SCRIPT = `(function(){try{var p=localStorage.getItem(${JSON.stringify(
   COLOR_SCHEME_STORAGE_KEY,
-)});var d=p==="dark"||(p!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`;
+)});var d=p==="dark"||(p==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`;
